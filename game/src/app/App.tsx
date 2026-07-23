@@ -3,7 +3,8 @@ import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
 
 const CHAIN_ORIGIN = import.meta.env.VITE_CHAIN_BRIDGE_URL ?? (import.meta.env.DEV ? "http://127.0.0.1:3100" : window.location.origin);
-const WALLET_STORAGE_KEY = "gleanings.collection.wallet.v1";
+const WALLET_SESSION_KEY = "gleanings.collection.wallet.session.v1";
+const LEGACY_WALLET_STORAGE_KEY = "gleanings.collection.wallet.v1";
 
 type Eip1193Provider = { request: (request: { method: string; params?: unknown[] }) => Promise<unknown>; isMetaMask?: boolean; isOkxWallet?: boolean; providers?: Eip1193Provider[] };
 type AnnouncedWallet = { info?: { name?: string }; provider: Eip1193Provider };
@@ -32,7 +33,8 @@ function loadCollectedItems(): Collectible[] {
 }
 
 function savedWallet(): string {
-  const value = localStorage.getItem(WALLET_STORAGE_KEY) ?? "";
+  localStorage.removeItem(LEGACY_WALLET_STORAGE_KEY);
+  const value = sessionStorage.getItem(WALLET_SESSION_KEY) ?? "";
   return /^0x[a-fA-F0-9]{40}$/.test(value) ? value : "";
 }
 
@@ -151,7 +153,8 @@ function ChainArchive() {
 
   const saveConnectedWallet = (address: string) => {
     if (!/^0x[a-fA-F0-9]{40}$/.test(address)) throw new Error("钱包没有返回有效地址。");
-    localStorage.setItem(WALLET_STORAGE_KEY, address);
+    sessionStorage.setItem(WALLET_SESSION_KEY, address);
+    localStorage.removeItem(LEGACY_WALLET_STORAGE_KEY);
     setWallet(address);
     setWalletModalStatus(`已连接尾号 ${address.slice(-4)} 的钱包。收藏馆正在读取链上藏品。`);
     setStatus(`此设备已连接钱包（末四位 ${address.slice(-4)}）。你可以选择把任意收藏上链展示。`);
@@ -187,7 +190,8 @@ function ChainArchive() {
   };
 
   const disconnect = () => {
-    localStorage.removeItem(WALLET_STORAGE_KEY);
+    sessionStorage.removeItem(WALLET_SESSION_KEY);
+    localStorage.removeItem(LEGACY_WALLET_STORAGE_KEY);
     setWallet("");
     setChainCollectibles([]);
     setOnChainTokens({});
