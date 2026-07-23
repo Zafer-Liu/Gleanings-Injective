@@ -1,0 +1,244 @@
+# 《拾遗》Injective 链上收藏系统
+
+> 当前实现版本说明：将《拾遗》游戏内已拾取的文化道具变成玩家可选择上链、可跨浏览器读取、可手机分享的 ERC-721 藏品。
+>
+> 网络：Injective EVM Testnet ｜ Chain ID：`1439` ｜ 货币：`INJ`
+
+---
+
+## 1. 这套区块链功能解决什么问题
+
+游戏道具原本只存在于浏览器本地存档；玩家换浏览器或把游戏分享给朋友时，收藏无法证明和展示。
+
+本项目将“已拾取道具”与“链上 NFT”分成两层：
+
+| 层 | 内容 | 作用 |
+|---|---|---|
+| 游戏本地层 | 剧情进度、背包、已拾取道具 | 无钱包也能流畅游玩 |
+| 链上收藏层 | 玩家主动选择展示的道具 NFT | 可验证所有权、跨浏览器同步、手机分享 |
+
+核心原则是：**游戏不强迫上链；玩家在收藏馆中选择上链后，藏品才会进入其钱包。**
+
+```mermaid
+flowchart LR
+  A[游戏中拾取道具] --> B[浏览器本地存档]
+  B --> C[拾遗收藏馆]
+  C -->|可选：上链展示| D[MetaMask 签名]
+  D --> E[Injective EVM ERC-721]
+  E --> F[任意浏览器连接同一钱包]
+  E --> G[手机分享页 /share]
+```
+
+---
+
+## 2. 玩家体验流程
+
+1. 玩家在第一幕调查纸箱，获得“太婆字条”。
+2. 道具立刻出现在右上角的**收藏馆**，不需要连接钱包。
+3. 玩家点击“查看藏品卡”，翻转卡片查看道具的故事、来源与链上状态。
+4. 玩家点击“上链展示”，在 MetaMask 确认交易。
+5. 后端等待 Injective EVM 交易确认，收藏馆显示 `已上链` 和 Token ID。
+6. 玩家换浏览器后，只要连接同一钱包并点击“读取链上收藏”，已铸造 NFT 会重新出现在收藏馆。
+7. 玩家点击“手机分享”，生成公开链接和二维码；手机打开 `/share/?wallet=0x...` 后可只读浏览藏品。
+
+---
+
+## 3. 链上资产模型
+
+### 3.1 当前 NFT 合约
+
+当前接入的是通用 ERC-721 道具合约 `RpgItem`：
+
+- 合约地址：`0xc8167b100bc7Ad611299d634D09b853C6310619e`
+- 网络：Injective EVM Testnet（`1439`）
+- 每件上链道具对应一个独立 Token ID。
+- 私钥始终留在 MetaMask；服务端只创建待签名请求、查询交易和读取资产。
+
+### 3.2 关键 metadata
+
+铸造时，游戏把以下字段写入 ERC-721 的 `tokenURI` data URI：
+
+```json
+{
+  "name": "太婆字条",
+  "item_type": "Gleanings Collectible",
+  "collectible_id": "item_taipo_note",
+  "category": "道具",
+  "rarity": "Story",
+  "description": "太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。",
+  "source": "《拾遗》· 第一幕 / 纸箱"
+}
+```
+
+字段用途：
+
+| 字段 | 用途 |
+|---|---|
+| `collectible_id` | 把链上 Token 与游戏道具 ID 对应起来 |
+| `name` / `description` | 收藏馆、闪卡和手机分享页显示 |
+| `category` | 区分道具与勋章 |
+| `source` | 展示故事来源与章节位置 |
+| `image`（后续） | 藏品图；建议为 Railway 公网 URL 或 IPFS URL |
+
+---
+
+## 4. 功能模块与文件路径
+
+### 4.1 游戏前端：收藏馆、上链和闪卡
+
+| 文件 | 功能 |
+|---|---|
+| `game/src/app/App.tsx` | 钱包状态、链上资产读取、收藏馆、上链请求、二维码分享、闪卡交互 |
+| `game/src/app/app.css` | 收藏馆、链上状态、分享面板和翻转藏品卡样式 |
+| `game/src/game/systems/MedalService.ts` | 第一幕完成后保存“冬酿守忆章”本地状态 |
+| `game/src/game/systems/SaveService.ts` | 保存第一幕进度和背包内容；收藏馆从这里读取已拾取道具 |
+| `game/src/content/act1/*` | 第一幕道具、对白、交互与任务内容 |
+
+收藏馆入口位于游戏顶部：
+
+- `连接钱包`：仅在玩家要上链时需要；按钮只显示钱包末四位。
+- 钱包连接层直接显示在游戏内部，不会再打开独立浏览器窗口；浏览器扩展自己的授权提示仍按钱包标准方式出现。
+- 钱包地址保存在每个访问者浏览器自己的 `localStorage` 中（键 `gleanings.collection.wallet.v1`），不会再由服务端的全局变量共享给其他访客。
+- `收藏馆`：无需连接钱包即可打开，显示本地道具和钱包 NFT 的并集。
+- `读取链上收藏`：主动刷新当前钱包在合约中的 NFT。
+- `上链展示`：对单个道具创建 MetaMask 铸造请求。
+- `查看藏品卡`：打开可翻转的故事卡。
+
+### 4.2 链上桥服务
+
+链上桥位于仓库根目录的 `rpg-chain-kit/`：
+
+| 文件 | 功能 |
+|---|---|
+| `rpg-chain-kit/src/index.js` | Express 服务、CORS、健康检查、Vite 游戏静态资源、手机分享页与分享链接 API |
+| `rpg-chain-kit/src/rpg-item-router.js` | 钱包会话、铸造/转让请求、交易确认、NFT 资产与历史读取 |
+| `rpg-chain-kit/contracts/RpgItem.sol` | 通用 ERC-721 道具合约源码 |
+| `rpg-chain-kit/artifacts/RpgItem.json` | 前端签名页调用合约所需 ABI 与字节码 |
+| `rpg-chain-kit/public/connect.html` | 钱包连接页：自动识别 MetaMask、OKX Wallet 等浏览器扩展，也可用 WalletConnect 二维码让手机钱包连接 |
+| `rpg-chain-kit/public/wallet.html` | 上链/转让确认页：浏览器扩展和手机扫码钱包均可在此签名 |
+| `rpg-chain-kit/public/share/index.html` | 手机优先的公开藏品展示页 |
+| `rpg-chain-kit/.env.example` | 本地链上网络配置模板 |
+
+### 4.3 Railway 部署文件
+
+| 文件 | 功能 |
+|---|---|
+| `package.json`（仓库根目录） | Railway 构建入口：安装桥服务依赖、构建 Vite 游戏、启动桥服务 |
+| `railway.toml`（仓库根目录） | Railpack、`npm run build`、`npm run start`、`/health` 健康检查 |
+| `rpg-chain-kit/railway.env.example` | Railway Variables 配置样例 |
+| `rpg-chain-kit/railway.toml` | 仅部署桥服务子目录时可使用的配置 |
+
+---
+
+## 5. API 说明
+
+服务部署后，游戏与手机分享页通过同域 API 调用：
+
+| 方法 | 路径 | 功能 |
+|---|---|---|
+| `GET` | `/health` | Railway 健康检查 |
+| `GET` / `POST` | `/api/rpg/wallet` | 读取/写入当前浏览器的钱包会话 |
+| `GET` | `/api/rpg/config` | 返回 Injective 网络与合约配置状态 |
+| `POST` | `/api/rpg/requests` | 创建 `mint` 或 `transfer` 待签名请求 |
+| `GET` | `/api/rpg/requests/:id` | 查询交易确认状态 |
+| `GET` | `/api/rpg/assets/:wallet` | 读取某钱包当前持有的 NFT 和 metadata |
+| `GET` | `/api/rpg/history/:tokenId` | 查询某 NFT 的 Transfer 历史 |
+| `GET` | `/api/rpg/share-link/:wallet` | 生成手机分享页 URL |
+
+静态路由：
+
+| 路径 | 内容 |
+|---|---|
+| `/` | 《拾遗》游戏主页 |
+| `/share/?wallet=0x...` | 公开、只读的手机藏品册 |
+| `/connect.html` | MetaMask 连接窗口 |
+| `/wallet.html?request=<id>` | MetaMask 铸造/转让确认窗口 |
+
+---
+
+## 6. Railway 部署与环境变量
+
+仓库：`https://github.com/Zafer-Liu/Gleanings-Injective`
+
+Railway 选择仓库根目录 `/` 部署即可。根目录的构建脚本会：
+
+1. 安装 `rpg-chain-kit` 依赖；
+2. 安装并构建 `game` 的 Vite 静态资源；
+3. 用 Express 同时托管游戏、API 和分享页。
+
+必须在 Railway → Service → Variables 设置：
+
+```dotenv
+EVM_RPC_URL=https://testnet.evm.archival.chain.virtual.json-rpc.injective.network/
+RPG_ITEM_CONTRACT_ADDRESS=0xc8167b100bc7Ad611299d634D09b853C6310619e
+CHAIN_ID=1439
+CHAIN_NAME=Injective EVM Testnet
+NATIVE_CURRENCY=INJ
+BLOCK_EXPLORER=https://testnet.blockscout.injective.network/
+PUBLIC_SHARE_ORIGIN=https://你的服务.up.railway.app
+CORS_ORIGINS=https://你的服务.up.railway.app
+WALLETCONNECT_PROJECT_ID=你的 WalletConnect Project ID
+```
+
+`PORT` 不需要手动填写，Railway 自动注入。保存变量后部署最新 `main` 分支即可。
+
+### 6.1 钱包兼容与手机扫码
+
+收藏馆不会强制连接钱包。需要读取链上藏品、上链展示或转让时，玩家可任选：
+
+1. **浏览器扩展**：连接页通过 EIP-6963 自动发现兼容扩展，已覆盖 MetaMask、OKX Wallet 等 EVM 钱包；用户可以明确选择要连接的扩展。
+2. **手机扫码**：连接页和交易确认页均支持 WalletConnect。电脑页面显示二维码后，玩家在手机钱包中使用 WalletConnect 扫码，即可连接或直接确认交易；电脑与手机无需在同一 Wi-Fi。
+
+WalletConnect 的 `Project ID` 是网页项目的公开标识，不是私钥。部署者应在 [WalletConnect Dashboard](https://dashboard.walletconnect.com/) 创建项目，把 Railway 域名加入项目的允许域名列表，再将其填入 Railway Variables 的 `WALLETCONNECT_PROJECT_ID`。未配置该变量时，浏览器扩展方式仍能使用，扫码入口会给出明确的配置提示。
+
+### 6.2 OKX Wallet 接收方说明
+
+NFT 转让只需要对方提供正确的 `0x...` EVM 地址；接收时对方的钱包不必在线，也不必预先连接《拾遗》。但要在 OKX Wallet 中查看或继续转让该 NFT，对方需要添加 Injective EVM Testnet：
+
+```text
+网络名称：Injective EVM Testnet
+RPC URL：https://testnet.evm.archival.chain.virtual.json-rpc.injective.network/
+Chain ID：1439
+货币符号：INJ
+区块浏览器：https://testnet.blockscout.injective.network/
+```
+
+OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](https://www.okx.com/en-us/help/how-do-i-add-a-custom-rpc-to-the-okx-web3-wallet)。
+
+---
+
+## 7. 藏品图片接入（待实现）
+
+藏品卡当前展示名称、类别、故事与来源；下一步可为 `Collectible` 增加 `image` 字段，并在卡片正面与上链 metadata 中写入该字段。
+
+当前可复用素材：
+
+| 藏品 ID | 本地素材 |
+|---|---|
+| `item_taipo_note` | `assets/rpg_v2/items/it_taipo_note_32x32.png` |
+| `act1-winter-brewing` | `assets/rpg_v2/items/it_relic_dongniang_detail_128x128.png` |
+
+建议步骤：
+
+1. 将图片复制到 `game/public/collection/`；
+2. 使用 `https://你的服务.up.railway.app/collection/<id>.png` 写入 `image`；
+3. 对正式发行版本将文件上传 IPFS，并写入 `ipfs://<CID>/<filename>`；
+4. 前端将 `ipfs://` 转换为可信网关 URL 后显示。
+
+---
+
+## 8. 当前限制与后续优化
+
+| 当前状态 | 原因 | 后续方案 |
+|---|---|---|
+| 钱包会话存于服务内存 | MVP 实现简单 | 改为前端 localStorage / cookie 会话或数据库，避免多用户互相覆盖 |
+| 手机扫码需要 WalletConnect Project ID | WalletConnect 要求项目身份与允许域名 | Railway 添加 `WALLETCONNECT_PROJECT_ID`，并在 Dashboard 配置 Railway 域名 |
+| metadata 图片未接入 | 当前先验证链上收藏和分享闭环 | 增加 `image` 字段并迁移 IPFS |
+| 分享页读取公开资产 | 适合社交展示 | 增加昵称、封面、单张藏品 permalink 与 Open Graph 卡片 |
+| 铸造开放给连接钱包的玩家 | 演示期降低流程复杂度 | 接入游戏通关验证或后端签名 voucher 防滥铸 |
+
+---
+
+## 9. 比赛演示话术
+
+> 玩家先在《拾遗》中获得文化道具，收藏馆不强制钱包；只有想把某段文化记忆带出游戏、分享给朋友时，才选择上链。NFT 记录的是玩家真正拥有的一件叙事藏品。换浏览器、换设备、手机扫码，仍然可以通过 Injective EVM 验证并展示这段旅程。
