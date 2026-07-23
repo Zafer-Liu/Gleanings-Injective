@@ -46,7 +46,7 @@ function ChainArchive() {
         .then(async (data: { address?: string }) => {
           const address = data.address ?? "";
           setWallet(address);
-          setStatus(address ? `钱包已连接：${address.slice(0, 6)}…${address.slice(-4)}。你可以选择把任意收藏上链展示。` : "收藏馆已同步本地道具；连接钱包后可选择上链展示。");
+          setStatus(address ? `钱包已连接（末四位 ${address.slice(-4)}）。你可以选择把任意收藏上链展示。` : "收藏馆已同步本地道具；连接钱包后可选择上链展示。");
           if (!address) return;
           const assets = await readChainAssets(address);
           setChainCollectibles(assets.map((asset) => {
@@ -146,7 +146,7 @@ function ChainArchive() {
 
   return <>
     <div className="chain-actions">
-      <button className="chain-button" onClick={connect}>{wallet ? `已连接 ${wallet.slice(0, 6)}…${wallet.slice(-4)}` : "连接钱包"}</button>
+      <button className="chain-button" onClick={connect}>{wallet ? `已连接 · ${wallet.slice(-4)}` : "连接钱包"}</button>
       <button className="museum-button" onClick={() => setOpen(true)}>收藏馆</button>
     </div>
     {open && <section className="museum" role="dialog" aria-modal="true" aria-label="收藏馆">
