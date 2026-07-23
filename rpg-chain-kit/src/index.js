@@ -14,6 +14,7 @@ app.use((req,res,next)=>{
   next();
 });
 app.use(express.json()); app.use(express.static('public')); app.use('/vendor',express.static('node_modules/ethers/dist')); app.use('/artifacts',express.static('artifacts')); app.use('/api/rpg',createRpgItemRouter());
+app.get('/',(_req,res)=>res.redirect('/share/'));
 app.get('/health',(_req,res)=>res.status(200).json({status:'ok',service:'gleanings-chain-bridge'}));
 app.get('/api/rpg/share-link/:wallet',(req,res)=>{
   const wallet=req.params.wallet;
