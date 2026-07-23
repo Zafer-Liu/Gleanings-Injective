@@ -39,6 +39,8 @@ function ChainArchive() {
   const [shareLink, setShareLink] = useState("");
   const [selectedCollectible, setSelectedCollectible] = useState<Collectible | null>(null);
   const [cardFlipped, setCardFlipped] = useState(false);
+  const [transferTo, setTransferTo] = useState("");
+  const [transferring, setTransferring] = useState("");
 
   useEffect(() => {
     const syncWallet = () => {
@@ -146,6 +148,42 @@ function ChainArchive() {
     }
   };
 
+  const transferCollectible = async (collectible: Collectible) => {
+    const tokenId = onChainTokens[collectible.id];
+    if (!wallet) return connect();
+    if (!tokenId) return setStatus("这件收藏尚未上链，不能转让。");
+    if (!/^0x[a-fA-F0-9]{40}$/.test(transferTo)) return setStatus("请输入接收方有效的 EVM 钱包地址。");
+    setTransferring(collectible.id);
+    try {
+      const response = await fetch(`${CHAIN_ORIGIN}/api/rpg/requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "transfer", wallet, token_id: tokenId, to_wallet: transferTo })
+      });
+      const data = (await response.json()) as { request_id?: string; wallet_url?: string; error?: string };
+      if (!response.ok || !data.wallet_url) throw new Error(data.error ?? "无法创建转让请求");
+      window.open(data.wallet_url, "gleanings-transfer", "width=560,height=680");
+      setStatus("请在 MetaMask 确认转让；确认后该 Token 将转入对方钱包。");
+      const timer = window.setInterval(async () => {
+        try {
+          const result = await fetch(`${CHAIN_ORIGIN}/api/rpg/requests/${data.request_id}`).then((item) => item.json()) as { status?: string };
+          if (result.status === "confirmed") {
+            window.clearInterval(timer);
+            setTransferring("");
+            setTransferTo("");
+            setSelectedCollectible(null);
+            setStatus(`${collectible.name} 已成功转让给对方钱包。`);
+            refreshChainCollection();
+          }
+          if (result.status === "failed") { window.clearInterval(timer); setTransferring(""); setStatus("转让未完成；该藏品仍在当前钱包中。"); }
+        } catch { window.clearInterval(timer); setTransferring(""); }
+      }, 1800);
+    } catch (error) {
+      setTransferring("");
+      setStatus(error instanceof Error ? error.message : "无法创建转让请求");
+    }
+  };
+
   const displayedCollectibles = [
     ...collectibles,
     ...chainCollectibles.filter((chainItem) => !collectibles.some((localItem) => localItem.id === chainItem.id))
@@ -165,11 +203,11 @@ function ChainArchive() {
       <div className="museum__head"><div><p>GLEANINGS / COLLECTION</p><h2>拾遗收藏馆</h2></div><button onClick={() => setOpen(false)}>关闭 ×</button></div>
       <p className="museum__status">{status}</p>
       <div className="collection-tools"><button className="chain-button collection-refresh" onClick={refreshChainCollection}>读取链上收藏</button><button className="museum-button" onClick={() => void shareCollection()}>{wallet ? "手机分享" : "连接后分享"}</button></div>
-      {shareLink && <div className="share-panel"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareLink)}`} alt="手机打开收藏馆的二维码" /><div><strong>扫码查看我的收藏</strong><p>手机与电脑在同一 Wi‑Fi 时，可扫描二维码打开公开藏品册。</p><code>{shareLink}</code><button className="chain-button" onClick={() => void copyShareLink()}>复制分享链接</button></div></div>}
+      {shareLink && <div className="share-panel"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareLink)}`} alt="手机打开收藏馆的二维码" /><div><strong>扫码查看我的收藏</strong><p>可扫描二维码打开公开藏品册。</p><code>{shareLink}</code><button className="chain-button" onClick={() => void copyShareLink()}>复制分享链接</button></div></div>}
       {displayedCollectibles.length ? displayedCollectibles.map((collectible) => <article className="medal" key={collectible.id}><div className="medal__seal" aria-hidden="true">{collectible.kind === "勋章" ? "章" : "藏"}</div><div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectible.kind} · 可选择上链展示`}</small></div><button className="card-open" onClick={() => openCard(collectible)}>查看藏品卡</button>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。</p>}
       <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；只有你选择展示的收藏才会铸造成 Injective EVM NFT。</p>
     </section>}
-    {selectedCollectible && <section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}><div className="flashcard-modal__head"><p>GLEANINGS / STORY CARD</p><button onClick={() => setSelectedCollectible(null)} aria-label="关闭藏品卡">关闭 ×</button></div><button className={`flashcard ${cardFlipped ? "flashcard--flipped" : ""}`} onClick={() => setCardFlipped((flipped) => !flipped)} aria-label="翻转藏品卡"><span className="flashcard__inner"><span className="flashcard__face flashcard__front"><span className="flashcard__seal">{selectedCollectible.kind === "勋章" ? "章" : "藏"}</span><span className="flashcard__label">{selectedCollectible.kind} / GLEANINGS</span><strong>{selectedCollectible.name}</strong><small>{onChainTokens[selectedCollectible.id] ? `INJECTIVE EVM · TOKEN #${onChainTokens[selectedCollectible.id]}` : "本地旅程收藏"}</small><em>轻触翻转，读取故事</em></span><span className="flashcard__face flashcard__back"><span className="flashcard__label">COLLECTION NOTE</span><strong>{selectedCollectible.name}</strong><p>{selectedCollectible.description}</p><small>来源 · {selectedCollectible.source}</small><em>轻触返回正面</em></span></span></button></section>}
+    {selectedCollectible && <section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}><div className="flashcard-modal__head"><p>GLEANINGS / STORY CARD</p><button onClick={() => setSelectedCollectible(null)} aria-label="关闭藏品卡">关闭 ×</button></div><button className={`flashcard ${cardFlipped ? "flashcard--flipped" : ""}`} onClick={() => setCardFlipped((flipped) => !flipped)} aria-label="翻转藏品卡"><span className="flashcard__inner"><span className="flashcard__face flashcard__front"><span className="flashcard__seal">{selectedCollectible.kind === "勋章" ? "章" : "藏"}</span><span className="flashcard__label">{selectedCollectible.kind} / GLEANINGS</span><strong>{selectedCollectible.name}</strong><small>{onChainTokens[selectedCollectible.id] ? `INJECTIVE EVM · TOKEN #${onChainTokens[selectedCollectible.id]}` : "本地旅程收藏"}</small><em>轻触翻转，读取故事</em></span><span className="flashcard__face flashcard__back"><span className="flashcard__label">COLLECTION NOTE</span><strong>{selectedCollectible.name}</strong><p>{selectedCollectible.description}</p><small>来源 · {selectedCollectible.source}</small><em>轻触返回正面</em></span></span></button>{onChainTokens[selectedCollectible.id] && <div className="transfer-panel"><strong>赠与 / 链上转让</strong><p>填写接收方钱包地址。此操作会把 NFT 所有权转给对方，不涉及平台托管或付款。</p><input value={transferTo} onChange={(event) => setTransferTo(event.target.value.trim())} placeholder="接收方 0x 钱包地址" aria-label="接收方 EVM 钱包地址" /><button className="mint-button" disabled={transferring === selectedCollectible.id} onClick={() => void transferCollectible(selectedCollectible)}>{transferring === selectedCollectible.id ? "等待确认…" : "在 MetaMask 确认转让"}</button></div>}</section>}
   </>;
 }
 
