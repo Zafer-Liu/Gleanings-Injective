@@ -1,0 +1,15 @@
+AdventureX_2026赛道与奖金整理.xlsx
+*.xlsx
+
+# deps / build
+node_modules/
+dist/
+build/
+.env
+.env.*
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
