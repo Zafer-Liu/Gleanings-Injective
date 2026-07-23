@@ -1,0 +1,30 @@
+{
+  "size": { "width": 44, "height": 30 },
+  "tileSize": 32,
+  "playerSpawn": { "x": 20, "y": 24 },
+  "npcSpawns": {
+    "master": { "x": 7, "y": 11 }
+  },
+  "collisions": [
+    { "id": "wall_top", "x": 0, "y": 0, "width": 44, "height": 4 },
+    { "id": "wall_left", "x": 0, "y": 0, "width": 2, "height": 30 },
+    { "id": "wall_right", "x": 42, "y": 0, "width": 2, "height": 30 },
+    { "id": "wall_bottom", "x": 0, "y": 28, "width": 44, "height": 2 },
+    { "id": "tray_table_base", "x": 10, "y": 8.5, "width": 7, "height": 0.75 },
+    { "id": "jar_bank_base", "x": 32, "y": 8.5, "width": 7, "height": 0.75 },
+    { "id": "mix_station_base", "x": 10, "y": 18.5, "width": 7, "height": 0.75 },
+    { "id": "vat_station_base", "x": 20, "y": 18.5, "width": 7, "height": 0.75 },
+    { "id": "seal_station_base", "x": 30, "y": 18.5, "width": 7, "height": 0.75 },
+    { "id": "left_sacks_base", "x": 3, "y": 23, "width": 4, "height": 0.75 },
+    { "id": "right_shelves_base", "x": 38, "y": 22, "width": 3, "height": 0.75 }
+  ],
+  "occluders": [
+    { "id": "tray_table_face", "x": 10, "y": 6.5, "width": 7, "height": 2.75 },
+    { "id": "jar_bank_face", "x": 32, "y": 5.5, "width": 7, "height": 3.75 },
+    { "id": "mix_station_face", "x": 10, "y": 15.5, "width": 7, "height": 3.75 },
+    { "id": "vat_station_face", "x": 20, "y": 15.5, "width": 7, "height": 3.75 },
+    { "id": "seal_station_face", "x": 30, "y": 15.5, "width": 7, "height": 3.75 },
+    { "id": "left_sacks_face", "x": 3, "y": 20, "width": 4, "height": 3.75 },
+    { "id": "right_shelves_face", "x": 38, "y": 18, "width": 3, "height": 4.75 }
+  ]
+}

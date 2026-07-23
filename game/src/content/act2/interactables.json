@@ -1,0 +1,66 @@
+[
+  {
+    "id": "master",
+    "tile": { "x": 7, "y": 11 },
+    "range": 1,
+    "prompt": "E / 空格 · 与阿凤师交谈",
+    "dialogueGroup": "masterIntro",
+    "enabledPhases": ["ARRIVE", "QUESTION"]
+  },
+  {
+    "id": "hongqu_tray",
+    "tile": { "x": 13, "y": 9 },
+    "range": 1,
+    "prompt": "E / 空格 · 检视红曲盘",
+    "dialogueGroup": "tray",
+    "enabledPhases": ["INSPECT_TRAY"]
+  },
+  {
+    "id": "clay_jar",
+    "tile": { "x": 35, "y": 9 },
+    "range": 1,
+    "prompt": "E / 空格 · 检视陶坛",
+    "dialogueGroup": "jar",
+    "enabledPhases": ["INSPECT_JAR"]
+  },
+  {
+    "id": "hongqu_sample",
+    "tile": { "x": 13, "y": 9 },
+    "range": 1,
+    "prompt": "E / 空格 · 取一份红曲",
+    "dialogueGroup": "sample",
+    "enabledPhases": ["TAKE_SAMPLE"]
+  },
+  {
+    "id": "mix_station",
+    "tile": { "x": 13, "y": 19 },
+    "range": 1,
+    "prompt": "E / 空格 · 霜降拌曲",
+    "dialogueGroup": "mix",
+    "enabledPhases": ["MIX"]
+  },
+  {
+    "id": "vat_station",
+    "tile": { "x": 23, "y": 19 },
+    "range": 1,
+    "prompt": "E / 空格 · 立冬下缸",
+    "dialogueGroup": "vat",
+    "enabledPhases": ["VAT"]
+  },
+  {
+    "id": "seal_station",
+    "tile": { "x": 33, "y": 19 },
+    "range": 1,
+    "prompt": "E / 空格 · 冬至封坛",
+    "dialogueGroup": "seal",
+    "enabledPhases": ["SEAL"]
+  },
+  {
+    "id": "winter_window",
+    "tile": { "x": 22, "y": 4 },
+    "range": 1,
+    "prompt": "E / 空格 · 看看窗外",
+    "dialogueGroup": "window",
+    "optional": true
+  }
+]

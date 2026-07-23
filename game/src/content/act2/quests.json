@@ -1,0 +1,47 @@
+[
+  {
+    "id": "act2_talk_master",
+    "title": "找到阿凤师",
+    "hint": "她在酒坊左侧等你"
+  },
+  {
+    "id": "act2_inspect_tray",
+    "title": "认一认红曲",
+    "hint": "红曲盘在酒坊左上方"
+  },
+  {
+    "id": "act2_inspect_jar",
+    "title": "看看醒好的陶坛",
+    "hint": "陶坛在酒坊右上方"
+  },
+  {
+    "id": "act2_take_sample",
+    "title": "带一份红曲去工位",
+    "hint": "回到红曲盘前取样"
+  },
+  {
+    "id": "act2_mix",
+    "title": "霜降 · 拌红曲",
+    "hint": "先完成左侧拌曲台"
+  },
+  {
+    "id": "act2_vat",
+    "title": "立冬 · 下缸",
+    "hint": "中间的缸已腾空"
+  },
+  {
+    "id": "act2_seal",
+    "title": "冬至 · 封坛",
+    "hint": "最后去右侧封坛台"
+  },
+  {
+    "id": "act2_question",
+    "title": "把心里的问题问出来",
+    "hint": "回到阿凤师身边"
+  },
+  {
+    "id": "act2_complete",
+    "title": "冬酿曲印已收下",
+    "hint": "记忆将去往下一顿热食"
+  }
+]

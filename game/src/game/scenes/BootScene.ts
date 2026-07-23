@@ -72,6 +72,24 @@ export class BootScene extends Phaser.Scene {
     );
     this.load.image("item-note", "/items/it_taipo_note_32x32.png");
     this.load.image("fx-jar-memory", "/fx/fx_jar_memory_640x360.png");
+    this.load.image(
+      "map-brewery-winter",
+      "/maps/map_brewery_full_1280x896.png"
+    );
+    this.load.spritesheet(
+      "actor-taipo-young",
+      "/sprites/spr_yi_walk_96x192.png",
+      { frameWidth: 32, frameHeight: 48 }
+    );
+    this.load.spritesheet(
+      "actor-afeng",
+      "/sprites/spr_mia_walk_96x192.png",
+      { frameWidth: 32, frameHeight: 48 }
+    );
+    this.load.image(
+      "item-dongniang-relic",
+      "/items/it_relic_dongniang_detail_128x128.png"
+    );
   }
 
   create(): void {

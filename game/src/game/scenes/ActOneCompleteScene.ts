@@ -3,6 +3,7 @@ import { act1Content } from "../../content/act1/content";
 import type { SenseChoice } from "../domain/act1State";
 import { effectProfileForChoice } from "../fx/JarMemoryEffect";
 import { SaveService } from "../systems/SaveService";
+import { ChapterSaveService } from "../systems/ChapterSaveService";
 
 type CompleteData = {
   choice?: SenseChoice | null;
@@ -10,6 +11,9 @@ type CompleteData = {
 
 export class ActOneCompleteScene extends Phaser.Scene {
   private readonly saveService = new SaveService(window.localStorage);
+  private readonly chapterSaveService = new ChapterSaveService(
+    window.localStorage
+  );
 
   constructor() {
     super("ActOneComplete");
@@ -75,15 +79,15 @@ export class ActOneCompleteScene extends Phaser.Scene {
       fontSize: "12px",
       color: "#F4EBDD"
     });
-    this.add.text(300, 252, "进入冬日酒坊", {
+    const continueBack = this.add
+      .rectangle(290, 242, 218, 36, 0x8d382f)
+      .setOrigin(0)
+      .setStrokeStyle(1, 0xd4b46a)
+      .setInteractive({ useHandCursor: true });
+    this.add.text(308, 252, "E  进入冬日酒坊", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "12px",
-      color: "#6E6259"
-    });
-    this.add.text(406, 253, "第二幕制作中", {
-      fontFamily: '"Cascadia Mono", Consolas, monospace',
-      fontSize: "8px",
-      color: "#6E6259"
+      color: "#F4EBDD"
     });
 
     const restart = (): void => {
@@ -92,5 +96,17 @@ export class ActOneCompleteScene extends Phaser.Scene {
     };
     restartBack.on("pointerdown", restart);
     this.input.keyboard?.once("keydown-R", restart);
+
+    const continueStory = (): void => {
+      const chapter =
+        this.chapterSaveService.load() ??
+        this.chapterSaveService.createFromActOne(choice);
+      if (chapter.currentAct === 2) {
+        this.scene.start("ActTwo");
+      }
+    };
+    continueBack.on("pointerdown", continueStory);
+    this.input.keyboard?.once("keydown-E", continueStory);
+    this.input.keyboard?.once("keydown-ENTER", continueStory);
   }
 }
