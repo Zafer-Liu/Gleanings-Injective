@@ -11,7 +11,7 @@ import { createInitialAct1State } from "../domain/act1State";
 describe("InteractionSystem", () => {
   it("selects the interactable directly in the facing direction", () => {
     const target = findInteractionTarget(
-      { x: 5, y: 13 },
+      { x: 7, y: 13 },
       "left",
       act1Content.interactables
     );
@@ -22,14 +22,14 @@ describe("InteractionSystem", () => {
   it("does not select an object behind the player or outside its range", () => {
     expect(
       findInteractionTarget(
-        { x: 5, y: 13 },
+        { x: 7, y: 13 },
         "right",
         act1Content.interactables
       )
     ).toBeNull();
     expect(
       findInteractionTarget(
-        { x: 7, y: 13 },
+        { x: 9, y: 13 },
         "left",
         act1Content.interactables
       )

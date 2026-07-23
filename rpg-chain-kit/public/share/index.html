@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#241b17">
+<title>拾遗 · 藏品分享</title>
+<style>
+  :root { --ink:#241b17; --wood:#342922; --line:#765035; --paper:#f2e7d7; --straw:#d4b46a; --red:#a83b32; --mist:#c7cecb; }
+  * { box-sizing:border-box; } body { margin:0; min-height:100vh; color:var(--paper); background:radial-gradient(circle at 80% 0,#4a3529 0,transparent 35rem),var(--ink); font-family:"Noto Serif SC","Source Han Serif SC",serif; }
+  main { width:min(100% - 32px,760px); margin:auto; padding:28px 0 52px; } header { display:flex; justify-content:space-between; gap:20px; align-items:start; padding-bottom:22px; border-bottom:1px solid var(--line); }
+  .kicker { margin:0 0 8px; color:var(--straw); font:11px "Cascadia Mono",monospace; letter-spacing:.14em; } h1 { margin:0; font-size:clamp(32px,8vw,56px); font-weight:500; letter-spacing:.06em; } h1 span { color:var(--red); }
+  .network { margin:5px 0 0; color:var(--mist); font-size:12px; text-align:right; line-height:1.7; }.network strong { color:var(--straw); font-weight:500; }
+  .address-form { display:grid; grid-template-columns:1fr auto; gap:8px; margin:24px 0 14px; } input,button { font:inherit; } input { min-width:0; color:var(--paper); background:#17110f; border:1px solid var(--line); padding:13px; outline:none; } input:focus { border-color:var(--straw); box-shadow:0 0 0 3px #d4b46a33; } button { border:1px solid var(--straw); color:var(--paper); background:#4a3529; padding:10px 14px; cursor:pointer; } button:hover { filter:brightness(1.15); } .primary { background:var(--red); border-color:#d99f53; }
+  .hint { min-height:24px; margin:0 0 20px; color:var(--mist); font-size:13px; line-height:1.65; }.hint.error { color:#ffc5b4; }
+  .profile { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px; background:#30241f; border:1px solid var(--line); } .profile h2 { margin:0 0 4px; font-size:17px; font-weight:500; }.profile code { color:var(--straw); font:12px "Cascadia Mono",monospace; overflow-wrap:anywhere; }.actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:end; }.actions button { font-size:12px; }
+  .collection { margin-top:22px; } .collection-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:0 0 10px; }.collection-head h2 { margin:0; font-weight:500; font-size:22px; }.collection-head span { color:var(--straw); font:12px "Cascadia Mono",monospace; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }.card { min-height:190px; display:flex; flex-direction:column; gap:12px; padding:18px; background:#30241f; border:1px solid #664735; }.seal { display:grid; place-items:center; width:46px; height:46px; color:var(--paper); background:var(--red); border:2px solid var(--straw); border-radius:50%; font-size:20px; }.tag { color:var(--straw); font:10px "Cascadia Mono",monospace; letter-spacing:.1em; }.card h3 { margin:0; font-size:19px; font-weight:500; }.card p { flex:1; margin:0; color:var(--mist); font-size:13px; line-height:1.6; }.token { padding-top:10px; border-top:1px solid #664735; color:var(--straw); font:11px "Cascadia Mono",monospace; }.empty { padding:32px 18px; color:var(--mist); text-align:center; background:#30241f; border:1px dashed var(--line); line-height:1.7; }
+  .share-sheet { display:none; margin-top:16px; padding:16px; background:#17110f; border:1px solid var(--line); }.share-sheet.visible { display:grid; grid-template-columns:128px 1fr; gap:16px; align-items:center; }.share-sheet img { width:128px; height:128px; background:#fff; }.share-sheet p { margin:0; color:var(--mist); font-size:13px; line-height:1.7; }.share-sheet code { color:var(--straw); overflow-wrap:anywhere; }
+  footer { margin-top:28px; color:#a99684; font:12px "Cascadia Mono",monospace; text-align:center; line-height:1.7; } @media(max-width:560px) { main { width:min(100% - 24px,760px); padding-top:18px; } header { display:block; }.network { text-align:left; margin-top:12px; }.address-form { grid-template-columns:1fr; }.profile { display:block; }.actions { justify-content:start; margin-top:14px; }.share-sheet.visible { grid-template-columns:96px 1fr; }.share-sheet img { width:96px; height:96px; } }
+</style>
+<body><main>
+  <header><div><p class="kicker">GLEANINGS / COLLECTION SHARE</p><h1>拾遗 <span>· 藏品册</span></h1></div><p class="network"><strong>INJECTIVE EVM TESTNET</strong><br>文化记忆，归属于玩家</p></header>
+  <form class="address-form" id="address-form"><input id="wallet" aria-label="钱包地址" placeholder="输入或粘贴 EVM 钱包地址" autocomplete="off"><button class="primary">查看收藏</button></form>
+  <p class="hint" id="hint">输入钱包地址，即可读取该地址公开持有的链上藏品。</p>
+  <section class="profile" id="profile" hidden><div><h2>玩家收藏</h2><code id="owner"></code></div><div class="actions"><button id="share">手机分享</button><button id="copy">复制链接</button></div></section>
+  <section class="share-sheet" id="share-sheet"><img id="qr" alt="打开此收藏页的二维码"><p>用手机相机扫描二维码，或把下方链接发送给朋友。<br><code id="share-url"></code></p></section>
+  <section class="collection" id="collection" hidden><div class="collection-head"><h2>链上收藏</h2><span id="count"></span></div><div class="grid" id="grid"></div></section>
+  <footer>公开读取 · 自主展示 · 不请求私钥</footer>
+</main>
+<script>
+  const form=document.querySelector('#address-form'), input=document.querySelector('#wallet'), hint=document.querySelector('#hint'), profile=document.querySelector('#profile'), collection=document.querySelector('#collection'), grid=document.querySelector('#grid'), owner=document.querySelector('#owner'), count=document.querySelector('#count'), shareSheet=document.querySelector('#share-sheet'), qr=document.querySelector('#qr'), shareUrl=document.querySelector('#share-url');
+  const short=(address)=>`${address.slice(0,6)}…${address.slice(-4)}`;
+  const escapeHtml=(value)=>String(value).replace(/[&<>'"]/g,(character)=>({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[character]));
+  const collectionUrl=(wallet)=>`${location.origin}${location.pathname}?wallet=${encodeURIComponent(wallet)}`;
+  const setHint=(message,error=false)=>{hint.textContent=message;hint.className=`hint${error?' error':''}`};
+  const showShare=(wallet)=>{const url=collectionUrl(wallet);shareUrl.textContent=url;qr.src=`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`;shareSheet.classList.add('visible')};
+  async function load(wallet) {
+    if(!/^0x[a-fA-F0-9]{40}$/.test(wallet)){setHint('请输入有效的 0x 开头 EVM 钱包地址。',true);return;}
+    setHint('正在从 Injective EVM 读取公开藏品…'); profile.hidden=true; collection.hidden=true;
+    try {
+      const response=await fetch(`/api/rpg/assets/${wallet}`); const assets=await response.json(); if(!response.ok) throw Error(assets.error||'读取失败');
+      const address=assets[0]?.owner||wallet; input.value=address; owner.textContent=address; profile.hidden=false; collection.hidden=false; count.textContent=`${assets.length} 件`;
+      grid.innerHTML=assets.length?assets.map((asset)=>{const item=asset.item||{};const type=item.category||item.item_type||'链上藏品';const glyph=type.includes('勋章')?'章':type.includes('Gleanings')?'藏':'物';return `<article class="card"><div class="seal">${glyph}</div><span class="tag">${escapeHtml(type)}</span><h3>${escapeHtml(item.name||`藏品 #${asset.token_id}`)}</h3><p>${escapeHtml(item.description||'这件藏品记录了一次独一无二的游戏旅程。')}</p><div class="token">INJ TESTNET · TOKEN #${escapeHtml(asset.token_id)}</div></article>`}).join(''):'<div class="empty">这个钱包暂时没有已上链的收藏。<br>回到《拾遗》，在收藏馆选择“上链展示”即可添加。</div>';
+      setHint(`已读取 ${short(address)} 的公开收藏。`); history.replaceState(null,'',`?wallet=${encodeURIComponent(address)}`);
+    } catch(error){setHint(error instanceof Error?error.message:'读取收藏失败',true);}
+  }
+  form.addEventListener('submit',(event)=>{event.preventDefault();load(input.value.trim())});
+  document.querySelector('#copy').addEventListener('click',async()=>{const address=input.value.trim();await navigator.clipboard.writeText(collectionUrl(address));setHint('分享链接已复制，可以发送给朋友。');showShare(address)});
+  document.querySelector('#share').addEventListener('click',async()=>{const address=input.value.trim(),url=collectionUrl(address);showShare(address);if(navigator.share){try{await navigator.share({title:'拾遗 · 藏品册',text:'看看我在《拾遗》中收藏的文化记忆。',url})}catch{}}});
+  const initial=new URLSearchParams(location.search).get('wallet'); if(initial){input.value=initial;load(initial)};
+</script></body></html>

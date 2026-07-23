@@ -1,0 +1,26 @@
+import express from 'express';
+import dotenv from 'dotenv';
+import os from 'node:os';
+import { createRpgItemRouter } from './rpg-item-router.js';
+dotenv.config(); const app=express(); const port=process.env.PORT||3100;
+const corsOrigins=(process.env.CORS_ORIGINS||'http://127.0.0.1:5173,http://localhost:5173').split(',').map((origin)=>origin.trim()).filter(Boolean);
+app.use((req,res,next)=>{
+  const origin=req.headers.origin;
+  if(origin&&(corsOrigins.includes('*')||corsOrigins.includes(origin))) res.setHeader('Access-Control-Allow-Origin',origin);
+  res.setHeader('Vary','Origin');
+  res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  if(req.method==='OPTIONS') return res.sendStatus(204);
+  next();
+});
+app.use(express.json()); app.use(express.static('public')); app.use('/vendor',express.static('node_modules/ethers/dist')); app.use('/artifacts',express.static('artifacts')); app.use('/api/rpg',createRpgItemRouter());
+app.get('/health',(_req,res)=>res.status(200).json({status:'ok',service:'gleanings-chain-bridge'}));
+app.get('/api/rpg/share-link/:wallet',(req,res)=>{
+  const wallet=req.params.wallet;
+  if(!/^0x[a-fA-F0-9]{40}$/.test(wallet)) return res.status(400).json({error:'Invalid EVM address'});
+  const configured=process.env.PUBLIC_SHARE_ORIGIN;
+  const interfaces=Object.entries(os.networkInterfaces()).flatMap(([name,entries])=>(entries||[]).filter((entry)=>entry.family==='IPv4'&&!entry.internal&&!/virtual|vethernet|docker/i.test(name)).map((entry)=>entry.address));
+  const host=configured||`http://${interfaces[0]||'127.0.0.1'}:${port}`;
+  res.json({url:`${host}/share/?wallet=${encodeURIComponent(wallet)}`});
+});
+app.listen(port,'0.0.0.0',()=>console.log(`RPG Chain Kit listening on port ${port}`));

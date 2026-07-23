@@ -96,6 +96,13 @@ h1 span {
   text-align: right;
 }
 
+.chain-actions { grid-column: 2; display: flex; justify-content: end; gap: 8px; margin-top: 12px; }
+.chain-button, .museum-button, .mint-button, .museum__head button { border: 1px solid var(--straw); color: #f4ebdd; background: #49362d; padding: 8px 10px; cursor: pointer; font: 12px inherit; }
+.museum-button, .mint-button { background: var(--hongqu); border-color: #d9a052; }
+.chain-button:hover, .museum-button:hover, .mint-button:hover, .museum__head button:hover { filter: brightness(1.15); }
+.chain-button:focus-visible, .museum-button:focus-visible, .mint-button:focus-visible, .museum__head button:focus-visible { outline: 3px solid #f4ebdd; outline-offset: 3px; }
+.mint-button:disabled { cursor: wait; opacity: .68; }
+
 .stage-wrap {
   position: relative;
   width: min(100%, 1152px);
@@ -155,6 +162,21 @@ h1 span {
   font-size: 10px;
 }
 
+.museum { position: fixed; inset: 50% auto auto 50%; z-index: 20; width: min(640px, calc(100vw - 28px)); transform: translate(-50%, -50%); padding: 24px; background: #211a17; border: 1px solid var(--amber); box-shadow: 14px 14px 0 #17110f; }
+.museum__head { display: flex; justify-content: space-between; gap: 16px; align-items: start; border-bottom: 1px solid #6e4932; padding-bottom: 14px; }
+.museum__head p { margin: 0 0 4px; color: var(--straw); font: 10px "Cascadia Mono", monospace; letter-spacing: .12em; }
+.museum h2, .museum h3 { margin: 0; color: #f4ebdd; font-weight: 500; }
+.museum h2 { font-size: 26px; }.museum h3 { font-size: 17px; }
+.museum__status, .museum__note, .museum__empty { color: var(--frost); font-size: 13px; line-height: 1.65; }
+.collection-refresh { margin: 0 0 4px; }
+.collection-tools { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.share-panel { display:grid; grid-template-columns:112px 1fr; gap:14px; align-items:center; margin:12px 0; padding:12px; background:#17110f; border:1px solid #6e4932; }.share-panel img { width:112px; height:112px; background:#fff; }.share-panel strong { color:#f4ebdd; font-size:15px; font-weight:500; }.share-panel p { margin:5px 0; color:var(--frost); font-size:12px; line-height:1.5; }.share-panel code { display:block; margin-bottom:8px; color:var(--straw); font:10px "Cascadia Mono",monospace; overflow-wrap:anywhere; }
+.medal { display: flex; align-items: center; gap: 14px; margin: 18px 0; padding: 14px 0; border-block: 1px solid #5a4032; }
+.medal__seal { display: grid; place-items: center; flex: 0 0 58px; height: 58px; color: #f4ebdd; background: var(--hongqu); border: 2px solid var(--amber); border-radius: 50%; font-size: 24px; }
+.medal__copy { flex: 1; }.medal__copy p { margin: 5px 0; color: #c7cecb; font-size: 12px; line-height: 1.55; }.medal__copy small { color: var(--straw); }
+.museum__note { margin: 0; padding-top: 14px; border-top: 1px solid #5a4032; }
+.onchain { color: var(--straw); font: 11px "Cascadia Mono", monospace; white-space: nowrap; }
+
 @media (max-width: 680px) {
   .app-shell {
     padding-inline: 10px;
@@ -168,6 +190,10 @@ h1 span {
     margin-top: 10px;
     text-align: left;
   }
+  .chain-actions { justify-content: start; }
+  .museum { padding: 18px; box-shadow: 7px 7px 0 #17110f; }
+  .medal { align-items: flex-start; flex-wrap: wrap; }.mint-button { margin-left: 72px; }
+  .share-panel { grid-template-columns:88px 1fr; }.share-panel img { width:88px; height:88px; }
 
   .stage-wrap {
     padding: 4px;

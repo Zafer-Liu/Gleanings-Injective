@@ -13,12 +13,10 @@ import type { Act1State, TilePosition } from "../domain/act1State";
 import { Player, type MovementKeys } from "../entities/Player";
 import {
   buildApartmentGeometry,
-  tileToPixelCenter,
-  type PixelOccluder
+  tileToPixelCenter
 } from "../render/ApartmentRenderer";
 import {
   apartmentBackgroundPolicy,
-  miaEntrancePolicy,
   questMarkerTargetForPhase,
   shouldRenderInteractableOverlay
 } from "../render/SceneVisualPolicy";
@@ -71,8 +69,6 @@ export class ApartmentScene extends Phaser.Scene {
   private choicePanel!: ChoicePanel;
   private questMarker!: Phaser.GameObjects.Container;
   private jarSprite?: Phaser.GameObjects.Image;
-  private miaSprite?: Phaser.GameObjects.Sprite;
-  private cutsceneLocked = false;
   private holdElapsed = 0;
   private lastProgressAt = 0;
   private invalidInteractions = 0;
@@ -99,10 +95,6 @@ export class ApartmentScene extends Phaser.Scene {
         background.worldSize.height
       )
       .setDepth(0);
-    this.createForegroundOccluders(
-      geometry.occluders,
-      background.worldSize
-    );
     this.createInteractionObjects();
 
     const spawn = tileToPixelCenter(
@@ -126,14 +118,11 @@ export class ApartmentScene extends Phaser.Scene {
     this.createMiaIfNeeded();
     this.createQuestMarker();
     this.configureInput();
-    this.cameras.main.setBounds(
-      0,
-      0,
-      geometry.width,
-      17 * act1Content.map.tileSize
-    );
-    this.followPlayerCamera();
+    this.cameras.main
+      .setBounds(0, 0, geometry.width, 17 * act1Content.map.tileSize)
+      .startFollow(this.player, true, 1, 1);
     this.cameras.main.roundPixels = true;
+    this.cameras.main.setDeadzone(96, 64);
 
     this.hud = new PixelHud(this);
     this.dialogue = new DialogueBox(this);
@@ -155,11 +144,6 @@ export class ApartmentScene extends Phaser.Scene {
     if (this.handleDialogueInput()) return;
     if (this.handleInventoryInput()) return;
     if (this.handleChoiceInput()) return;
-    if (this.cutsceneLocked) {
-      this.player.updateMovement(this.movementKeys, true);
-      this.hud.setPrompt(null);
-      return;
-    }
 
     const moved = this.player.updateMovement(
       this.movementKeys,
@@ -253,58 +237,22 @@ export class ApartmentScene extends Phaser.Scene {
       .setVisible(true);
   }
 
-  private createMiaIfNeeded(
-    tile: TilePosition = act1Content.map.miaStand
-  ): Phaser.GameObjects.Sprite | null {
+  private createMiaIfNeeded(): void {
     if (
-      !phaseAtLeastMia(this.state.phase)
+      !phaseAtLeastMia(this.state.phase) ||
+      this.children.getByName("actor_mia") !== null
     ) {
-      return null;
+      return;
     }
-
-    if (this.miaSprite !== undefined) {
-      return this.miaSprite;
-    }
-
-    const spawn = tileToPixelCenter(tile, act1Content.map.tileSize);
-    this.miaSprite = this.add
+    const spawn = tileToPixelCenter(
+      act1Content.map.miaSpawn,
+      act1Content.map.tileSize
+    );
+    this.add
       .sprite(spawn.x, spawn.y, "actor-mia", 4)
       .setOrigin(0.5, 0.78)
       .setName("actor_mia")
       .setDepth(spawn.y);
-    return this.miaSprite;
-  }
-
-  private createForegroundOccluders(
-    occluders: PixelOccluder[],
-    worldSize: { width: number; height: number }
-  ): void {
-    const rectanglesByDepth = new Map<number, PixelOccluder[]>();
-    for (const occluder of occluders) {
-      const group = rectanglesByDepth.get(occluder.depth) ?? [];
-      group.push(occluder);
-      rectanglesByDepth.set(occluder.depth, group);
-    }
-
-    for (const [depth, rectangles] of rectanglesByDepth) {
-      const maskSource = this.make.graphics({ x: 0, y: 0 });
-      maskSource.fillStyle(0xffffff, 1);
-      for (const rectangle of rectangles) {
-        maskSource.fillRect(
-          rectangle.x,
-          rectangle.y,
-          rectangle.width,
-          rectangle.height
-        );
-      }
-
-      this.add
-        .image(0, 0, "map-apartment")
-        .setOrigin(0)
-        .setDisplaySize(worldSize.width, worldSize.height)
-        .setDepth(depth)
-        .setMask(maskSource.createGeometryMask());
-    }
   }
 
   private configureInput(): void {
@@ -409,76 +357,8 @@ export class ApartmentScene extends Phaser.Scene {
       if (!shouldAdvance) return;
       this.dispatch({ type: "READ_NOTE" });
       this.dispatch({ type: "MIA_ENTERED" });
-      this.beginMiaEntrance();
-    });
-  }
-
-  private beginMiaEntrance(): void {
-    const plan = miaEntrancePolicy(act1Content.map);
-    const mia = this.createMiaIfNeeded(plan.spawnTile);
-    if (mia === null) {
+      this.createMiaIfNeeded();
       this.dialogue.play(dialogueGroup("mia"));
-      return;
-    }
-
-    const focus = tileToPixelCenter(
-      plan.cameraFocusTile,
-      act1Content.map.tileSize
-    );
-    const stand = tileToPixelCenter(
-      plan.standTile,
-      act1Content.map.tileSize
-    );
-
-    this.cutsceneLocked = true;
-    this.hud.setPrompt(null);
-    this.cameras.main.stopFollow();
-    this.cameras.main.pan(
-      focus.x,
-      focus.y,
-      plan.cameraPanMs,
-      "Cubic.easeInOut",
-      true
-    );
-    this.tweens.add({
-      targets: mia,
-      x: stand.x,
-      y: stand.y,
-      delay: plan.walkDelayMs,
-      duration: plan.walkDurationMs,
-      ease: "Sine.easeInOut",
-      onUpdate: () => {
-        mia.setDepth(Math.round(mia.y));
-      },
-      onComplete: () => {
-        this.cutsceneLocked = false;
-        this.dialogue.play(
-          dialogueGroup("mia"),
-          () => this.returnCameraToPlayer()
-        );
-      }
-    });
-  }
-
-  private followPlayerCamera(): void {
-    this.cameras.main
-      .startFollow(this.player, true, 1, 1)
-      .setDeadzone(96, 64);
-  }
-
-  private returnCameraToPlayer(): void {
-    const returnDurationMs = 420;
-    this.cutsceneLocked = true;
-    this.cameras.main.pan(
-      this.player.x,
-      this.player.y,
-      returnDurationMs,
-      "Cubic.easeInOut",
-      true
-    );
-    this.time.delayedCall(returnDurationMs, () => {
-      this.followPlayerCamera();
-      this.cutsceneLocked = false;
     });
   }
 

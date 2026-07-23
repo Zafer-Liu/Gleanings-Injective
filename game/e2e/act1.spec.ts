@@ -74,24 +74,17 @@ test.describe("第一幕《开坛》", () => {
     await press(page, "e");
     await press(page, "e");
     await press(page, "e");
-    await page.waitForTimeout(1_300);
     for (let line = 0; line < 6; line += 1) {
       await press(page, "e");
     }
-    await page.waitForTimeout(500);
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
       "MIA_ENTERED"
     );
 
-    await page.evaluate((key) => {
-      const raw = window.localStorage.getItem(key);
-      if (raw === null) return;
-      const save = JSON.parse(raw) as BrowserSave;
-      save.playerTile = { x: 24, y: 9 };
-      window.localStorage.setItem(key, JSON.stringify(save));
-    }, SAVE_KEY);
-    await page.reload({ waitUntil: "networkidle" });
-    await hold(page, "ArrowRight", 500);
+    await hold(page, "ArrowDown", 500);
+    await hold(page, "ArrowRight", 5_000);
+    await hold(page, "ArrowUp", 1_680);
+    await hold(page, "ArrowRight", 1_600);
     await press(page, "e");
     await press(page, "e");
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
@@ -150,7 +143,7 @@ test.describe("第一幕《开坛》", () => {
     );
     await page.reload({ waitUntil: "networkidle" });
 
-    await hold(page, "ArrowRight", 500);
+    await hold(page, "ArrowRight", 300);
     await press(page, "e");
     await press(page, "e");
     await press(page, "ArrowDown");

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>连接拾遗钱包</title>
+<script src="/vendor/ethers.umd.min.js"></script>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #211a17; color: #f4ebdd; font: 16px system-ui, sans-serif; }
+  main { width: min(420px, calc(100% - 40px)); padding: 28px; border: 1px solid #c9873f; background: #342922; box-shadow: 10px 10px 0 #17110f; }
+  p { color: #d4b46a; line-height: 1.7; } code { color: #c7cecb; overflow-wrap: anywhere; }
+</style>
+<body>
+  <main>
+    <h1>连接拾遗钱包</h1>
+    <p id="status" role="status">正在请求 MetaMask 授权…</p>
+  </main>
+  <script>
+    (async () => {
+      const statusElement = document.getElementById('status');
+      try {
+        const providerApi = window.ethereum;
+        if (!providerApi) throw new Error('未检测到 MetaMask，请安装扩展后重试');
+        const accounts = await providerApi.request({ method: 'eth_requestAccounts' });
+        const address = accounts && accounts[0];
+        if (!address) throw new Error('MetaMask 没有返回钱包地址');
+        const response = await fetch('/api/rpg/wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || '无法保存钱包会话');
+        statusElement.innerHTML = `已连接钱包：<br><code>${result.address}</code><br><br>可以关闭此窗口并返回《拾遗》。`;
+      } catch (error) {
+        statusElement.textContent = `连接失败：${error instanceof Error ? error.message : String(error)}`;
+      }
+    })();
+  </script>
+</body>
+</html>
