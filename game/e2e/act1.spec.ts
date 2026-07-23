@@ -59,8 +59,8 @@ test.describe("第一幕《开坛》", () => {
       "EXPLORE"
     );
 
-    await hold(page, "ArrowUp", 600);
-    await hold(page, "ArrowLeft", 60);
+    await hold(page, "ArrowUp", 800);
+    await hold(page, "ArrowLeft", 500);
     await press(page, "e");
     await press(page, "e");
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
@@ -81,11 +81,15 @@ test.describe("第一幕《开坛》", () => {
       "MIA_ENTERED"
     );
 
+    await hold(page, "ArrowDown", 500);
     await hold(page, "ArrowRight", 5_000);
     await hold(page, "ArrowUp", 1_680);
-    await hold(page, "ArrowRight", 900);
+    await hold(page, "ArrowRight", 1_600);
     await press(page, "e");
     await press(page, "e");
+    await expect.poll(async () => (await readSave(page))?.phase).toBe(
+      "JAR_INSPECTED"
+    );
     await press(page, "ArrowDown");
     await press(page, "e");
     await press(page, "e");
@@ -123,7 +127,7 @@ test.describe("第一幕《开坛》", () => {
       inventory: ["item_taipo_note"],
       inspectedObjects: [],
       senseChoice: null,
-      playerTile: { x: 24, y: 8 },
+      playerTile: { x: 24, y: 9 },
       movementLocked: false,
       act1Complete: false,
       movedTiles: 9
@@ -139,7 +143,7 @@ test.describe("第一幕《开坛》", () => {
     );
     await page.reload({ waitUntil: "networkidle" });
 
-    await hold(page, "ArrowRight", 60);
+    await hold(page, "ArrowRight", 300);
     await press(page, "e");
     await press(page, "e");
     await press(page, "ArrowDown");

@@ -57,7 +57,7 @@ describe("act one content", () => {
     expect(act1Content.map.miaSpawn).toEqual({ x: 26, y: 16 });
   });
 
-  it("uses only integer tile rectangles", () => {
+  it("keeps map rectangles aligned to the quarter-tile pixel grid", () => {
     for (const rectangle of [
       ...act1Content.map.furniture,
       ...act1Content.map.collisions
@@ -68,7 +68,7 @@ describe("act one content", () => {
         rectangle.width,
         rectangle.height
       ]) {
-        expect(Number.isInteger(value)).toBe(true);
+        expect(Number.isInteger(value * 4)).toBe(true);
       }
     }
   });

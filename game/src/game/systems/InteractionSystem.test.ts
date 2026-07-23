@@ -36,6 +36,16 @@ describe("InteractionSystem", () => {
     ).toBeNull();
   });
 
+  it("selects the jar from the open floor tile directly left of its visible body", () => {
+    const target = findInteractionTarget(
+      { x: 25, y: 9 },
+      "right",
+      act1Content.interactables
+    );
+
+    expect(target?.id).toBe("obj_laojiu_jar");
+  });
+
   it("awards the note only after inspecting the box during exploration", () => {
     const state = {
       ...createInitialAct1State(),

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { playerAnimationSpec } from "./PlayerVisualPolicy";
 
 export type Facing = "down" | "left" | "right" | "up";
 
@@ -7,13 +8,6 @@ export type MovementKeys = {
   down: { readonly isDown: boolean };
   left: { readonly isDown: boolean };
   right: { readonly isDown: boolean };
-};
-
-const IDLE_FRAME: Record<Facing, number> = {
-  down: 1,
-  left: 4,
-  right: 7,
-  up: 10
 };
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -26,7 +20,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     y: number,
     texture = "actor-yi"
   ) {
-    super(scene, x, y, texture, IDLE_FRAME.down);
+    super(scene, x, y, texture, playerAnimationSpec("down").idleFrame);
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 0.78);
@@ -72,6 +66,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     } else {
       this.currentFacing = velocityY < 0 ? "up" : "down";
     }
+    this.setFlipX(playerAnimationSpec(this.currentFacing).flipX);
     this.play(`yi-${this.currentFacing}`, true);
     return true;
   }
@@ -79,19 +74,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private stopAtIdle(): void {
     this.setVelocity(0, 0);
     this.stop();
-    this.setFrame(IDLE_FRAME[this.currentFacing]);
+    const spec = playerAnimationSpec(this.currentFacing);
+    this.setFlipX(spec.flipX);
+    this.setFrame(spec.idleFrame);
   }
 
   private createAnimations(texture: string): void {
-    const rows: Facing[] = ["down", "left", "right", "up"];
-    rows.forEach((facing, row) => {
+    const facings: Facing[] = ["down", "left", "right", "up"];
+    facings.forEach((facing) => {
       const key = `yi-${facing}`;
       if (this.scene.anims.exists(key)) return;
+      const spec = playerAnimationSpec(facing);
       this.scene.anims.create({
         key,
         frames: this.scene.anims.generateFrameNumbers(texture, {
-          start: row * 3,
-          end: row * 3 + 2
+          start: spec.frameStart,
+          end: spec.frameEnd
         }),
         frameRate: 7,
         repeat: -1

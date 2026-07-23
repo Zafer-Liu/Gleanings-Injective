@@ -1,17 +1,17 @@
 :root {
   color: #eadcc5;
-  background: #211a17;
+  background: #342922;
   font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --ink: #211a17;
-  --wood-deep: #30231d;
-  --wood: #5b3a29;
+  --ink: #342922;
+  --wood-deep: #46352c;
+  --wood: #6b4936;
   --hongqu: #a83b32;
   --amber: #c9873f;
   --straw: #d4b46a;
   --paper: #eaddc5;
-  --frost: #b7c2c0;
+  --frost: #c7cecb;
 }
 
 * {
@@ -101,9 +101,9 @@ h1 span {
   width: min(100%, 1152px);
   margin: clamp(24px, 4vh, 48px) auto;
   padding: 10px;
-  background: #30231d;
+  background: #4a382e;
   border: 1px solid var(--amber);
-  box-shadow: 12px 12px 0 #17110f;
+  box-shadow: 12px 12px 0 #251b17;
 }
 
 .game-frame {
@@ -150,8 +150,8 @@ h1 span {
   justify-content: center;
   gap: clamp(14px, 3vw, 36px);
   padding-top: 16px;
-  color: #a99b8a;
-  border-top: 1px solid #463127;
+  color: #b9ab99;
+  border-top: 1px solid #5a4032;
   font-size: 10px;
 }
 

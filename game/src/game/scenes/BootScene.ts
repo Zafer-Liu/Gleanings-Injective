@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { apartmentBackgroundPolicy } from "../render/SceneVisualPolicy";
 import { SaveService } from "../systems/SaveService";
 
 type FailedFile = {
@@ -45,7 +46,7 @@ export class BootScene extends Phaser.Scene {
 
     this.load.image(
       "map-apartment",
-      "/maps/map_apartment_full_960x640.png"
+      apartmentBackgroundPolicy().assetPath
     );
     this.load.spritesheet(
       "actor-yi",

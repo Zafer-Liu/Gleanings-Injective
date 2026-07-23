@@ -17,12 +17,16 @@
     { "id": "wall_left", "x": 0, "y": 0, "width": 2, "height": 20 },
     { "id": "wall_right", "x": 28, "y": 0, "width": 2, "height": 20 },
     { "id": "wall_bottom", "x": 0, "y": 17, "width": 30, "height": 3 },
-    { "id": "desk_collision", "x": 2, "y": 3, "width": 6, "height": 3 },
-    { "id": "sofa_collision", "x": 9, "y": 7, "width": 6, "height": 3 },
-    { "id": "table_collision", "x": 10, "y": 10, "width": 5, "height": 3 },
-    { "id": "kitchen_collision", "x": 18, "y": 2, "width": 9, "height": 6 },
-    { "id": "boxes_collision", "x": 2, "y": 10, "width": 4, "height": 6 },
-    { "id": "jar_collision", "x": 25, "y": 6, "width": 2, "height": 3 },
+    { "id": "desk_collision", "x": 2, "y": 4.5, "width": 5, "height": 2.5 },
+    { "id": "sofa_collision", "x": 8.5, "y": 7, "width": 6.25, "height": 3.25 },
+    { "id": "table_collision", "x": 10, "y": 10, "width": 3.5, "height": 3 },
+    { "id": "stool_collision", "x": 8.5, "y": 10.5, "width": 1.5, "height": 2 },
+    { "id": "kitchen_counter_collision", "x": 18.25, "y": 2, "width": 8.75, "height": 4 },
+    { "id": "kitchen_island_collision", "x": 20.25, "y": 6, "width": 4.5, "height": 3 },
+    { "id": "boxes_collision", "x": 1.75, "y": 10, "width": 5.25, "height": 6 },
+    { "id": "parcel_collision", "x": 6.5, "y": 14, "width": 1.75, "height": 2.75 },
+    { "id": "jar_collision", "x": 25.5, "y": 7, "width": 2.25, "height": 3.25 },
+    { "id": "entry_console_collision", "x": 21.25, "y": 11, "width": 1.75, "height": 4.5 },
     { "id": "entry_collision", "x": 23, "y": 11, "width": 4, "height": 6 }
   ]
 }

@@ -9,7 +9,7 @@
   {
     "id": "obj_laojiu_jar",
     "kind": "main",
-    "tile": { "x": 25, "y": 8 },
+    "tile": { "x": 26, "y": 9 },
     "range": 1,
     "dialogueGroup": "jarReady"
   },

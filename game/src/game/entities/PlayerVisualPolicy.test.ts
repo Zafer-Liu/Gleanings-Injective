@@ -1,0 +1,34 @@
+import { describe, expect, it } from "vitest";
+import { playerAnimationSpec } from "./PlayerVisualPolicy";
+
+describe("PlayerVisualPolicy", () => {
+  it("mirrors the full-size left frames when 林怡 faces right", () => {
+    expect(playerAnimationSpec("right")).toEqual({
+      frameStart: 3,
+      frameEnd: 5,
+      idleFrame: 4,
+      flipX: true
+    });
+  });
+
+  it("keeps the original full-size rows for the other directions", () => {
+    expect(playerAnimationSpec("down")).toEqual({
+      frameStart: 0,
+      frameEnd: 2,
+      idleFrame: 1,
+      flipX: false
+    });
+    expect(playerAnimationSpec("left")).toEqual({
+      frameStart: 3,
+      frameEnd: 5,
+      idleFrame: 4,
+      flipX: false
+    });
+    expect(playerAnimationSpec("up")).toEqual({
+      frameStart: 9,
+      frameEnd: 11,
+      idleFrame: 10,
+      flipX: false
+    });
+  });
+});

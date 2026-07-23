@@ -16,6 +16,11 @@ import {
   tileToPixelCenter
 } from "../render/ApartmentRenderer";
 import {
+  apartmentBackgroundPolicy,
+  questMarkerTargetForPhase,
+  shouldRenderInteractableOverlay
+} from "../render/SceneVisualPolicy";
+import {
   canBeginJarOpening,
   findInteractionTarget,
   resolveInteraction,
@@ -62,7 +67,8 @@ export class ApartmentScene extends Phaser.Scene {
   private dialogue!: DialogueBox;
   private inventoryPanel!: InventoryPanel;
   private choicePanel!: ChoicePanel;
-  private jarSprite!: Phaser.GameObjects.Image;
+  private questMarker!: Phaser.GameObjects.Container;
+  private jarSprite?: Phaser.GameObjects.Image;
   private holdElapsed = 0;
   private lastProgressAt = 0;
   private invalidInteractions = 0;
@@ -80,7 +86,15 @@ export class ApartmentScene extends Phaser.Scene {
     this.state = this.saveService.load();
     this.physics.world.setBounds(0, 0, geometry.width, geometry.height);
 
-    this.add.image(0, 0, "map-apartment").setOrigin(0).setDepth(0);
+    const background = apartmentBackgroundPolicy();
+    this.add
+      .image(0, 0, "map-apartment")
+      .setOrigin(0)
+      .setDisplaySize(
+        background.worldSize.width,
+        background.worldSize.height
+      )
+      .setDepth(0);
     this.createInteractionObjects();
 
     const spawn = tileToPixelCenter(
@@ -102,6 +116,7 @@ export class ApartmentScene extends Phaser.Scene {
     }
 
     this.createMiaIfNeeded();
+    this.createQuestMarker();
     this.configureInput();
     this.cameras.main
       .setBounds(0, 0, geometry.width, 17 * act1Content.map.tileSize)
@@ -159,10 +174,12 @@ export class ApartmentScene extends Phaser.Scene {
       { x: 6, y: 13 },
       act1Content.map.tileSize
     );
-    this.add
-      .image(boxPixel.x, boxPixel.y, "obj-box")
-      .setName("obj_cardboard_box")
-      .setDepth(boxPixel.y);
+    if (shouldRenderInteractableOverlay("obj_cardboard_box")) {
+      this.add
+        .image(boxPixel.x, boxPixel.y, "obj-box")
+        .setName("obj_cardboard_box")
+        .setDepth(boxPixel.y);
+    }
 
     const jarPixel = tileToPixelCenter(
       { x: 25, y: 8 },
@@ -170,11 +187,54 @@ export class ApartmentScene extends Phaser.Scene {
     );
     const texture =
       this.state.phase === "COMPLETE" ? "obj-jar-open" : "obj-jar-sealed";
-    this.jarSprite = this.add
-      .image(jarPixel.x, jarPixel.y + 16, texture)
-      .setOrigin(0.5, 1)
-      .setName("obj_laojiu_jar")
-      .setDepth(jarPixel.y);
+    if (shouldRenderInteractableOverlay("obj_laojiu_jar")) {
+      this.jarSprite = this.add
+        .image(jarPixel.x, jarPixel.y + 16, texture)
+        .setOrigin(0.5, 1)
+        .setName("obj_laojiu_jar")
+        .setDepth(jarPixel.y);
+    }
+  }
+
+  private createQuestMarker(): void {
+    const arrow = this.add
+      .text(0, 0, "▼", {
+        fontFamily: '"Cascadia Mono", Consolas, monospace',
+        fontSize: "18px",
+        color: "#F4C45E",
+        stroke: "#211A17",
+        strokeThickness: 4
+      })
+      .setOrigin(0.5, 1);
+    this.questMarker = this.add
+      .container(0, 0, [arrow])
+      .setDepth(9_500);
+
+    this.tweens.add({
+      targets: arrow,
+      y: "-=5",
+      duration: 420,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
+    this.refreshQuestMarker();
+  }
+
+  private refreshQuestMarker(): void {
+    const target = questMarkerTargetForPhase(this.state.phase);
+    if (target === null) {
+      this.questMarker.setVisible(false);
+      return;
+    }
+
+    const position = tileToPixelCenter(
+      target.tile,
+      act1Content.map.tileSize
+    );
+    this.questMarker
+      .setPosition(position.x, position.y + target.offsetY)
+      .setVisible(true);
   }
 
   private createMiaIfNeeded(): void {
@@ -363,7 +423,7 @@ export class ApartmentScene extends Phaser.Scene {
     this.dispatch({ type: "START_OPEN_JAR" });
     this.hud.setPrompt(null);
     this.hud.setHoldProgress(0);
-    this.jarSprite.setTexture("obj-jar-open");
+    this.jarSprite?.setTexture("obj-jar-open");
     this.cameras.main.stopFollow();
     this.tweens.add({
       targets: this.cameras.main,
@@ -436,6 +496,7 @@ export class ApartmentScene extends Phaser.Scene {
     this.lastProgressAt = this.time.now;
     this.invalidInteractions = 0;
     this.refreshHud();
+    this.refreshQuestMarker();
     this.saveService.save(this.state);
   }
 
@@ -471,5 +532,6 @@ export class ApartmentScene extends Phaser.Scene {
       this.saveService.save(this.state);
     }
     this.refreshHud();
+    this.refreshQuestMarker();
   }
 }
