@@ -33,6 +33,22 @@
 | `palette/fujian_rpg_24.png` | 24 色 | 项目唯一母色板 |
 | `previews/style_board_rpg_v2_1920x1080.png` | 1920×1080 | v2 交付总览 |
 
+## 第二、三幕正式运行素材
+
+| 文件 | 规格 | 用途 |
+|---|---:|---|
+| `maps/map_brewery_winter_1408x960.png` | 44×30 tiles | 第二幕冬日酒坊正式地图 |
+| `sprites/spr_taipo_young_walk_96x192.png` | 3×4 / 32×48 | 青年太婆四方向行走表 |
+| `sprites/spr_afeng_walk_96x192.png` | 3×4 / 32×48 | 阿凤师四方向行走表 |
+| `maps/map_postpartum_kitchen_1152x832.png` | 36×26 tiles | 第三幕产后老酒面线厨房 |
+| `sprites/spr_taipo_middle_walk_96x192.png` | 3×4 / 32×48 | 中年太婆四方向行走表 |
+| `sprites/spr_azhen_walk_96x192.png` | 3×4 / 32×48 | 阿珍四方向行走表 |
+| `objects/obj_bowl_32x32.png` | 32×32 | 取碗任务物件 |
+| `objects/obj_noodles_32x32.png` | 32×32 | 面线任务物件 |
+| `objects/obj_laojiu_ladle_32x32.png` | 32×32 | 舀老酒任务物件 |
+| `objects/obj_cooked_noodles_32x32.png` | 32×32 | 老酒面线成品 |
+| `items/it_blue_white_cup_128x128.png` | 128×128 | 第三幕青花杯遗物 |
+
 `*_source.png` 是生成源图，只供回溯和重新处理；游戏不得直接加载。
 
 ## 引擎规则
@@ -46,8 +62,8 @@
 
 ## 当前状态
 
-首批素材已达到尺寸、网格、色板和透明通道规范，可用于搭建垂直切片。
-tileset 仍是风格锁定稿，扩建正式地图前需要人工补做无缝边缘、碰撞标记与文化审核。
+第一至第三幕运行素材已达到尺寸、网格、色板和透明通道规范。
+第二、三幕的碰撞和任务坐标已按正式地图家具边缘对齐；文化审核仍需在正式发布前完成。
 
 生产记录见 `manifest/assets.manifest.json`，提示词与后处理规则见
 `prompts/style-anchors-v2.md`。

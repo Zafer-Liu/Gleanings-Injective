@@ -209,6 +209,135 @@
       "status": "runtime_verified",
       "source": "deterministic_pixel_drawing",
       "engine_role": "act1_transition_overlay"
+    },
+    {
+      "asset_id": "map_brewery_winter",
+      "file": "assets/rpg_v2/maps/map_brewery_winter_1408x960.png",
+      "width": 1408,
+      "height": 960,
+      "grid": [44, 30],
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "image_gen_plus_palette_quantization",
+      "engine_role": "act2_map"
+    },
+    {
+      "asset_id": "spr_taipo_young_walk",
+      "file": "assets/rpg_v2/sprites/spr_taipo_young_walk_96x192.png",
+      "width": 96,
+      "height": 192,
+      "grid": [3, 4],
+      "cell": [32, 48],
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "image_gen_plus_chroma_key_cell_repack_and_palette_quantization",
+      "engine_role": "act2_player_walk_sheet"
+    },
+    {
+      "asset_id": "spr_afeng_walk",
+      "file": "assets/rpg_v2/sprites/spr_afeng_walk_96x192.png",
+      "width": 96,
+      "height": 192,
+      "grid": [3, 4],
+      "cell": [32, 48],
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "image_gen_plus_chroma_key_cell_repack_and_palette_quantization",
+      "engine_role": "act2_master_walk_sheet"
+    },
+    {
+      "asset_id": "map_postpartum_kitchen",
+      "file": "assets/rpg_v2/maps/map_postpartum_kitchen_1152x832.png",
+      "width": 1152,
+      "height": 832,
+      "grid": [36, 26],
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "image_gen_plus_palette_quantization",
+      "engine_role": "act3_map"
+    },
+    {
+      "asset_id": "spr_taipo_middle_walk",
+      "file": "assets/rpg_v2/sprites/spr_taipo_middle_walk_96x192.png",
+      "width": 96,
+      "height": 192,
+      "grid": [3, 4],
+      "cell": [32, 48],
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "image_gen_plus_chroma_key_cell_repack_and_palette_quantization",
+      "engine_role": "act3_player_walk_sheet"
+    },
+    {
+      "asset_id": "spr_azhen_walk",
+      "file": "assets/rpg_v2/sprites/spr_azhen_walk_96x192.png",
+      "width": 96,
+      "height": 192,
+      "grid": [3, 4],
+      "cell": [32, 48],
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "image_gen_plus_chroma_key_cell_repack_and_palette_quantization",
+      "engine_role": "act3_npc_walk_sheet"
+    },
+    {
+      "asset_id": "obj_bowl",
+      "file": "assets/rpg_v2/objects/obj_bowl_32x32.png",
+      "width": 32,
+      "height": 32,
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "deterministic_pixel_drawing",
+      "engine_role": "act3_material"
+    },
+    {
+      "asset_id": "obj_noodles",
+      "file": "assets/rpg_v2/objects/obj_noodles_32x32.png",
+      "width": 32,
+      "height": 32,
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "deterministic_pixel_drawing",
+      "engine_role": "act3_material"
+    },
+    {
+      "asset_id": "obj_laojiu_ladle",
+      "file": "assets/rpg_v2/objects/obj_laojiu_ladle_32x32.png",
+      "width": 32,
+      "height": 32,
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "deterministic_pixel_drawing",
+      "engine_role": "act3_material"
+    },
+    {
+      "asset_id": "obj_cooked_noodles",
+      "file": "assets/rpg_v2/objects/obj_cooked_noodles_32x32.png",
+      "width": 32,
+      "height": 32,
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "deterministic_pixel_drawing",
+      "engine_role": "act3_cooked_item"
+    },
+    {
+      "asset_id": "it_blue_white_cup",
+      "file": "assets/rpg_v2/items/it_blue_white_cup_128x128.png",
+      "width": 128,
+      "height": 128,
+      "alpha": "hard_0_255",
+      "palette": "project_24",
+      "status": "runtime_verified",
+      "source": "deterministic_pixel_drawing",
+      "engine_role": "act3_relic_detail"
     }
   ]
 }

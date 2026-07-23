@@ -1,5 +1,8 @@
 import Phaser from "phaser";
-import { playerAnimationSpec } from "./PlayerVisualPolicy";
+import {
+  playerAnimationKey,
+  playerAnimationSpec
+} from "./PlayerVisualPolicy";
 
 export type Facing = "down" | "left" | "right" | "up";
 
@@ -13,6 +16,7 @@ export type MovementKeys = {
 export class Player extends Phaser.Physics.Arcade.Sprite {
   readonly speed = 92;
   private currentFacing: Facing = "down";
+  private readonly textureKey: string;
 
   constructor(
     scene: Phaser.Scene,
@@ -21,6 +25,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     texture = "actor-yi"
   ) {
     super(scene, x, y, texture, playerAnimationSpec("down").idleFrame);
+    this.textureKey = texture;
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 0.78);
@@ -67,7 +72,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.currentFacing = velocityY < 0 ? "up" : "down";
     }
     this.setFlipX(playerAnimationSpec(this.currentFacing).flipX);
-    this.play(`yi-${this.currentFacing}`, true);
+    this.play(
+      playerAnimationKey(this.textureKey, this.currentFacing),
+      true
+    );
     return true;
   }
 
@@ -82,7 +90,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private createAnimations(texture: string): void {
     const facings: Facing[] = ["down", "left", "right", "up"];
     facings.forEach((facing) => {
-      const key = `yi-${facing}`;
+      const key = playerAnimationKey(texture, facing);
       if (this.scene.anims.exists(key)) return;
       const spec = playerAnimationSpec(facing);
       this.scene.anims.create({

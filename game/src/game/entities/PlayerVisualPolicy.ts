@@ -39,3 +39,10 @@ export function playerAnimationSpec(
 ): PlayerAnimationSpec {
   return { ...SPECS[facing] };
 }
+
+export function playerAnimationKey(
+  texture: string,
+  facing: Facing
+): string {
+  return `${texture}-${facing}`;
+}

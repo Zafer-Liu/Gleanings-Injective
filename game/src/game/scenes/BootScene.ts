@@ -1,5 +1,7 @@
 import Phaser from "phaser";
+import { sceneForChapterAct } from "../domain/ChapterRoute";
 import { apartmentBackgroundPolicy } from "../render/SceneVisualPolicy";
+import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { SaveService } from "../systems/SaveService";
 
 type FailedFile = {
@@ -72,11 +74,70 @@ export class BootScene extends Phaser.Scene {
     );
     this.load.image("item-note", "/items/it_taipo_note_32x32.png");
     this.load.image("fx-jar-memory", "/fx/fx_jar_memory_640x360.png");
+    this.load.image(
+      "map-brewery-winter",
+      "/maps/map_brewery_winter_1408x960.png"
+    );
+    this.load.spritesheet(
+      "actor-taipo-young",
+      "/sprites/spr_taipo_young_walk_96x192.png",
+      { frameWidth: 32, frameHeight: 48 }
+    );
+    this.load.spritesheet(
+      "actor-afeng",
+      "/sprites/spr_afeng_walk_96x192.png",
+      { frameWidth: 32, frameHeight: 48 }
+    );
+    this.load.image(
+      "item-dongniang-relic",
+      "/items/it_relic_dongniang_detail_128x128.png"
+    );
+    this.load.image(
+      "map-postpartum-kitchen",
+      "/maps/map_postpartum_kitchen_1152x832.png"
+    );
+    this.load.spritesheet(
+      "actor-taipo-middle",
+      "/sprites/spr_taipo_middle_walk_96x192.png",
+      { frameWidth: 32, frameHeight: 48 }
+    );
+    this.load.spritesheet(
+      "actor-azhen",
+      "/sprites/spr_azhen_walk_96x192.png",
+      { frameWidth: 32, frameHeight: 48 }
+    );
+    this.load.spritesheet(
+      "actor-family",
+      "/sprites/spr_afeng_walk_96x192.png",
+      { frameWidth: 32, frameHeight: 48 }
+    );
+    this.load.image("obj-bowl", "/objects/obj_bowl_32x32.png");
+    this.load.image(
+      "obj-noodles",
+      "/objects/obj_noodles_32x32.png"
+    );
+    this.load.image(
+      "obj-laojiu-scoop",
+      "/objects/obj_laojiu_ladle_32x32.png"
+    );
+    this.load.image(
+      "obj-cooked-noodles",
+      "/objects/obj_cooked_noodles_32x32.png"
+    );
+    this.load.image(
+      "item-blue-white-cup",
+      "/items/it_blue_white_cup_128x128.png"
+    );
   }
 
   create(): void {
     if (this.failedAssets.size > 0) {
       this.showLoadError([...this.failedAssets]);
+      return;
+    }
+    const chapter = new ChapterSaveService(window.localStorage).load();
+    if (chapter !== null) {
+      this.scene.start(sceneForChapterAct(chapter.currentAct));
       return;
     }
     const saved = new SaveService(window.localStorage).load();
