@@ -7,6 +7,14 @@ const CHAIN_ORIGIN = import.meta.env.VITE_CHAIN_BRIDGE_URL ?? (import.meta.env.D
 type Collectible = { id: string; name: string; description: string; source: string; kind: "道具" | "勋章" };
 type ChainAsset = { token_id: string; item?: { collectible_id?: string; medal_id?: string; name?: string; description?: string; category?: string; item_type?: string; source?: string } };
 
+async function readChainAssets(wallet: string): Promise<ChainAsset[]> {
+  const response = await fetch(`${CHAIN_ORIGIN}/api/rpg/assets/${wallet}`);
+  const body: unknown = await response.json();
+  if (!response.ok) throw new Error((body as { error?: string }).error ?? "无法读取链上收藏");
+  if (!Array.isArray(body)) throw new Error("链上服务返回了无效的收藏数据");
+  return body as ChainAsset[];
+}
+
 function loadCollectedItems(): Collectible[] {
   try {
     const save = JSON.parse(localStorage.getItem("gleanings.act1.save.v1") ?? "{}") as { inventory?: string[]; act1Complete?: boolean };
@@ -40,7 +48,7 @@ function ChainArchive() {
           setWallet(address);
           setStatus(address ? `钱包已连接：${address.slice(0, 6)}…${address.slice(-4)}。你可以选择把任意收藏上链展示。` : "收藏馆已同步本地道具；连接钱包后可选择上链展示。");
           if (!address) return;
-          const assets = await fetch(`${CHAIN_ORIGIN}/api/rpg/assets/${address}`).then((response) => response.json()) as ChainAsset[];
+          const assets = await readChainAssets(address);
           setChainCollectibles(assets.map((asset) => {
             const item = asset.item ?? {};
             const id = item.collectible_id ?? item.medal_id ?? `chain-token-${asset.token_id}`;
@@ -121,7 +129,7 @@ function ChainArchive() {
           const result = await fetch(`${CHAIN_ORIGIN}/api/rpg/requests/${data.request_id}`).then((item) => item.json()) as { status?: string };
           if (result.status === "confirmed") {
             window.clearInterval(timer);
-            const assets = await fetch(`${CHAIN_ORIGIN}/api/rpg/assets/${wallet}`).then((item) => item.json()) as ChainAsset[];
+            const assets = await readChainAssets(wallet);
             const token = assets.find((asset) => (asset.item?.collectible_id ?? asset.item?.medal_id) === collectible.id);
             if (token) setOnChainTokens((current) => ({ ...current, [collectible.id]: token.token_id }));
             setStatus(`${collectible.name} 已在 Injective EVM 上存证${token ? `，链上编号 #${token.token_id}` : ""}。`);
