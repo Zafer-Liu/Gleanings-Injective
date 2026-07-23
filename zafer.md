@@ -78,7 +78,7 @@ flowchart LR
 | `name` / `description` | 收藏馆、闪卡和手机分享页显示 |
 | `category` | 区分道具与勋章 |
 | `source` | 展示故事来源与章节位置 |
-| `image`（后续） | 藏品图；建议为 Railway 公网 URL 或 IPFS URL |
+| `image` | 藏品图；新上链藏品写入 Railway 公网 URL，正式发行可迁移为 IPFS URL |
 
 ---
 
@@ -207,9 +207,9 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 ---
 
-## 7. 藏品图片接入（待实现）
+## 7. 藏品图片与闪卡
 
-藏品卡当前展示名称、类别、故事与来源；下一步可为 `Collectible` 增加 `image` 字段，并在卡片正面与上链 metadata 中写入该字段。
+收藏馆中的每件道具和勋章都可打开翻转闪卡：正面展示像素藏品图、名称和链上状态，背面展示故事介绍与来源，并可调用系统分享面板。公开手机藏品册也会读取同一图片。
 
 当前可复用素材：
 
@@ -218,12 +218,12 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 | `item_taipo_note` | `assets/rpg_v2/items/it_taipo_note_32x32.png` |
 | `act1-winter-brewing` | `assets/rpg_v2/items/it_relic_dongniang_detail_128x128.png` |
 
-建议步骤：
+当前实现：
 
-1. 将图片复制到 `game/public/collection/`；
-2. 使用 `https://你的服务.up.railway.app/collection/<id>.png` 写入 `image`；
-3. 对正式发行版本将文件上传 IPFS，并写入 `ipfs://<CID>/<filename>`；
-4. 前端将 `ipfs://` 转换为可信网关 URL 后显示。
+1. 图片位于 `game/public/collection/`；
+2. 本地藏品按 ID 映射图片，旧链上 Token 即使缺少 `image` 也可显示；
+3. 新铸造 Token 会把 `https://你的服务.up.railway.app/collection/<id>.png` 写入 metadata；
+4. 正式发行时可将图片上传 IPFS，并改写为 `ipfs://<CID>/<filename>`。
 
 ---
 
@@ -233,7 +233,7 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 |---|---|---|
 | 钱包会话存于服务内存 | MVP 实现简单 | 改为前端 localStorage / cookie 会话或数据库，避免多用户互相覆盖 |
 | 手机扫码需要 WalletConnect Project ID | WalletConnect 要求项目身份与允许域名 | Railway 添加 `WALLETCONNECT_PROJECT_ID`，并在 Dashboard 配置 Railway 域名 |
-| metadata 图片未接入 | 当前先验证链上收藏和分享闭环 | 增加 `image` 字段并迁移 IPFS |
+| metadata 图片暂用 Railway URL | 演示环境便于直接显示 | 正式发行迁移 IPFS，避免域名变化影响图片 |
 | 分享页读取公开资产 | 适合社交展示 | 增加昵称、封面、单张藏品 permalink 与 Open Graph 卡片 |
 | 铸造开放给连接钱包的玩家 | 演示期降低流程复杂度 | 接入游戏通关验证或后端签名 voucher 防滥铸 |
 

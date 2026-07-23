@@ -43,6 +43,36 @@ async function finishTransition(page: Page): Promise<void> {
 }
 
 test.describe("第一幕《开坛》", () => {
+  test("收藏馆可以打开物品闪卡并翻面阅读介绍", async ({ page }) => {
+    const checkpoint: BrowserSave = {
+      version: 1,
+      phase: "NOTE_ACQUIRED",
+      questId: "act1_read_note",
+      inventory: ["item_taipo_note"],
+      inspectedObjects: ["box"],
+      senseChoice: null,
+      playerTile: { x: 8, y: 8 },
+      movementLocked: false,
+      act1Complete: false,
+      movedTiles: 4
+    };
+
+    await page.goto("/");
+    await page.evaluate(
+      ({ key, save }) => window.localStorage.setItem(key, JSON.stringify(save)),
+      { key: SAVE_KEY, save: checkpoint }
+    );
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "收藏馆" }).click();
+    await expect(page.getByRole("heading", { name: "太婆字条" })).toBeVisible();
+    await page.getByRole("button", { name: "查看藏品卡" }).click();
+    await expect(page.getByRole("img", { name: "太婆字条" })).toBeVisible();
+    await page.getByRole("button", { name: "翻转太婆字条藏品卡" }).click();
+    await page.waitForTimeout(300);
+    await expect(page.locator(".flashcard__back").getByText("太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。")).toBeVisible();
+    await expect(page.getByRole("button", { name: "分享这张藏品卡" })).toBeVisible();
+  });
+
   test("从公寓醒来走完整个揭坛流程，并能刷新恢复与重新体验", async ({
     page
   }) => {
