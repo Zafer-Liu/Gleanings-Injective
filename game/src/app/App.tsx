@@ -37,6 +37,8 @@ function ChainArchive() {
   const [onChainTokens, setOnChainTokens] = useState<Record<string, string>>({});
   const [syncVersion, setSyncVersion] = useState(0);
   const [shareLink, setShareLink] = useState("");
+  const [selectedCollectible, setSelectedCollectible] = useState<Collectible | null>(null);
+  const [cardFlipped, setCardFlipped] = useState(false);
 
   useEffect(() => {
     const syncWallet = () => {
@@ -144,6 +146,16 @@ function ChainArchive() {
     }
   };
 
+  const displayedCollectibles = [
+    ...collectibles,
+    ...chainCollectibles.filter((chainItem) => !collectibles.some((localItem) => localItem.id === chainItem.id))
+  ];
+
+  const openCard = (collectible: Collectible) => {
+    setSelectedCollectible(collectible);
+    setCardFlipped(false);
+  };
+
   return <>
     <div className="chain-actions">
       <button className="chain-button" onClick={connect}>{wallet ? `已连接 · ${wallet.slice(-4)}` : "连接钱包"}</button>
@@ -154,9 +166,10 @@ function ChainArchive() {
       <p className="museum__status">{status}</p>
       <div className="collection-tools"><button className="chain-button collection-refresh" onClick={refreshChainCollection}>读取链上收藏</button><button className="museum-button" onClick={() => void shareCollection()}>{wallet ? "手机分享" : "连接后分享"}</button></div>
       {shareLink && <div className="share-panel"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareLink)}`} alt="手机打开收藏馆的二维码" /><div><strong>扫码查看我的收藏</strong><p>手机与电脑在同一 Wi‑Fi 时，可扫描二维码打开公开藏品册。</p><code>{shareLink}</code><button className="chain-button" onClick={() => void copyShareLink()}>复制分享链接</button></div></div>}
-      {[...collectibles, ...chainCollectibles.filter((chainItem) => !collectibles.some((localItem) => localItem.id === chainItem.id))].length ? [...collectibles, ...chainCollectibles.filter((chainItem) => !collectibles.some((localItem) => localItem.id === chainItem.id))].map((collectible) => <article className="medal" key={collectible.id}><div className="medal__seal" aria-hidden="true">{collectible.kind === "勋章" ? "章" : "藏"}</div><div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectible.kind} · 可选择上链展示`}</small></div>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。</p>}
+      {displayedCollectibles.length ? displayedCollectibles.map((collectible) => <article className="medal" key={collectible.id}><div className="medal__seal" aria-hidden="true">{collectible.kind === "勋章" ? "章" : "藏"}</div><div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectible.kind} · 可选择上链展示`}</small></div><button className="card-open" onClick={() => openCard(collectible)}>查看藏品卡</button>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。</p>}
       <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；只有你选择展示的收藏才会铸造成 Injective EVM NFT。</p>
     </section>}
+    {selectedCollectible && <section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}><div className="flashcard-modal__head"><p>GLEANINGS / STORY CARD</p><button onClick={() => setSelectedCollectible(null)} aria-label="关闭藏品卡">关闭 ×</button></div><button className={`flashcard ${cardFlipped ? "flashcard--flipped" : ""}`} onClick={() => setCardFlipped((flipped) => !flipped)} aria-label="翻转藏品卡"><span className="flashcard__inner"><span className="flashcard__face flashcard__front"><span className="flashcard__seal">{selectedCollectible.kind === "勋章" ? "章" : "藏"}</span><span className="flashcard__label">{selectedCollectible.kind} / GLEANINGS</span><strong>{selectedCollectible.name}</strong><small>{onChainTokens[selectedCollectible.id] ? `INJECTIVE EVM · TOKEN #${onChainTokens[selectedCollectible.id]}` : "本地旅程收藏"}</small><em>轻触翻转，读取故事</em></span><span className="flashcard__face flashcard__back"><span className="flashcard__label">COLLECTION NOTE</span><strong>{selectedCollectible.name}</strong><p>{selectedCollectible.description}</p><small>来源 · {selectedCollectible.source}</small><em>轻触返回正面</em></span></span></button></section>}
   </>;
 }
 
