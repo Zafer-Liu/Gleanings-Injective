@@ -1,0 +1,95 @@
+{
+  "manifest_version": "1.0",
+  "style_version": "style-v1.1",
+  "generated_at": "2026-07-23",
+  "generator": "OpenAI built-in image_gen",
+  "assets": [
+    {
+      "asset_id": "style_scene_brewery",
+      "file": "assets/style/style_scene_brewery_source.png",
+      "derived_file": "assets/bg/bg_brewery_winter.png",
+      "priority": "P0",
+      "status": "ready",
+      "source_size": [1672, 941],
+      "delivery_size": [640, 360],
+      "alpha": false,
+      "source": "ai_plus_manual",
+      "prompt_version": "style-v1.1-scene",
+      "human_edits": "nearest-neighbor resize to delivery size",
+      "cultural_review": "pending",
+      "license": "project-owned-output"
+    },
+    {
+      "asset_id": "style_char_taipo_young",
+      "file": "assets/style/style_char_taipo_young_alpha.png",
+      "derived_file": "assets/characters/ch_taipo_young.png",
+      "priority": "P0",
+      "status": "ready",
+      "source_size": [1024, 1536],
+      "delivery_size": [256, 384],
+      "alpha": true,
+      "source": "ai_plus_manual",
+      "prompt_version": "style-v1.1-character",
+      "references": ["style_scene_brewery"],
+      "human_edits": "chroma-key removal, despill, nearest-neighbor resize",
+      "cultural_review": "pending",
+      "license": "project-owned-output"
+    },
+    {
+      "asset_id": "style_item_dongniang",
+      "file": "assets/style/style_item_dongniang_alpha.png",
+      "derived_file": "assets/items/base/it_relic_dongniang.png",
+      "priority": "P0",
+      "status": "ready",
+      "source_size": [1254, 1254],
+      "delivery_size": [1024, 1024],
+      "alpha": true,
+      "source": "ai_plus_manual",
+      "prompt_version": "style-v1.1-relic",
+      "references": [
+        "style_scene_brewery",
+        "style_char_taipo_young"
+      ],
+      "human_edits": "chroma-key removal, despill, nearest-neighbor resize",
+      "cultural_review": "pending",
+      "license": "project-owned-output"
+    },
+    {
+      "asset_id": "style_ui_choice_tag",
+      "file": "assets/style/style_ui_choice_tag_source.png",
+      "derived_file": "assets/ui/ui_choice_tag_states.png",
+      "priority": "P0",
+      "status": "ready",
+      "source_size": [2172, 724],
+      "delivery_size": [720, 240],
+      "alpha": false,
+      "source": "ai_plus_manual",
+      "prompt_version": "style-v1.1-choice",
+      "references": [
+        "style_scene_brewery",
+        "style_item_dongniang"
+      ],
+      "human_edits": "resize to component-board delivery size",
+      "cultural_review": "not_required",
+      "license": "project-owned-output"
+    },
+    {
+      "asset_id": "style_board",
+      "file": "assets/deliverables/style_board_1920x1080.png",
+      "priority": "P0",
+      "status": "ready",
+      "delivery_size": [1920, 1080],
+      "alpha": false,
+      "source": "manual_composite",
+      "references": [
+        "style_scene_brewery",
+        "style_char_taipo_young",
+        "style_item_dongniang",
+        "style_ui_choice_tag"
+      ],
+      "human_edits": "deterministic layout, labels, and palette swatches",
+      "cultural_review": "pending",
+      "license": "project-owned-output"
+    }
+  ]
+}
