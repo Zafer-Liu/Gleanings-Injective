@@ -9,7 +9,7 @@
   },
   {
     "id": "hongqu_tray",
-    "tile": { "x": 13, "y": 9 },
+    "tile": { "x": 12, "y": 9 },
     "range": 1,
     "prompt": "E / 空格 · 检视红曲盘",
     "dialogueGroup": "tray",
@@ -17,7 +17,7 @@
   },
   {
     "id": "clay_jar",
-    "tile": { "x": 35, "y": 9 },
+    "tile": { "x": 34, "y": 10 },
     "range": 1,
     "prompt": "E / 空格 · 检视陶坛",
     "dialogueGroup": "jar",
@@ -25,7 +25,7 @@
   },
   {
     "id": "hongqu_sample",
-    "tile": { "x": 13, "y": 9 },
+    "tile": { "x": 12, "y": 9 },
     "range": 1,
     "prompt": "E / 空格 · 取一份红曲",
     "dialogueGroup": "sample",
@@ -33,7 +33,7 @@
   },
   {
     "id": "mix_station",
-    "tile": { "x": 13, "y": 19 },
+    "tile": { "x": 10, "y": 20 },
     "range": 1,
     "prompt": "E / 空格 · 霜降拌曲",
     "dialogueGroup": "mix",
@@ -41,7 +41,7 @@
   },
   {
     "id": "vat_station",
-    "tile": { "x": 23, "y": 19 },
+    "tile": { "x": 22, "y": 20 },
     "range": 1,
     "prompt": "E / 空格 · 立冬下缸",
     "dialogueGroup": "vat",
@@ -49,7 +49,7 @@
   },
   {
     "id": "seal_station",
-    "tile": { "x": 33, "y": 19 },
+    "tile": { "x": 33, "y": 20 },
     "range": 1,
     "prompt": "E / 空格 · 冬至封坛",
     "dialogueGroup": "seal",

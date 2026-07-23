@@ -74,16 +74,16 @@ export class BootScene extends Phaser.Scene {
     this.load.image("fx-jar-memory", "/fx/fx_jar_memory_640x360.png");
     this.load.image(
       "map-brewery-winter",
-      "/maps/map_brewery_full_1280x896.png"
+      "/maps/map_brewery_winter_1408x960.png"
     );
     this.load.spritesheet(
       "actor-taipo-young",
-      "/sprites/spr_yi_walk_96x192.png",
+      "/sprites/spr_taipo_young_walk_96x192.png",
       { frameWidth: 32, frameHeight: 48 }
     );
     this.load.spritesheet(
       "actor-afeng",
-      "/sprites/spr_mia_walk_96x192.png",
+      "/sprites/spr_afeng_walk_96x192.png",
       { frameWidth: 32, frameHeight: 48 }
     );
     this.load.image(
@@ -92,39 +92,39 @@ export class BootScene extends Phaser.Scene {
     );
     this.load.image(
       "map-postpartum-kitchen",
-      "/maps/map_apartment_source.png"
+      "/maps/map_postpartum_kitchen_1152x832.png"
     );
     this.load.spritesheet(
       "actor-taipo-middle",
-      "/sprites/spr_yi_walk_96x192.png",
+      "/sprites/spr_taipo_middle_walk_96x192.png",
       { frameWidth: 32, frameHeight: 48 }
     );
     this.load.spritesheet(
       "actor-azhen",
-      "/sprites/spr_mia_walk_96x192.png",
+      "/sprites/spr_azhen_walk_96x192.png",
       { frameWidth: 32, frameHeight: 48 }
     );
     this.load.spritesheet(
       "actor-family",
-      "/sprites/spr_mia_walk_96x192.png",
+      "/sprites/spr_afeng_walk_96x192.png",
       { frameWidth: 32, frameHeight: 48 }
     );
-    this.load.image("obj-bowl", "/items/it_hongqu_sample_32x32.png");
+    this.load.image("obj-bowl", "/objects/obj_bowl_32x32.png");
     this.load.image(
       "obj-noodles",
-      "/items/it_taipo_note_32x32.png"
+      "/objects/obj_noodles_32x32.png"
     );
     this.load.image(
       "obj-laojiu-scoop",
-      "/objects/obj_laojiu_jar_open_32x64.png"
+      "/objects/obj_laojiu_ladle_32x32.png"
     );
     this.load.image(
       "obj-cooked-noodles",
-      "/items/it_hongqu_sample_32x32.png"
+      "/objects/obj_cooked_noodles_32x32.png"
     );
     this.load.image(
       "item-blue-white-cup",
-      "/items/it_relic_dongniang_detail_128x128.png"
+      "/items/it_blue_white_cup_128x128.png"
     );
   }
 

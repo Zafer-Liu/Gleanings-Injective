@@ -3,7 +3,7 @@
   "tileSize": 32,
   "playerSpawn": { "x": 17, "y": 21 },
   "npcSpawns": {
-    "family": { "x": 8, "y": 11 },
+    "family": { "x": 11, "y": 11 },
     "azhen": { "x": 29, "y": 18 }
   },
   "collisions": [
@@ -11,19 +11,19 @@
     { "id": "wall_left", "x": 0, "y": 0, "width": 2, "height": 26 },
     { "id": "wall_right", "x": 34, "y": 0, "width": 2, "height": 26 },
     { "id": "wall_bottom", "x": 0, "y": 24, "width": 36, "height": 2 },
-    { "id": "bowl_shelf_base", "x": 5, "y": 8.5, "width": 6, "height": 0.75 },
-    { "id": "noodle_table_base", "x": 13, "y": 8.5, "width": 6, "height": 0.75 },
-    { "id": "wine_rack_base", "x": 23, "y": 8.5, "width": 6, "height": 0.75 },
-    { "id": "stove_base", "x": 7, "y": 15.5, "width": 7, "height": 0.75 },
-    { "id": "dining_table_base", "x": 16, "y": 16.5, "width": 7, "height": 0.75 },
-    { "id": "rest_bed_base", "x": 27, "y": 19.5, "width": 5, "height": 0.75 }
+    { "id": "bowl_shelf_base", "x": 3, "y": 6.25, "width": 5, "height": 0.75 },
+    { "id": "noodle_table_base", "x": 15.5, "y": 7, "width": 7, "height": 0.75 },
+    { "id": "wine_rack_base", "x": 27.5, "y": 6.25, "width": 5.5, "height": 0.75 },
+    { "id": "stove_base", "x": 2.5, "y": 14.5, "width": 6, "height": 0.75 },
+    { "id": "dining_table_base", "x": 14.5, "y": 14.5, "width": 6.5, "height": 0.75 },
+    { "id": "rest_bed_base", "x": 27, "y": 19.5, "width": 7, "height": 0.75 }
   ],
   "occluders": [
-    { "id": "bowl_shelf_face", "x": 5, "y": 6, "width": 6, "height": 3.25 },
-    { "id": "noodle_table_face", "x": 13, "y": 6.5, "width": 6, "height": 2.75 },
-    { "id": "wine_rack_face", "x": 23, "y": 5.5, "width": 6, "height": 3.75 },
-    { "id": "stove_face", "x": 7, "y": 12.5, "width": 7, "height": 3.75 },
-    { "id": "dining_table_face", "x": 16, "y": 13.5, "width": 7, "height": 3.75 },
-    { "id": "rest_bed_face", "x": 27, "y": 16, "width": 5, "height": 4.25 }
+    { "id": "bowl_shelf_face", "x": 3, "y": 2.5, "width": 5, "height": 4.5 },
+    { "id": "noodle_table_face", "x": 15.5, "y": 4, "width": 7, "height": 3.75 },
+    { "id": "wine_rack_face", "x": 27.5, "y": 3, "width": 5.5, "height": 4 },
+    { "id": "stove_face", "x": 2.5, "y": 8.5, "width": 6, "height": 6.75 },
+    { "id": "dining_table_face", "x": 14.5, "y": 10.5, "width": 6.5, "height": 4.75 },
+    { "id": "rest_bed_face", "x": 27, "y": 10.5, "width": 7, "height": 10 }
   ]
 }

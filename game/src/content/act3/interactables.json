@@ -1,7 +1,7 @@
 [
   {
     "id": "family",
-    "tile": { "x": 8, "y": 11 },
+    "tile": { "x": 11, "y": 11 },
     "range": 1,
     "prompt": "E / 空格 · 问问要做什么",
     "dialogueGroup": "family",
@@ -9,7 +9,7 @@
   },
   {
     "id": "bowl",
-    "tile": { "x": 8, "y": 9 },
+    "tile": { "x": 5, "y": 7 },
     "range": 1,
     "prompt": "E / 空格 · 取一只碗",
     "dialogueGroup": "bowl",
@@ -18,7 +18,7 @@
   },
   {
     "id": "noodles",
-    "tile": { "x": 16, "y": 9 },
+    "tile": { "x": 18, "y": 8 },
     "range": 1,
     "prompt": "E / 空格 · 取面线",
     "dialogueGroup": "noodles",
@@ -27,7 +27,7 @@
   },
   {
     "id": "laojiu",
-    "tile": { "x": 26, "y": 9 },
+    "tile": { "x": 30, "y": 7 },
     "range": 1,
     "prompt": "E / 空格 · 舀一勺老酒",
     "dialogueGroup": "laojiu",
@@ -36,7 +36,7 @@
   },
   {
     "id": "stove",
-    "tile": { "x": 10, "y": 16 },
+    "tile": { "x": 6, "y": 15 },
     "range": 1,
     "prompt": "E / 空格 · 煮老酒面线",
     "dialogueGroup": "cook",

@@ -70,7 +70,7 @@ def verify() -> list[str]:
                         f"{asset_id}: alpha contains non-hard values"
                     )
 
-            if asset_id.startswith(
+            if asset.get("palette") == "project_24" or asset_id.startswith(
                 (
                     "map_apartment",
                     "tileset_apartment",
