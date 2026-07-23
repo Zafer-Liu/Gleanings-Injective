@@ -2,10 +2,22 @@ import { useEffect, useState } from "react";
 import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
 
-const CHAIN_ORIGIN = import.meta.env.VITE_CHAIN_BRIDGE_URL ?? "http://127.0.0.1:3100";
+const CHAIN_ORIGIN = import.meta.env.VITE_CHAIN_BRIDGE_URL ?? (import.meta.env.DEV ? "http://127.0.0.1:3100" : window.location.origin);
+const WALLET_STORAGE_KEY = "gleanings.collection.wallet.v1";
+
+type Eip1193Provider = { request: (request: { method: string; params?: unknown[] }) => Promise<unknown>; isMetaMask?: boolean; isOkxWallet?: boolean; providers?: Eip1193Provider[] };
+type AnnouncedWallet = { info?: { name?: string }; provider: Eip1193Provider };
 
 type Collectible = { id: string; name: string; description: string; source: string; kind: "道具" | "勋章" };
 type ChainAsset = { token_id: string; item?: { collectible_id?: string; medal_id?: string; name?: string; description?: string; category?: string; item_type?: string; source?: string } };
+
+async function readChainAssets(wallet: string): Promise<ChainAsset[]> {
+  const response = await fetch(`${CHAIN_ORIGIN}/api/rpg/assets/${wallet}`);
+  const body: unknown = await response.json();
+  if (!response.ok) throw new Error((body as { error?: string }).error ?? "无法读取链上收藏");
+  if (!Array.isArray(body)) throw new Error("链上服务返回了无效的收藏数据");
+  return body as ChainAsset[];
+}
 
 function loadCollectedItems(): Collectible[] {
   try {
@@ -19,6 +31,33 @@ function loadCollectedItems(): Collectible[] {
   } catch { return []; }
 }
 
+function savedWallet(): string {
+  const value = localStorage.getItem(WALLET_STORAGE_KEY) ?? "";
+  return /^0x[a-fA-F0-9]{40}$/.test(value) ? value : "";
+}
+
+function walletName(wallet: AnnouncedWallet, index: number): string {
+  if (wallet.info?.name) return wallet.info.name;
+  if (wallet.provider.isOkxWallet) return "OKX Wallet";
+  if (wallet.provider.isMetaMask) return "MetaMask";
+  return `浏览器钱包 ${index + 1}`;
+}
+
+async function loadWalletConnectProvider(): Promise<{ init: (options: Record<string, unknown>) => Promise<Eip1193Provider & { connect: () => Promise<unknown> }> }> {
+  const existing = (globalThis as typeof globalThis & { "@walletconnect/ethereum-provider"?: { EthereumProvider?: unknown } })["@walletconnect/ethereum-provider"]?.EthereumProvider;
+  if (existing) return existing as { init: (options: Record<string, unknown>) => Promise<Eip1193Provider & { connect: () => Promise<unknown> }> };
+  await new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `${CHAIN_ORIGIN}/vendor/walletconnect/index.umd.js`;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("二维码组件加载失败，请刷新页面后重试。"));
+    document.head.append(script);
+  });
+  const loaded = (globalThis as typeof globalThis & { "@walletconnect/ethereum-provider"?: { EthereumProvider?: unknown } })["@walletconnect/ethereum-provider"]?.EthereumProvider;
+  if (!loaded) throw new Error("二维码组件加载失败，请刷新页面后重试。");
+  return loaded as { init: (options: Record<string, unknown>) => Promise<Eip1193Provider & { connect: () => Promise<unknown> }> };
+}
+
 function ChainArchive() {
   const [open, setOpen] = useState(false);
   const [wallet, setWallet] = useState("");
@@ -29,18 +68,20 @@ function ChainArchive() {
   const [onChainTokens, setOnChainTokens] = useState<Record<string, string>>({});
   const [syncVersion, setSyncVersion] = useState(0);
   const [shareLink, setShareLink] = useState("");
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [walletModalStatus, setWalletModalStatus] = useState("选择浏览器扩展，或使用手机钱包扫码连接。");
+  const [connectingWallet, setConnectingWallet] = useState(false);
+  const [announcedWallets, setAnnouncedWallets] = useState<AnnouncedWallet[]>([]);
 
   useEffect(() => {
     const syncWallet = () => {
       setCollectibles(loadCollectedItems());
-      fetch(`${CHAIN_ORIGIN}/api/rpg/wallet`)
-        .then((response) => response.json())
-        .then(async (data: { address?: string }) => {
-          const address = data.address ?? "";
-          setWallet(address);
-          setStatus(address ? `钱包已连接：${address.slice(0, 6)}…${address.slice(-4)}。你可以选择把任意收藏上链展示。` : "收藏馆已同步本地道具；连接钱包后可选择上链展示。");
-          if (!address) return;
-          const assets = await fetch(`${CHAIN_ORIGIN}/api/rpg/assets/${address}`).then((response) => response.json()) as ChainAsset[];
+      const address = savedWallet();
+      setWallet(address);
+      setStatus(address ? `此设备已连接钱包（末四位 ${address.slice(-4)}）。你可以选择把任意收藏上链展示。` : "收藏馆已同步本地道具；连接钱包后可选择上链展示。");
+      if (!address) return;
+      readChainAssets(address)
+        .then((assets) => {
           setChainCollectibles(assets.map((asset) => {
             const item = asset.item ?? {};
             const id = item.collectible_id ?? item.medal_id ?? `chain-token-${asset.token_id}`;
@@ -60,6 +101,17 @@ function ChainArchive() {
     const timer = window.setInterval(syncWallet, 1500);
     return () => { window.removeEventListener("focus", syncWallet); window.clearInterval(timer); };
   }, [syncVersion]);
+
+  useEffect(() => {
+    const onAnnouncement = (event: Event) => {
+      const detail = (event as CustomEvent<AnnouncedWallet>).detail;
+      if (!detail?.provider) return;
+      setAnnouncedWallets((current) => current.some((item) => item.provider === detail.provider) ? current : [...current, detail]);
+    };
+    window.addEventListener("eip6963:announceProvider", onAnnouncement);
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+    return () => window.removeEventListener("eip6963:announceProvider", onAnnouncement);
+  }, []);
 
   const refreshChainCollection = () => {
     setStatus("正在从 Injective EVM 读取该钱包的链上收藏…");
@@ -86,9 +138,61 @@ function ChainArchive() {
     catch { setStatus("无法自动复制，请长按二维码下方链接手动复制。 "); }
   };
 
+  const availableExtensions = (): AnnouncedWallet[] => {
+    const injected = (window as typeof window & { ethereum?: Eip1193Provider }).ethereum;
+    const legacy = injected?.providers ?? (injected ? [injected] : []);
+    return [...announcedWallets, ...legacy.map((provider) => ({ provider }))].filter((item, index, list) => list.findIndex((candidate) => candidate.provider === item.provider) === index);
+  };
+
   const connect = () => {
-    window.open(`${CHAIN_ORIGIN}/connect.html`, "gleanings-wallet", "width=520,height=640");
-    setStatus("请在新窗口连接 MetaMask；连接成功后重新打开收藏馆即可同步。");
+    setWalletModalStatus(wallet ? `当前设备已连接尾号 ${wallet.slice(-4)} 的钱包。你可以改用另一个钱包。` : "选择浏览器扩展，或使用手机钱包扫码连接。");
+    setWalletModalOpen(true);
+  };
+
+  const saveConnectedWallet = (address: string) => {
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) throw new Error("钱包没有返回有效地址。");
+    localStorage.setItem(WALLET_STORAGE_KEY, address);
+    setWallet(address);
+    setWalletModalStatus(`已连接尾号 ${address.slice(-4)} 的钱包。收藏馆正在读取链上藏品。`);
+    setStatus(`此设备已连接钱包（末四位 ${address.slice(-4)}）。你可以选择把任意收藏上链展示。`);
+    setSyncVersion((version) => version + 1);
+  };
+
+  const connectExtension = async (provider: Eip1193Provider) => {
+    setConnectingWallet(true);
+    try {
+      setWalletModalStatus("正在请求钱包授权…");
+      const accounts = await provider.request({ method: "eth_requestAccounts" }) as string[];
+      saveConnectedWallet(accounts?.[0] ?? "");
+    } catch (error) {
+      setWalletModalStatus(`连接失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally { setConnectingWallet(false); }
+  };
+
+  const connectMobile = async () => {
+    setConnectingWallet(true);
+    try {
+      const response = await fetch(`${CHAIN_ORIGIN}/api/rpg/config`);
+      const config = await response.json() as { walletconnect_project_id?: string; chain_id?: number; rpc_url?: string };
+      if (!config.walletconnect_project_id) throw new Error("此服务尚未配置 WalletConnect Project ID。请在 Railway Variables 设置 WALLETCONNECT_PROJECT_ID。");
+      setWalletModalStatus("正在打开二维码，请使用手机钱包中的 WalletConnect 扫码。");
+      const EthereumProvider = await loadWalletConnectProvider();
+      const provider = await EthereumProvider.init({ projectId: config.walletconnect_project_id, optionalChains: [Number(config.chain_id) || 1439], showQrModal: true, rpcMap: { [Number(config.chain_id) || 1439]: config.rpc_url }, metadata: { name: "拾遗收藏馆", description: "Gleanings Injective collection", url: window.location.origin, icons: [] } });
+      await provider.connect();
+      const accounts = await provider.request({ method: "eth_requestAccounts" }) as string[];
+      saveConnectedWallet(accounts?.[0] ?? "");
+    } catch (error) {
+      setWalletModalStatus(`扫码连接失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally { setConnectingWallet(false); }
+  };
+
+  const disconnect = () => {
+    localStorage.removeItem(WALLET_STORAGE_KEY);
+    setWallet("");
+    setChainCollectibles([]);
+    setOnChainTokens({});
+    setStatus("已断开此设备的钱包显示；游戏本地收藏不受影响。");
+    setWalletModalStatus("已断开。选择其他钱包继续连接。");
   };
 
   const mint = async (collectible: Collectible) => {
@@ -121,7 +225,7 @@ function ChainArchive() {
           const result = await fetch(`${CHAIN_ORIGIN}/api/rpg/requests/${data.request_id}`).then((item) => item.json()) as { status?: string };
           if (result.status === "confirmed") {
             window.clearInterval(timer);
-            const assets = await fetch(`${CHAIN_ORIGIN}/api/rpg/assets/${wallet}`).then((item) => item.json()) as ChainAsset[];
+            const assets = await readChainAssets(wallet);
             const token = assets.find((asset) => (asset.item?.collectible_id ?? asset.item?.medal_id) === collectible.id);
             if (token) setOnChainTokens((current) => ({ ...current, [collectible.id]: token.token_id }));
             setStatus(`${collectible.name} 已在 Injective EVM 上存证${token ? `，链上编号 #${token.token_id}` : ""}。`);
@@ -138,9 +242,19 @@ function ChainArchive() {
 
   return <>
     <div className="chain-actions">
-      <button className="chain-button" onClick={connect}>{wallet ? `已连接 ${wallet.slice(0, 6)}…${wallet.slice(-4)}` : "连接钱包"}</button>
+      <button className="chain-button" onClick={connect}>{wallet ? `已连接 · ${wallet.slice(-4)}` : "连接钱包"}</button>
       <button className="museum-button" onClick={() => setOpen(true)}>收藏馆</button>
     </div>
+    {walletModalOpen && <section className="wallet-modal" role="dialog" aria-modal="true" aria-label="连接钱包">
+      <div className="wallet-modal__panel">
+        <div className="wallet-modal__head"><div><p>GLEANINGS / WALLET</p><h2>连接你的收藏</h2></div><button onClick={() => setWalletModalOpen(false)} aria-label="关闭连接钱包">关闭 ×</button></div>
+        <p className="wallet-modal__intro">钱包只用于读取、展示或上链藏品。剧情进度始终保留在这台设备，连接不是游玩的前提。</p>
+        <div className="wallet-methods"><div className="wallet-method"><span className="wallet-method__glyph">⌘</span><div><h3>浏览器钱包</h3><p>选择已安装的 MetaMask、OKX Wallet 或其他兼容扩展。</p></div></div><div className="wallet-method"><span className="wallet-method__glyph">□</span><div><h3>手机扫码连接</h3><p>使用手机钱包的 WalletConnect 扫码，无需电脑和手机同一 Wi-Fi。</p></div></div></div>
+        <div className="wallet-options">{availableExtensions().map((item, index) => <button key={`${walletName(item, index)}-${index}`} className="wallet-option" disabled={connectingWallet} onClick={() => void connectExtension(item.provider)}><span>{walletName(item, index)}</span><small>连接 →</small></button>)}{availableExtensions().length === 0 && <p className="wallet-option__empty">未发现浏览器钱包扩展。可安装 MetaMask / OKX Wallet，或直接使用手机扫码。</p>}<button className="wallet-option wallet-option--mobile" disabled={connectingWallet} onClick={() => void connectMobile()}><span>用手机钱包扫码</span><small>打开二维码 →</small></button></div>
+        {wallet && <button className="wallet-disconnect" onClick={disconnect}>断开此设备的钱包</button>}
+        <p className="wallet-modal__status" role="status">{walletModalStatus}</p>
+      </div>
+    </section>}
     {open && <section className="museum" role="dialog" aria-modal="true" aria-label="收藏馆">
       <div className="museum__head"><div><p>GLEANINGS / COLLECTION</p><h2>拾遗收藏馆</h2></div><button onClick={() => setOpen(false)}>关闭 ×</button></div>
       <p className="museum__status">{status}</p>

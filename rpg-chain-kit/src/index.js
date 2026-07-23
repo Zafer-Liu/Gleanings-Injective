@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRpgItemRouter } from './rpg-item-router.js';
 dotenv.config(); const app=express(); const port=process.env.PORT||3100;
+app.set('trust proxy',1);
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const gameDist=path.resolve(root,'..','game','dist');
 const corsOrigins=(process.env.CORS_ORIGINS||'http://127.0.0.1:5173,http://localhost:5173').split(',').map((origin)=>origin.trim()).filter(Boolean);
@@ -17,7 +18,7 @@ app.use((req,res,next)=>{
   if(req.method==='OPTIONS') return res.sendStatus(204);
   next();
 });
-app.use(express.json()); app.use(express.static(gameDist)); app.use(express.static(path.join(root,'public'))); app.use('/vendor',express.static(path.join(root,'node_modules/ethers/dist'))); app.use('/artifacts',express.static(path.join(root,'artifacts'))); app.use('/api/rpg',createRpgItemRouter());
+app.use(express.json()); app.use(express.static(gameDist)); app.use(express.static(path.join(root,'public'))); app.use('/vendor',express.static(path.join(root,'node_modules/ethers/dist'))); app.use('/vendor/walletconnect',express.static(path.join(root,'node_modules/@walletconnect/ethereum-provider/dist'))); app.use('/artifacts',express.static(path.join(root,'artifacts'))); app.use('/api/rpg',createRpgItemRouter());
 app.get('/health',(_req,res)=>res.status(200).json({status:'ok',service:'gleanings-chain-bridge'}));
 app.get('/api/rpg/share-link/:wallet',(req,res)=>{
   const wallet=req.params.wallet;

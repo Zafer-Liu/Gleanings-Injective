@@ -103,6 +103,29 @@ h1 span {
 .chain-button:focus-visible, .museum-button:focus-visible, .mint-button:focus-visible, .museum__head button:focus-visible { outline: 3px solid #f4ebdd; outline-offset: 3px; }
 .mint-button:disabled { cursor: wait; opacity: .68; }
 
+.wallet-modal { position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:22px; background:#17110fe8; }
+.wallet-modal__panel { width:min(620px,calc(100vw - 44px)); max-height:min(760px,calc(100vh - 44px)); overflow:auto; padding:clamp(20px,4vw,32px); border:1px solid var(--amber); background:linear-gradient(145deg,#342922,#211a17 72%); box-shadow:14px 14px 0 #0e0a09; }
+.wallet-modal__head { display:flex; align-items:start; justify-content:space-between; gap:16px; padding-bottom:16px; border-bottom:1px solid #6e4932; }
+.wallet-modal__head p { margin:0 0 5px; color:var(--straw); font:11px "Cascadia Mono",monospace; letter-spacing:.12em; }
+.wallet-modal__head h2 { margin:0; color:#f4ebdd; font-size:27px; font-weight:500; }
+.wallet-modal__head button { border:1px solid var(--straw); color:#f4ebdd; background:#49362d; padding:7px 10px; cursor:pointer; white-space:nowrap; }
+.wallet-modal__intro { max-width:52ch; margin:18px 0 0; color:var(--frost); font-size:13px; line-height:1.7; }
+.wallet-methods { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:22px 0 14px; }
+.wallet-method { display:flex; gap:12px; min-height:106px; padding:14px; border:1px solid #6e4932; background:#211a17; }
+.wallet-method__glyph { display:grid; place-items:center; flex:0 0 32px; height:32px; border:1px solid var(--amber); color:var(--straw); font-size:18px; }
+.wallet-method h3 { margin:0 0 5px; color:#f4ebdd; font-size:14px; font-weight:500; }
+.wallet-method p { margin:0; color:var(--frost); font-size:11px; line-height:1.55; }
+.wallet-options { display:grid; gap:8px; }
+.wallet-option { display:flex; align-items:center; justify-content:space-between; width:100%; padding:12px 14px; border:1px solid #6e4932; color:#f4ebdd; background:#211a17; cursor:pointer; font:13px inherit; text-align:left; }
+.wallet-option:hover:not(:disabled) { border-color:var(--straw); background:#49362d; }
+.wallet-option:focus-visible,.wallet-modal__head button:focus-visible,.wallet-disconnect:focus-visible { outline:3px solid #f4ebdd; outline-offset:3px; }
+.wallet-option:disabled { cursor:wait; opacity:.65; }
+.wallet-option small { color:var(--straw); font:11px "Cascadia Mono",monospace; }
+.wallet-option--mobile { border-color:#c9873f; background:#49362d; }
+.wallet-option__empty { margin:0; padding:11px 0; color:#b9ab99; font-size:12px; line-height:1.6; }
+.wallet-disconnect { margin-top:12px; border:0; padding:0; color:var(--straw); background:transparent; font:12px inherit; cursor:pointer; text-decoration:underline; text-underline-offset:4px; }
+.wallet-modal__status { min-height:45px; margin:18px 0 0; padding-top:14px; border-top:1px solid #5a4032; color:var(--frost); font-size:12px; line-height:1.65; }
+
 .stage-wrap {
   position: relative;
   width: min(100%, 1152px);
@@ -191,6 +214,9 @@ h1 span {
     text-align: left;
   }
   .chain-actions { justify-content: start; }
+  .wallet-modal { padding:11px; }
+  .wallet-modal__panel { width:calc(100vw - 22px); max-height:calc(100vh - 22px); padding:20px; box-shadow:6px 6px 0 #0e0a09; }
+  .wallet-methods { grid-template-columns:1fr; }
   .museum { padding: 18px; box-shadow: 7px 7px 0 #17110f; }
   .medal { align-items: flex-start; flex-wrap: wrap; }.mint-button { margin-left: 72px; }
   .share-panel { grid-template-columns:88px 1fr; }.share-panel img { width:88px; height:88px; }
