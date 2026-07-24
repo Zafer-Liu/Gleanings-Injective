@@ -3,8 +3,12 @@ import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
 import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
 import winterBrewingImage from "../../../assets/rpg_v2/collection/winter-brewing.png";
+import { resolveChainOrigin } from "./chainConfig";
 
-const CHAIN_ORIGIN = import.meta.env.VITE_CHAIN_BRIDGE_URL ?? (import.meta.env.DEV ? "http://127.0.0.1:3100" : window.location.origin);
+const CHAIN_ORIGIN = resolveChainOrigin(
+  import.meta.env.VITE_CHAIN_BRIDGE_URL,
+  import.meta.env.DEV
+);
 const WALLET_SESSION_KEY = "gleanings.collection.wallet.session.v1";
 const LEGACY_WALLET_STORAGE_KEY = "gleanings.collection.wallet.v1";
 
@@ -114,8 +118,7 @@ function ChainArchive() {
     };
     syncWallet();
     window.addEventListener("focus", syncWallet);
-    const timer = window.setInterval(syncWallet, 1500);
-    return () => { window.removeEventListener("focus", syncWallet); window.clearInterval(timer); };
+    return () => { window.removeEventListener("focus", syncWallet); };
   }, [syncVersion]);
 
   useEffect(() => {
@@ -446,15 +449,17 @@ export function App() {
   return (
     <main className="app-shell">
       <header className="game-masthead" aria-label="游戏标题">
-        <p className="eyebrow">GLEANINGS / ACT 01</p>
+        <p className="eyebrow">GLEANINGS / CHAPTER 01</p>
         <h1>
-          拾遗 <span>· 开坛</span>
+          拾遗 <span>· 一坛回声</span>
         </h1>
-        <p className="chapter-note">福建老酒 · 一段被封在坛里的家书</p>
+        <p className="chapter-note">
+          福建老酒 · 四幕家族记忆与一支黄酒后记
+        </p>
         <ChainArchive />
       </header>
 
-      <section className="stage-wrap" aria-label="第一幕游戏画面">
+      <section className="stage-wrap" aria-label="拾遗第一章游戏画面">
         <div className="corner-mark corner-mark--top" aria-hidden="true" />
         <div id="game-root" className="game-frame" data-testid="game-root" />
         <div className="corner-mark corner-mark--bottom" aria-hidden="true" />
@@ -463,7 +468,7 @@ export function App() {
       <footer className="controls-note">
         <span>移动 WASD / 方向键</span>
         <span>交互 E / 空格</span>
-        <span>背包 I</span>
+        <span>背包 I · 影片暂停 Space · 字幕 S</span>
       </footer>
     </main>
   );

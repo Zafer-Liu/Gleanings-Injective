@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const SAVE_KEY = "gleanings.act1.save.v1";
+const CHAPTER_SAVE_KEY = "gleanings.chapter-one.save.v2";
 
 type BrowserSave = {
   version: 1;
@@ -137,13 +138,18 @@ test.describe("第一幕《开坛》", () => {
 
     await page.reload({ waitUntil: "networkidle" });
     await expect(page.locator("canvas")).toBeVisible();
-    await expect.poll(async () => (await readSave(page))?.phase).toBe(
-      "COMPLETE"
+    await expect(page.locator("#game-root")).toHaveAttribute(
+      "data-active-scene",
+      "ActTwo"
     );
-
-    await press(page, "r");
-    await expect.poll(async () => readSave(page)).toBeNull();
-    await expect(page.locator("canvas")).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate((key) => {
+          const raw = window.localStorage.getItem(key);
+          return raw === null ? null : JSON.parse(raw).currentAct;
+        }, CHAPTER_SAVE_KEY)
+      )
+      .toBe(2);
   });
 
   test("新的安全检查点可选择坛身的凉并完成冷灰记忆分支", async ({
