@@ -219,6 +219,44 @@ test.describe("第一章后续幕", () => {
       .toBe("COOKED");
   });
 
+  test("第三关可以用 I 打开和关闭背包", async ({ page }) => {
+    await seed(
+      page,
+      chapterSave({
+        currentAct: 3,
+        checkpoint: "act3_ready_to_cook",
+        act2Phase: "COMPLETE",
+        act2Question: "ask_hongqu",
+        act3Phase: "COMPLETE",
+        act3Materials: ["bowl", "noodles", "laojiu"],
+        inventory: [
+          "ingredient_bowl",
+          "ingredient_noodles",
+          "ingredient_laojiu"
+        ],
+        playerTile: { x: 17, y: 21 }
+      })
+    );
+    const canvas = page.locator("#game-root canvas");
+    await page.waitForTimeout(200);
+    const closed = await canvas.screenshot();
+
+    await press(page, "i");
+    const open = await canvas.screenshot();
+    expect(open.equals(closed)).toBe(false);
+    await page.keyboard.down("ArrowRight");
+    await page.waitForTimeout(500);
+    await page.keyboard.up("ArrowRight");
+    expect((await readChapter(page))?.playerTile).toEqual({
+      x: 17,
+      y: 21
+    });
+
+    await press(page, "i");
+    const closedAgain = await canvas.screenshot();
+    expect(closedAgain.equals(closed)).toBe(true);
+  });
+
   test("本地铸造后衔接黄酒后记，并可跳到总完成页", async ({
     page
   }) => {
