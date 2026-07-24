@@ -13,6 +13,22 @@
       content="《拾遗》第一幕《开坛》——一段关于福建老酒、家人与记忆的纯 2D RPG。"
     />
     <title>拾遗 · 第一幕《开坛》</title>
+    <script>
+      Object.defineProperty(window, "dev", {
+        configurable: true,
+        get() {
+          try {
+            window.sessionStorage.setItem(
+              "gleanings.debug.enabled.v1",
+              "true"
+            );
+          } catch {
+            // The application module will still enable the active game.
+          }
+          return "Gleanings 调试模式已开启；进入游戏后自动显示";
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
