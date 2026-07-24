@@ -18,7 +18,6 @@ export type ApartmentBackgroundPolicy = {
 export type QuestMarkerTarget = {
   objectId: "obj_cardboard_box" | "obj_laojiu_jar";
   tile: TilePosition;
-  offsetY: number;
 };
 
 const BAKED_MAP_INTERACTABLES = new Set([
@@ -46,8 +45,7 @@ export function questMarkerTargetForPhase(
   if (phase === "EXPLORE") {
     return {
       objectId: "obj_cardboard_box",
-      tile: { x: 4, y: 13 },
-      offsetY: -44
+      tile: { x: 6, y: 12 }
     };
   }
 
@@ -58,8 +56,7 @@ export function questMarkerTargetForPhase(
   ) {
     return {
       objectId: "obj_laojiu_jar",
-      tile: { x: 26, y: 8 },
-      offsetY: -56
+      tile: { x: 26, y: 9 }
     };
   }
 

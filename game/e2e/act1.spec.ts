@@ -111,7 +111,7 @@ test.describe("第一幕《开坛》", () => {
       .toBeGreaterThanOrEqual(10);
   });
 
-  test("纸箱事件可以从扩大后的下方相邻区域触发", async ({ page }) => {
+  test("纸箱事件可以从3x3方形的对角格触发", async ({ page }) => {
     const checkpoint: BrowserSave = {
       version: 1,
       phase: "EXPLORE",
@@ -142,6 +142,40 @@ test.describe("第一幕《开坛》", () => {
 
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
       "NOTE_ACQUIRED"
+    );
+  });
+
+  test("酒坛任务可以从3x3方形内背对目标触发", async ({ page }) => {
+    const checkpoint: BrowserSave = {
+      version: 1,
+      phase: "MIA_ENTERED",
+      questId: "act1_find_jar",
+      inventory: ["item_taipo_note"],
+      inspectedObjects: [],
+      senseChoice: null,
+      playerTile: { x: 25, y: 10 },
+      movementLocked: false,
+      act1Complete: false,
+      movedTiles: 9
+    };
+
+    await page.goto("/");
+    await page.evaluate(
+      ({ key, save }) => {
+        window.localStorage.clear();
+        window.localStorage.setItem(key, JSON.stringify(save));
+      },
+      { key: SAVE_KEY, save: checkpoint }
+    );
+    await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
+
+    await press(page, "ArrowLeft");
+    await press(page, "e");
+    await press(page, "e");
+
+    await expect.poll(async () => (await readSave(page))?.phase).toBe(
+      "JAR_INSPECTED"
     );
   });
 

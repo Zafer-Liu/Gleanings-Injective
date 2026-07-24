@@ -22,17 +22,16 @@ describe("SceneVisualPolicy", () => {
   });
 
   it.each([
-    ["EXPLORE", "obj_cardboard_box", { x: 4, y: 13 }, -44],
-    ["NOTE_READ", "obj_laojiu_jar", { x: 26, y: 8 }, -56],
-    ["MIA_ENTERED", "obj_laojiu_jar", { x: 26, y: 8 }, -56],
-    ["SENSE_CHOSEN", "obj_laojiu_jar", { x: 26, y: 8 }, -56]
+    ["EXPLORE", "obj_cardboard_box", { x: 6, y: 12 }],
+    ["NOTE_READ", "obj_laojiu_jar", { x: 26, y: 9 }],
+    ["MIA_ENTERED", "obj_laojiu_jar", { x: 26, y: 9 }],
+    ["SENSE_CHOSEN", "obj_laojiu_jar", { x: 26, y: 9 }]
   ] as const)(
-    "points the quest arrow at the active mission object during %s",
-    (phase, objectId, tile, offsetY) => {
+    "anchors the quest arrow to the active mission tile during %s",
+    (phase, objectId, tile) => {
       expect(questMarkerTargetForPhase(phase)).toEqual({
         objectId,
-        tile,
-        offsetY
+        tile
       });
     }
   );

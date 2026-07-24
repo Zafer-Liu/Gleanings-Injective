@@ -31,6 +31,7 @@ import { ChapterChoicePanel } from "../ui/ChapterChoicePanel";
 import { ChapterHud } from "../ui/ChapterHud";
 import { DialogueBox } from "../ui/DialogueBox";
 import { QuestMarker } from "../ui/QuestMarker";
+import { questMarkerPointForTile } from "../ui/QuestMarkerPolicy";
 import { RelicPanel } from "../ui/RelicPanel";
 
 type CommandKeys = {
@@ -407,14 +408,11 @@ export class ActTwoScene extends Phaser.Scene {
       this.questMarker.setTarget(null);
       return;
     }
-    const pixel = tileToPixelCenter(
+    const pixel = questMarkerPointForTile(
       target.tile,
       act2Content.map.tileSize
     );
-    this.questMarker.setTarget({
-      x: pixel.x,
-      y: pixel.y - 46
-    });
+    this.questMarker.setTarget(pixel);
   }
 
   private createStationMarks(): void {

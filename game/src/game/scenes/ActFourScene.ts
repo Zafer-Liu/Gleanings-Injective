@@ -31,6 +31,7 @@ import { CultureLabelPanel } from "../ui/CultureLabelPanel";
 import { JourneyRecordPanel } from "../ui/JourneyRecordPanel";
 import { DialogueBox } from "../ui/DialogueBox";
 import { QuestMarker } from "../ui/QuestMarker";
+import { questMarkerPointForTile } from "../ui/QuestMarkerPolicy";
 import { RelicPanel } from "../ui/RelicPanel";
 
 type CommandKeys = {
@@ -439,14 +440,11 @@ export class ActFourScene extends Phaser.Scene {
       this.questMarker.setTarget(null);
       return;
     }
-    const pixel = tileToPixelCenter(
+    const pixel = questMarkerPointForTile(
       MIA_TILE,
       act1Content.map.tileSize
     );
-    this.questMarker.setTarget({
-      x: pixel.x,
-      y: pixel.y - 52
-    });
+    this.questMarker.setTarget(pixel);
   }
 
   private createForegroundOccluders(

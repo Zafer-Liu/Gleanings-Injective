@@ -34,6 +34,7 @@ import { DialogueBox } from "../ui/DialogueBox";
 import { InventoryPanel } from "../ui/InventoryPanel";
 import { PixelHud } from "../ui/PixelHud";
 import { QuestMarker } from "../ui/QuestMarker";
+import { questMarkerPointForTile } from "../ui/QuestMarkerPolicy";
 
 type CommandKeys = {
   interact: Phaser.Input.Keyboard.Key;
@@ -247,14 +248,11 @@ export class ApartmentScene extends Phaser.Scene {
       return;
     }
 
-    const position = tileToPixelCenter(
+    const position = questMarkerPointForTile(
       target.tile,
       act1Content.map.tileSize
     );
-    this.questMarker.setTarget({
-      x: position.x,
-      y: position.y + target.offsetY
-    });
+    this.questMarker.setTarget(position);
   }
 
   private createMiaIfNeeded(): void {
