@@ -52,22 +52,30 @@ async function startGameFromHome(page: Page): Promise<void> {
 }
 
 test.describe("第一幕《开坛》", () => {
-  test("玩家可以切换游戏画面的全屏与窗口模式", async ({ page }) => {
+  test("进入游戏后使用沉浸式舞台并只保留收藏馆与返回主页", async ({
+    page
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
     await startGameFromHome(page);
 
-    await page.getByRole("button", { name: "全屏游戏" }).click();
-    await expect
-      .poll(() =>
-        page.evaluate(() =>
-          document.fullscreenElement?.classList.contains("stage-wrap")
-        )
-      )
-      .toBe(true);
-    await page.getByRole("button", { name: "恢复窗口" }).click();
-    await expect
-      .poll(() => page.evaluate(() => document.fullscreenElement === null))
-      .toBe(true);
+    await expect(page.locator(".game-masthead")).toHaveCount(0);
+    await expect(page.locator(".controls-note")).toHaveCount(0);
+    const actions = page.locator(".game-overlay-actions");
+    await expect(actions.getByRole("button")).toHaveCount(2);
+    await expect(actions.getByRole("button", { name: "收藏馆" })).toBeVisible();
+    await expect(
+      actions.getByRole("button", { name: "← 返回主页" })
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "连接钱包" })).toHaveCount(0);
+
+    const stage = await page.locator(".stage-wrap").boundingBox();
+    expect(stage).not.toBeNull();
+    expect(stage!.x).toBeGreaterThan(0);
+    expect(stage!.y).toBe(0);
+    expect(stage!.x + stage!.width).toBeLessThan(1280);
+    expect(stage!.y + stage!.height).toBeLessThan(800);
+    expect(stage!.width / stage!.height).toBeCloseTo(16 / 9, 2);
   });
 
   test("首页钱包弹窗完整显示在视口内", async ({ page }) => {

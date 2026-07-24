@@ -196,17 +196,15 @@ test.describe("第二章《一叶来处》", () => {
       .not.toBeNull();
   });
 
-  test("六个章节断点都能刷新续玩并更新章标题", async ({ page }) => {
+  test("六个章节断点都能刷新续玩并进入正确场景", async ({ page }) => {
     test.setTimeout(45_000);
     const routes: Array<{
       save: BrowserLongjingSave;
       scene: string;
-      title: string;
     }> = [
       {
         save: longjingSave(),
-        scene: "LongjingMarket",
-        title: "一叶来处"
+        scene: "LongjingMarket"
       },
       {
         save: longjingSave({
@@ -215,8 +213,7 @@ test.describe("第二章《一叶来处》", () => {
           checkpoint: "longjing_terrace_arrive",
           playerTile: { x: 23, y: 21 }
         }),
-        scene: "LongjingTerrace",
-        title: "一叶来处"
+        scene: "LongjingTerrace"
       },
       {
         save: longjingSave({
@@ -226,8 +223,7 @@ test.describe("第二章《一叶来处》", () => {
           checkpoint: "longjing_workshop_arrive",
           playerTile: { x: 20, y: 19 }
         }),
-        scene: "LongjingWorkshop",
-        title: "一叶来处"
+        scene: "LongjingWorkshop"
       },
       {
         save: longjingSave({
@@ -238,8 +234,7 @@ test.describe("第二章《一叶来处》", () => {
           checkpoint: "longjing_truth_arrive",
           playerTile: { x: 16, y: 19 }
         }),
-        scene: "LongjingTruth",
-        title: "一叶来处"
+        scene: "LongjingTruth"
       },
       {
         save: longjingSave({
@@ -252,8 +247,7 @@ test.describe("第二章《一叶来处》", () => {
           inscription: "pass_on",
           playerTile: { x: 0, y: 0 }
         }),
-        scene: "LongjingFilm",
-        title: "一叶来处"
+        scene: "LongjingFilm"
       },
       {
         save: longjingSave({
@@ -268,8 +262,7 @@ test.describe("第二章《一叶来处》", () => {
           chapterComplete: true,
           playerTile: { x: 0, y: 0 }
         }),
-        scene: "LongjingComplete",
-        title: "一叶来处"
+        scene: "LongjingComplete"
       }
     ];
 
@@ -279,7 +272,7 @@ test.describe("第二章《一叶来处》", () => {
         "data-active-scene",
         route.scene
       );
-      await expect(page.locator("h1")).toContainText(route.title);
+      await expect(page.locator("h1")).toHaveCount(0);
     }
   });
 

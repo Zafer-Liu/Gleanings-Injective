@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
@@ -116,7 +116,7 @@ async function loadWalletConnectProvider(): Promise<{ init: (options: Record<str
   return loaded as { init: (options: Record<string, unknown>) => Promise<Eip1193Provider & { connect: () => Promise<unknown> }> };
 }
 
-function ChainArchive() {
+function ChainArchive({ showWallet = true }: { showWallet?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const [wallet, setWallet] = useState("");
   const [status, setStatus] = useState("收藏馆随游戏进度同步；连接钱包仅在你选择上链展示时需要。");
@@ -428,7 +428,7 @@ function ChainArchive() {
 
   return <>
     <div className="chain-actions">
-      <button className="chain-button" onClick={connect}>{wallet ? `已连接 · ${wallet.slice(-4)}` : "连接钱包"}</button>
+      {showWallet && <button className="chain-button" onClick={connect}>{wallet ? `已连接 · ${wallet.slice(-4)}` : "连接钱包"}</button>}
       <button className="museum-button" onClick={() => setOpen(true)}>收藏馆</button>
     </div>
     {walletModalOpen && createPortal(<section className="wallet-modal" role="dialog" aria-modal="true" aria-label="连接钱包">
@@ -494,67 +494,24 @@ const chapters = [
 ];
 
 function GameView({ onExit, chapterMeta }: { onExit: () => void; chapterMeta: ChapterMeta }) {
-  const stageRef = useRef<HTMLElement>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
   useEffect(() => {
     const game = startGame("game-root");
     return () => game.destroy(true);
   }, []);
 
-  useEffect(() => {
-    const syncFullscreen = () => {
-      setIsFullscreen(document.fullscreenElement === stageRef.current);
-    };
-    document.addEventListener("fullscreenchange", syncFullscreen);
-    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
-  }, []);
-
-  const toggleFullscreen = async () => {
-    if (document.fullscreenElement === stageRef.current) {
-      await document.exitFullscreen();
-      return;
-    }
-    await stageRef.current?.requestFullscreen();
-  };
-
   return (
-    <main className={`game-shell${chapterMeta.title === "一叶来处" ? " app-shell--chapter-two" : ""}`}>
-      <header className="game-masthead" aria-label="游戏标题">
-        <div>
-          <p className="eyebrow">{chapterMeta.eyebrow}</p>
-          <h1 className="game-title">
-            拾遗 <span>· {chapterMeta.title}</span>
-          </h1>
-        </div>
-        <div className="game-masthead__aside">
-          <p className="chapter-note">{chapterMeta.note}</p>
-          <ChainArchive />
+    <main className={`game-shell game-shell--immersive${chapterMeta.title === "一叶来处" ? " app-shell--chapter-two" : ""}`}>
+      <section className="stage-wrap" aria-label={chapterMeta.stageLabel}>
+        <div className="game-overlay-actions">
+          <ChainArchive showWallet={false} />
           <button className="text-button" type="button" onClick={onExit}>
             ← 返回主页
           </button>
         </div>
-      </header>
-
-      <section ref={stageRef} className="stage-wrap" aria-label={chapterMeta.stageLabel}>
         <div className="corner-mark corner-mark--top" aria-hidden="true" />
-        <button
-          className="fullscreen-button"
-          type="button"
-          onClick={() => void toggleFullscreen()}
-          aria-pressed={isFullscreen}
-        >
-          {isFullscreen ? "恢复窗口" : "全屏游戏"}
-        </button>
         <div id="game-root" className="game-frame" data-testid="game-root" />
         <div className="corner-mark corner-mark--bottom" aria-hidden="true" />
       </section>
-
-      <footer className="controls-note">
-        <span>移动 WASD / 方向键</span>
-        <span>交互 E / 空格</span>
-        <span>背包 I · 面板方向键 · 影片暂停 Space · 字幕 S · 音量 ↑↓</span>
-      </footer>
     </main>
   );
 }
