@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
+import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
+import winterBrewingImage from "../../../assets/rpg_v2/collection/winter-brewing.png";
 
 const CHAIN_ORIGIN = import.meta.env.VITE_CHAIN_BRIDGE_URL ?? (import.meta.env.DEV ? "http://127.0.0.1:3100" : window.location.origin);
 const WALLET_SESSION_KEY = "gleanings.collection.wallet.session.v1";
@@ -23,10 +25,10 @@ async function readChainAssets(wallet: string): Promise<ChainAsset[]> {
 function loadCollectedItems(): Collectible[] {
   try {
     const save = JSON.parse(localStorage.getItem("gleanings.act1.save.v1") ?? "{}") as { inventory?: string[]; act1Complete?: boolean };
-    const items: Collectible[] = (save.inventory ?? []).flatMap((id) => id === "item_taipo_note" ? [{ id, name: "太婆字条", description: "太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。", source: "《拾遗》· 第一幕 / 纸箱", kind: "道具" as const, image: "/collection/taipo-note.png" }] : []);
+    const items: Collectible[] = (save.inventory ?? []).flatMap((id) => id === "item_taipo_note" ? [{ id, name: "太婆字条", description: "太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。", source: "《拾遗》· 第一幕 / 纸箱", kind: "道具" as const, image: taipoNoteImage }] : []);
     if (save.act1Complete) {
       const medal = new MedalService(window.localStorage).unlockActOne()[0];
-      if (medal) items.push({ id: medal.id, name: medal.name, description: medal.description, source: "《拾遗》· 第一幕 / 开坛", kind: "勋章", image: "/collection/winter-brewing.png" });
+      if (medal) items.push({ id: medal.id, name: medal.name, description: medal.description, source: "《拾遗》· 第一幕 / 开坛", kind: "勋章", image: winterBrewingImage });
     }
     return items;
   } catch { return []; }
@@ -47,8 +49,8 @@ function walletName(wallet: AnnouncedWallet, index: number): string {
 
 function imageForCollectible(id: string, provided?: string): string | undefined {
   if (provided) return provided;
-  if (id === "item_taipo_note") return "/collection/taipo-note.png";
-  if (id === "act1-winter-brewing") return "/collection/winter-brewing.png";
+  if (id === "item_taipo_note") return taipoNoteImage;
+  if (id === "act1-winter-brewing") return winterBrewingImage;
   return undefined;
 }
 
