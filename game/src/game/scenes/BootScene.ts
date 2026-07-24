@@ -137,10 +137,17 @@ export class BootScene extends Phaser.Scene {
       this.showLoadError([...this.failedAssets]);
       return;
     }
-    const longjing = new LongjingSaveService(
-      window.localStorage
-    ).load();
-    if (longjing !== null) {
+    const activeChapter = window.sessionStorage.getItem(
+      "gleanings.active-chapter.v1"
+    );
+    const longjingService = new LongjingSaveService(window.localStorage);
+    const longjing = longjingService.load();
+    if (activeChapter === "two") {
+      const selectedLongjing = longjing ?? longjingService.create();
+      this.scene.start(sceneForLongjingAct(selectedLongjing.currentAct));
+      return;
+    }
+    if (activeChapter !== "one" && longjing !== null) {
       this.scene.start(sceneForLongjingAct(longjing.currentAct));
       return;
     }

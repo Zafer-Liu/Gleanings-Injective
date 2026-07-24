@@ -44,12 +44,32 @@ async function finishTransition(page: Page): Promise<void> {
 }
 
 async function startGameFromHome(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "开始第一章" }).click();
+  await page
+    .getByRole("button", { name: "进入第一章", exact: true })
+    .click();
   await expect(page.locator("canvas")).toBeVisible();
   await page.waitForTimeout(750);
 }
 
 test.describe("第一幕《开坛》", () => {
+  test("玩家可以切换游戏画面的全屏与窗口模式", async ({ page }) => {
+    await page.goto("/");
+    await startGameFromHome(page);
+
+    await page.getByRole("button", { name: "全屏游戏" }).click();
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          document.fullscreenElement?.classList.contains("stage-wrap")
+        )
+      )
+      .toBe(true);
+    await page.getByRole("button", { name: "恢复窗口" }).click();
+    await expect
+      .poll(() => page.evaluate(() => document.fullscreenElement === null))
+      .toBe(true);
+  });
+
   test("首页钱包弹窗完整显示在视口内", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/");
