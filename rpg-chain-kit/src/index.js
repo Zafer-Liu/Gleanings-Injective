@@ -22,6 +22,7 @@ app.use((req,res,next)=>{
 });
 app.use(express.json()); app.use(express.static(gameDist)); app.use(express.static(path.join(root,'public'))); app.use('/vendor',express.static(path.join(root,'node_modules/ethers/dist'))); app.use('/vendor/walletconnect',express.static(path.join(root,'node_modules/@walletconnect/ethereum-provider/dist'))); app.use('/artifacts',express.static(path.join(root,'artifacts'))); app.use('/api/rpg/dot',createDotRouter()); app.use('/api/rpg/social',createSocialRouter()); app.use('/api/rpg',createRpgItemRouter());
 app.get('/health',(_req,res)=>res.status(200).json({status:'ok',service:'gleanings-chain-bridge'}));
+app.get('/characters',(_req,res)=>res.sendFile(path.join(gameDist,'index.html')));
 app.get('/api/rpg/share-link/:wallet',(req,res)=>{
   const wallet=req.params.wallet;
   if(!/^0x[a-fA-F0-9]{40}$/.test(wallet)) return res.status(400).json({error:'Invalid EVM address'});
