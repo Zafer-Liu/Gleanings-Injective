@@ -6,7 +6,6 @@ import { expect, test } from "@playwright/test";
 const port = 3217;
 const origin = `http://127.0.0.1:${port}`;
 const wallet = "0x9a470DFd0DdBB861402611c555E8fAf181D64049";
-const tokenId = "3";
 let service: ChildProcess;
 let dotMock: Server;
 let lastDotPush: Record<string, unknown> | null = null;
