@@ -35,6 +35,58 @@ button { color: inherit; }
   align-items: center;
 }
 
+.game-shell--immersive {
+  --game-side-gap: clamp(8px, 1.5vw, 24px);
+  --game-bottom-gap: clamp(18px, 3vh, 40px);
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: start center;
+  overflow: hidden;
+  background: #000;
+}
+
+.game-shell--immersive .stage-wrap {
+  width: min(
+    calc(100vw - 2 * var(--game-side-gap)),
+    calc((100vh - var(--game-bottom-gap)) * 16 / 9)
+  );
+  margin: 0;
+  padding: 0;
+  transform: translateX(-6px);
+  border: 0;
+  box-shadow: none;
+}
+
+.game-shell--immersive.app-shell--chapter-two {
+  background: #000;
+}
+
+.game-shell--immersive .game-frame {
+  box-shadow: none;
+}
+
+.game-overlay-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 8;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.game-overlay-actions .chain-actions {
+  margin: 0;
+}
+
+.game-overlay-actions .text-button {
+  grid-column: auto;
+}
+
 .game-masthead {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -164,54 +216,6 @@ h1 span {
   background: #4a382e;
   border: 1px solid var(--amber);
   box-shadow: 12px 12px 0 #251b17;
-}
-
-.fullscreen-button {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  z-index: 8;
-  min-height: 36px;
-  padding: 7px 12px;
-  border: 1px solid var(--straw);
-  color: #f4ebdd;
-  background: rgba(33, 26, 23, .9);
-  cursor: pointer;
-  font: 11px "Cascadia Mono", monospace;
-  letter-spacing: .08em;
-  backdrop-filter: blur(6px);
-}
-
-.fullscreen-button:hover {
-  background: var(--hongqu);
-}
-
-.fullscreen-button:focus-visible {
-  outline: 3px solid #f4ebdd;
-  outline-offset: 3px;
-}
-
-.stage-wrap:fullscreen {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: clamp(8px, 2vw, 28px);
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: #0e0a08;
-  box-shadow: none;
-}
-
-.stage-wrap:fullscreen .game-frame {
-  width: min(100%, calc((100vh - 32px) * 16 / 9));
-  max-height: 100%;
-}
-
-.stage-wrap:fullscreen .fullscreen-button {
-  position: fixed;
-  top: 18px;
-  right: 18px;
 }
 
 .game-frame {
