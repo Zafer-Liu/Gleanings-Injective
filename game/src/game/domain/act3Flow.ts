@@ -62,7 +62,7 @@ export function act3RelicView(
       mark: "暖",
       tone: "温暖",
       description:
-        "这只酒盏记得灶火与面线的热气，也记得有人在最疲惫的时候被好好照顾。"
+        "这只酒盏记得灶火与面线的热气，\n也记得有人在最疲惫的时候被好好照顾。"
     },
     inherit: {
       mark: "承",

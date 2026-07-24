@@ -330,7 +330,8 @@ button.chapter-card:hover img { transform: scale(1.04); }
 .medal__copy { flex: 1; }.medal__copy p { margin: 5px 0; color: #c7cecb; font-size: 12px; line-height: 1.55; }.medal__copy small { color: var(--straw); }
 .museum__note { margin: 0; padding-top: 14px; border-top: 1px solid #5a4032; }
 .onchain { color: var(--straw); font: 11px "Cascadia Mono", monospace; white-space: nowrap; }
-.card-open { border:1px solid #6e4932; color:var(--straw); background:transparent; padding:7px 9px; cursor:pointer; font-size:11px; white-space:nowrap; }
+.card-open, .mint-button { display:inline-flex; align-items:center; justify-content:center; min-height:40px; }
+.card-open { border:1px solid #6e4932; color:var(--straw); background:transparent; padding:8px 10px; cursor:pointer; font-size:12px; white-space:nowrap; }
 .card-open:hover { border-color:var(--straw); color:#f4ebdd; }
 .card-open:focus-visible,.flashcard-modal__head button:focus-visible,.flashcard:focus-visible,.flashcard-share:focus-visible { outline:3px solid #f4ebdd; outline-offset:3px; }
 

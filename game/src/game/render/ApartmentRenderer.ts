@@ -21,10 +21,15 @@ export type PixelInteractable = {
   range: number;
 };
 
+export type PixelOccluder = PixelRectangle & {
+  depth: number;
+};
+
 export type ApartmentGeometry = {
   width: number;
   height: number;
   collisions: PixelRectangle[];
+  occluders: PixelOccluder[];
   interactables: PixelInteractable[];
 };
 
@@ -61,6 +66,13 @@ export function buildApartmentGeometry(
     collisions: map.collisions.map((rectangle) =>
       rectangleToPixels(rectangle, map.tileSize)
     ),
+    occluders: map.occluders.map((rectangle) => {
+      const pixels = rectangleToPixels(rectangle, map.tileSize);
+      return {
+        ...pixels,
+        depth: pixels.y + pixels.height
+      };
+    }),
     interactables: interactables.map((interactable) => ({
       id: interactable.id,
       ...tileToPixelCenter(interactable.tile, map.tileSize),

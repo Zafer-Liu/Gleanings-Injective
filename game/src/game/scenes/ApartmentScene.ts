@@ -13,7 +13,8 @@ import type { Act1State, TilePosition } from "../domain/act1State";
 import { Player, type MovementKeys } from "../entities/Player";
 import {
   buildApartmentGeometry,
-  tileToPixelCenter
+  tileToPixelCenter,
+  type PixelOccluder
 } from "../render/ApartmentRenderer";
 import {
   apartmentBackgroundPolicy,
@@ -97,6 +98,10 @@ export class ApartmentScene extends Phaser.Scene {
         background.worldSize.height
       )
       .setDepth(0);
+    this.createForegroundOccluders(
+      geometry.occluders,
+      background.worldSize
+    );
     this.createInteractionObjects();
 
     const spawn = tileToPixelCenter(
@@ -151,7 +156,6 @@ export class ApartmentScene extends Phaser.Scene {
       this.movementKeys,
       this.state.movementLocked
     );
-    this.player.setDepth(Math.round(this.player.y));
     if (moved) {
       this.trackPlayerTile();
     }
@@ -173,7 +177,7 @@ export class ApartmentScene extends Phaser.Scene {
 
   private createInteractionObjects(): void {
     const boxPixel = tileToPixelCenter(
-      { x: 6, y: 13 },
+      { x: 6, y: 12 },
       act1Content.map.tileSize
     );
     if (shouldRenderInteractableOverlay("obj_cardboard_box")) {
@@ -195,6 +199,38 @@ export class ApartmentScene extends Phaser.Scene {
         .setOrigin(0.5, 1)
         .setName("obj_laojiu_jar")
         .setDepth(jarPixel.y);
+    }
+  }
+
+  private createForegroundOccluders(
+    occluders: PixelOccluder[],
+    worldSize: { width: number; height: number }
+  ): void {
+    const rectanglesByDepth = new Map<number, PixelOccluder[]>();
+    for (const occluder of occluders) {
+      const group = rectanglesByDepth.get(occluder.depth) ?? [];
+      group.push(occluder);
+      rectanglesByDepth.set(occluder.depth, group);
+    }
+
+    for (const [depth, rectangles] of rectanglesByDepth) {
+      const maskSource = this.make.graphics({ x: 0, y: 0 });
+      maskSource.fillStyle(0xffffff, 1);
+      for (const rectangle of rectangles) {
+        maskSource.fillRect(
+          rectangle.x,
+          rectangle.y,
+          rectangle.width,
+          rectangle.height
+        );
+      }
+
+      this.add
+        .image(0, 0, "map-apartment")
+        .setOrigin(0)
+        .setDisplaySize(worldSize.width, worldSize.height)
+        .setDepth(depth)
+        .setMask(maskSource.createGeometryMask());
     }
   }
 
@@ -450,7 +486,8 @@ export class ApartmentScene extends Phaser.Scene {
     return findInteractionTarget(
       this.currentPlayerTile(),
       this.player.facing,
-      act1Content.interactables
+      act1Content.interactables,
+      this.state.phase
     );
   }
 

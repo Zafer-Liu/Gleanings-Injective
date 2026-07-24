@@ -71,7 +71,7 @@ const ACT4_PHASES: Act4Phase[] = [
   "EXPLANATION",
   "LABEL",
   "REVIEW",
-  "MINT",
+  "RECORD",
   "COMPLETE"
 ];
 const ACT4_EXPLANATIONS: Act4Explanation[] = [
@@ -266,7 +266,7 @@ export class ChapterSaveService {
         ACT3_INSCRIPTIONS
       ),
       act4Phase: enumValue(
-        value.act4Phase,
+        value.act4Phase === "MINT" ? "RECORD" : value.act4Phase,
         ACT4_PHASES,
         base.act4Phase
       ),

@@ -15,7 +15,7 @@ describe("act three content", () => {
     ).toEqual(["bowl", "noodles", "laojiu"]);
   });
 
-  it("aligns collection targets and collision feet with the generated kitchen furniture", () => {
+  it("aligns interaction targets and collisions with the generated kitchen furniture", () => {
     const targetTiles = Object.fromEntries(
       act3Content.interactables.map((item) => [item.id, item.tile])
     );
@@ -24,7 +24,8 @@ describe("act three content", () => {
       bowl: { x: 5, y: 7 },
       noodles: { x: 18, y: 8 },
       laojiu: { x: 30, y: 7 },
-      stove: { x: 6, y: 15 }
+      stove: { x: 6, y: 15 },
+      azhen: { x: 26, y: 18 }
     });
 
     const collisionById = Object.fromEntries(
@@ -36,8 +37,13 @@ describe("act three content", () => {
       wine_rack_base: { x: 27.5, y: 6.25, width: 5.5, height: 0.75 },
       stove_base: { x: 2.5, y: 14.5, width: 6, height: 0.75 },
       dining_table_base: { x: 14.5, y: 14.5, width: 6.5, height: 0.75 },
-      rest_bed_base: { x: 27, y: 19.5, width: 7, height: 0.75 }
+      rest_bed_base: { x: 27, y: 10.5, width: 7, height: 10 }
     });
+
+    const bed = collisionById.rest_bed_base;
+    expect(targetTiles.azhen.x).toBeLessThan(bed.x);
+    expect(targetTiles.azhen.y).toBeGreaterThanOrEqual(bed.y);
+    expect(targetTiles.azhen.y).toBeLessThan(bed.y + bed.height);
   });
 
   it("names every person in Chinese", () => {

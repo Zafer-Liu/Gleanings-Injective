@@ -1,4 +1,8 @@
-import type { SenseChoice, TilePosition } from "../../game/domain/act1State";
+import type {
+  Act1Phase,
+  SenseChoice,
+  TilePosition
+} from "../../game/domain/act1State";
 import dialogueJson from "./dialogue.zh-CN.json";
 import questsJson from "./quests.json";
 import interactablesJson from "./interactables.json";
@@ -28,6 +32,8 @@ export type InteractableContent = {
   kind: "main" | "optional";
   tile: TilePosition;
   range: number;
+  sidewaysRange?: number;
+  enabledPhases?: Act1Phase[];
   dialogueGroup: string;
 };
 
@@ -47,6 +53,7 @@ export type ApartmentMapContent = {
   miaSpawn: TilePosition;
   furniture: TileRectangle[];
   collisions: TileRectangle[];
+  occluders: TileRectangle[];
 };
 
 export const act1Content = {

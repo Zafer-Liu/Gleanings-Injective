@@ -2,8 +2,10 @@
   {
     "id": "obj_cardboard_box",
     "kind": "main",
-    "tile": { "x": 6, "y": 13 },
-    "range": 1,
+    "tile": { "x": 6, "y": 12 },
+    "range": 2,
+    "sidewaysRange": 1,
+    "enabledPhases": ["EXPLORE"],
     "dialogueGroup": "box"
   },
   {
