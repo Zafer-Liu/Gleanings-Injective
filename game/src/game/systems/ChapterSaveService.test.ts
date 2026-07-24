@@ -92,6 +92,20 @@ describe("ChapterSaveService", () => {
     expect(service.load()).toBeNull();
   });
 
+  it("migrates an in-progress legacy act four mint phase to a journey record", () => {
+    const service = new ChapterSaveService(localStorage);
+    localStorage.setItem(
+      ChapterSaveService.STORAGE_KEY,
+      JSON.stringify({
+        ...createChapterFromActOne("aroma"),
+        currentAct: 4,
+        act4Phase: "MINT"
+      })
+    );
+
+    expect(service.load()?.act4Phase).toBe("RECORD");
+  });
+
   it("recovers an out-of-bounds act two tile to its spawn", () => {
     const service = new ChapterSaveService(localStorage);
     localStorage.setItem(

@@ -9,29 +9,40 @@ import {
 import { createInitialAct1State } from "../domain/act1State";
 
 describe("InteractionSystem", () => {
-  it("selects the interactable directly in the facing direction", () => {
-    const target = findInteractionTarget(
-      { x: 7, y: 13 },
-      "left",
-      act1Content.interactables
-    );
+  it.each([
+    [{ x: 7, y: 12 }, "left"],
+    [{ x: 8, y: 12 }, "left"],
+    [{ x: 7, y: 11 }, "left"],
+    [{ x: 7, y: 13 }, "left"]
+  ] as const)(
+    "selects the box inside its widened interaction area at %o",
+    (playerTile, facing) => {
+      const target = findInteractionTarget(
+        playerTile,
+        facing,
+        act1Content.interactables,
+        "EXPLORE"
+      );
 
-    expect(target?.id).toBe("obj_cardboard_box");
-  });
+      expect(target?.id).toBe("obj_cardboard_box");
+    }
+  );
 
   it("does not select an object behind the player or outside its range", () => {
     expect(
       findInteractionTarget(
-        { x: 7, y: 13 },
+        { x: 7, y: 12 },
         "right",
-        act1Content.interactables
+        act1Content.interactables,
+        "EXPLORE"
       )
     ).toBeNull();
     expect(
       findInteractionTarget(
-        { x: 9, y: 13 },
+        { x: 9, y: 12 },
         "left",
-        act1Content.interactables
+        act1Content.interactables,
+        "EXPLORE"
       )
     ).toBeNull();
   });
@@ -40,10 +51,22 @@ describe("InteractionSystem", () => {
     const target = findInteractionTarget(
       { x: 25, y: 9 },
       "right",
-      act1Content.interactables
+      act1Content.interactables,
+      "MIA_ENTERED"
     );
 
     expect(target?.id).toBe("obj_laojiu_jar");
+  });
+
+  it("does not select the box after its note has been acquired", () => {
+    const target = findInteractionTarget(
+      { x: 7, y: 12 },
+      "left",
+      act1Content.interactables,
+      "NOTE_ACQUIRED"
+    );
+
+    expect(target).toBeNull();
   });
 
   it("awards the note only after inspecting the box during exploration", () => {

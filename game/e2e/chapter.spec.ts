@@ -4,6 +4,14 @@ const CHAPTER_SAVE_KEY = "gleanings.chapter-one.save.v2";
 
 type ChapterAct = 2 | 3 | 4 | "film" | "complete";
 
+const SCENE_BY_ACT: Record<ChapterAct, string> = {
+  2: "ActTwo",
+  3: "ActThree",
+  4: "ActFour",
+  film: "HuangjiuFilm",
+  complete: "ChapterComplete"
+};
+
 type BrowserChapterSave = {
   version: 2;
   currentAct: ChapterAct;
@@ -64,8 +72,12 @@ async function seed(
     },
     { key: CHAPTER_SAVE_KEY, value: save }
   );
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.locator("canvas")).toBeVisible();
+  await expect(page.locator("#game-root")).toHaveAttribute(
+    "data-active-scene",
+    SCENE_BY_ACT[save.currentAct]
+  );
 }
 
 async function readChapter(

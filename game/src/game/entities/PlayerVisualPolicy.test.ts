@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  PLAYER_WORLD_DEPTH,
   playerAnimationKey,
   playerAnimationSpec
 } from "./PlayerVisualPolicy";
 
 describe("PlayerVisualPolicy", () => {
+  it("keeps the player above world sprites and below HUD overlays", () => {
+    expect(PLAYER_WORLD_DEPTH).toBeGreaterThan(9_000);
+    expect(PLAYER_WORLD_DEPTH).toBeLessThan(9_500);
+  });
+
   it("mirrors the full-size left frames when 林怡 faces right", () => {
     expect(playerAnimationSpec("right")).toEqual({
       frameStart: 3,

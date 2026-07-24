@@ -1,6 +1,10 @@
 import type { InteractableContent } from "../../content/act1/content";
 import type { Act1Event } from "../domain/act1Reducer";
-import type { Act1State, TilePosition } from "../domain/act1State";
+import type {
+  Act1Phase,
+  Act1State,
+  TilePosition
+} from "../domain/act1State";
 import type { Facing } from "../entities/Player";
 
 export type InteractionKind =
@@ -32,7 +36,8 @@ const FACING_VECTOR: Record<Facing, TilePosition> = {
 function directionalDistance(
   playerTile: TilePosition,
   facing: Facing,
-  targetTile: TilePosition
+  targetTile: TilePosition,
+  sidewaysRange: number
 ): number | null {
   const dx = targetTile.x - playerTile.x;
   const dy = targetTile.y - playerTile.y;
@@ -42,22 +47,29 @@ function directionalDistance(
   const vector = FACING_VECTOR[facing];
   const forward = dx * vector.x + dy * vector.y;
   const sideways = Math.abs(dx * vector.y - dy * vector.x);
-  if (forward <= 0 || sideways > 0) return null;
+  if (forward <= 0 || sideways > sidewaysRange) return null;
   return manhattan;
 }
 
 export function findInteractionTarget(
   playerTile: TilePosition,
   facing: Facing,
-  interactables: InteractableContent[]
+  interactables: InteractableContent[],
+  phase: Act1Phase
 ): InteractableContent | null {
   const candidates = interactables
+    .filter(
+      (interactable) =>
+        interactable.enabledPhases === undefined ||
+        interactable.enabledPhases.includes(phase)
+    )
     .map((interactable) => ({
       interactable,
       distance: directionalDistance(
         playerTile,
         facing,
-        interactable.tile
+        interactable.tile,
+        interactable.sidewaysRange ?? 0
       )
     }))
     .filter(

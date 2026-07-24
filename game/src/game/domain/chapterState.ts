@@ -36,7 +36,7 @@ export type Act4Phase =
   | "EXPLANATION"
   | "LABEL"
   | "REVIEW"
-  | "MINT"
+  | "RECORD"
   | "COMPLETE";
 
 export type Act4Explanation =

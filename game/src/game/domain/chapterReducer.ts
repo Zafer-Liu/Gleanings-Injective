@@ -34,7 +34,7 @@ export type ChapterEvent =
   | { type: "ACT4_GENERATE_LABEL" }
   | { type: "ACT4_RETRY_LABEL" }
   | { type: "ACT4_ACCEPT_LABEL" }
-  | { type: "ACT4_DEMO_MINT" }
+  | { type: "ACT4_SAVE_LABEL" }
   | { type: "FILM_SEEN" }
   | { type: "FILM_SKIPPED" }
   | { type: "SET_CHAPTER_PLAYER_TILE"; tile: TilePosition };
@@ -288,13 +288,13 @@ export function reduceChapter(
         state.act4Phase === "REVIEW"
         ? {
             ...state,
-            act4Phase: "MINT",
-            checkpoint: "act4_mint"
+            act4Phase: "RECORD",
+            checkpoint: "act4_record"
           }
         : state;
 
-    case "ACT4_DEMO_MINT":
-      return state.currentAct === 4 && state.act4Phase === "MINT"
+    case "ACT4_SAVE_LABEL":
+      return state.currentAct === 4 && state.act4Phase === "RECORD"
         ? {
             ...state,
             currentAct: "film",

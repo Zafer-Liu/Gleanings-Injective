@@ -1,5 +1,7 @@
 import type { Facing } from "./Player";
 
+export const PLAYER_WORLD_DEPTH = 9_400;
+
 export type PlayerAnimationSpec = {
   frameStart: number;
   frameEnd: number;

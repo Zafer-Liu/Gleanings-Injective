@@ -51,4 +51,10 @@ describe("act three presentation flow", () => {
       });
     }
   );
+
+  it("breaks the warm relic description after its first comma", () => {
+    expect(act3RelicView("warm").description).toBe(
+      "这只酒盏记得灶火与面线的热气，\n也记得有人在最疲惫的时候被好好照顾。"
+    );
+  });
 });
