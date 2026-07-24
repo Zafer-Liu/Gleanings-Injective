@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import { generateCultureLabel } from "../domain/cultureLabel";
 import { ChapterSaveService } from "../systems/ChapterSaveService";
+import { LongjingSaveService } from "../systems/LongjingSaveService";
+import { sceneForLongjingAct } from "../domain/LongjingRoute";
 import { publishActiveScene } from "../systems/SceneStatus";
 
 export class ChapterCompleteScene extends Phaser.Scene {
@@ -97,7 +99,12 @@ export class ChapterCompleteScene extends Phaser.Scene {
         padding: { x: 10, y: 7 }
       }
     );
-    this.add.text(400, 282, "R  从第一幕重新体验", {
+    this.add.text(400, 270, "N  进入第二章《一叶来处》", {
+      fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+      fontSize: "9px",
+      color: "#D4B46A"
+    });
+    this.add.text(400, 292, "R  从第一幕重新体验", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "9px",
       color: "#B7C2C0"
@@ -115,6 +122,13 @@ export class ChapterCompleteScene extends Phaser.Scene {
 
     this.input.keyboard?.on("keydown-V", () => {
       this.scene.start("HuangjiuFilm", { replay: true });
+    });
+    this.input.keyboard?.on("keydown-N", () => {
+      const longjingService = new LongjingSaveService(
+        window.localStorage
+      );
+      const longjing = longjingService.load() ?? longjingService.create();
+      this.scene.start(sceneForLongjingAct(longjing.currentAct));
     });
     this.input.keyboard?.on("keydown-R", () => {
       this.saveService.clearAll();

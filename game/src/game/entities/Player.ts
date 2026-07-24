@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import {
+  PLAYER_FOOTBOX,
   PLAYER_WORLD_DEPTH,
   playerAnimationKey,
   playerAnimationSpec
@@ -33,8 +34,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(PLAYER_WORLD_DEPTH);
     this.setCollideWorldBounds(true);
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(18, 16);
-    body.setOffset(7, 29);
+    body.setSize(PLAYER_FOOTBOX.width, PLAYER_FOOTBOX.height);
+    body.setOffset(PLAYER_FOOTBOX.offsetX, PLAYER_FOOTBOX.offsetY);
     this.createAnimations(texture);
   }
 
