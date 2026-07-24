@@ -183,7 +183,7 @@ Railway 选择仓库根目录 `/` 部署即可。根目录的构建脚本会：
 必须在 Railway → Service → Variables 设置：
 
 ```dotenv
-EVM_RPC_URL=https://testnet.evm.archival.chain.virtual.json-rpc.injective.network/
+EVM_RPC_URL=https://k8s.testnet.json-rpc.injective.network/
 RPG_ITEM_CONTRACT_ADDRESS=0xc8167b100bc7Ad611299d634D09b853C6310619e
 CHAIN_ID=1439
 CHAIN_NAME=Injective EVM Testnet
@@ -211,7 +211,7 @@ NFT 转让只需要对方提供正确的 `0x...` EVM 地址；接收时对方的
 
 ```text
 网络名称：Injective EVM Testnet
-RPC URL：https://testnet.evm.archival.chain.virtual.json-rpc.injective.network/
+RPC URL：https://k8s.testnet.json-rpc.injective.network/
 Chain ID：1439
 货币符号：INJ
 区块浏览器：https://testnet.blockscout.injective.network/
@@ -226,6 +226,12 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 收藏馆中的每件道具和勋章都可打开翻转闪卡：正面展示像素藏品图、名称和链上状态，背面展示故事介绍与来源，并可调用系统分享面板。公开手机藏品册也会读取同一图片。
 
 “分享展示链接”和“转赠所有权”是两件不同的事：前者只发送公开页面，Token 仍属于原钱包；后者调用 ERC‑721 `safeTransferFrom` 并产生 Injective EVM 交易，确认后不可由网页撤销。链上桥会在创建请求时验证当前持有人，并在完成时核对实际 `Transfer` 事件中的 Token、发送方和接收方。
+
+### 来访笺：不改变所有权的社交回响
+
+公开收藏馆底部提供“来访笺”。访客无需连接钱包即可选择 `见 / 念 / 暖 / 藏` 印记，并留下 2–60 字的回响；收藏馆会展示最近 12 条内容。来访笺不写入 NFT metadata、不触发链上交易，也不会改变藏品所有权。
+
+接口为 `GET /api/rpg/social/visits/:owner` 与 `POST /api/rpg/social/visits`。生产环境配置 Railway Postgres 的 `DATABASE_URL` 后，服务会自动创建 `gleanings_visits` 表并持久保存内容；未配置时仅启用演示内存模式，服务重启会清空来访笺。每个访客标识对同一收藏馆 30 秒内只能提交一次，用于减轻刷屏。
 
 当前可复用素材：
 
