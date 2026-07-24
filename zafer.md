@@ -233,6 +233,12 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 接口为 `GET /api/rpg/social/visits/:owner` 与 `POST /api/rpg/social/visits`。生产环境配置 Railway Postgres 的 `DATABASE_URL` 后，服务会自动创建 `gleanings_visits` 表并持久保存内容；未配置时仅启用演示内存模式，服务重启会清空来访笺。每个访客标识对同一收藏馆 30 秒内只能提交一次，用于减轻刷屏。
 
+### 藏品故事接力
+
+每张公开藏品卡都有“接力故事”。访客可选择 `家书 / 守艺 / 乡愁 / 传承 / 回响` 主题，并写下 2–36 字短句；同一藏品会展示最近的接力内容，令每件链上藏品成为可被朋友续写的文化记忆。
+
+接口为 `GET /api/rpg/social/relays/:owner` 与 `POST /api/rpg/social/relays`。生产环境会自动创建 `gleanings_story_relays` 表；接力仅作为站内社交内容，不写入 NFT metadata，不影响 Token 所有权与转赠。
+
 当前可复用素材：
 
 | 藏品 ID | 本地素材 |

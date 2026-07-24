@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { createSocialStore } from './social-store.js';
 
 const seals = new Set(['见', '念', '暖', '藏']);
+const relayThemes = new Set(['家书', '守艺', '乡愁', '传承', '回响']);
 const store = createSocialStore();
 const recentWrites = new Map();
 
@@ -20,6 +21,18 @@ function visitorKey(value) {
 function visitMessage(value) {
   const message = String(value || '').trim().replace(/\s+/g, ' ');
   if (message.length < 2 || message.length > 60) throw new Error('来访笺请填写 2–60 个字');
+  return message;
+}
+
+function tokenId(value) {
+  const id = String(value || '').trim();
+  if (!/^\d{1,78}$/.test(id)) throw new Error('藏品编号无效');
+  return id;
+}
+
+function relayMessage(value) {
+  const message = String(value || '').trim().replace(/\s+/g, ' ');
+  if (message.length < 2 || message.length > 36) throw new Error('故事接力请填写 2–36 个字');
   return message;
 }
 
@@ -49,6 +62,16 @@ export function createSocialRouter() {
     }
   });
 
+  router.get('/relays/:owner', async (req, res) => {
+    try {
+      const owner = ownerAddress(req.params.owner);
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({ relays: await store.listRelays(owner), persistent: store.persistent });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   router.post('/visits', async (req, res) => {
     try {
       const owner = ownerAddress(req.body?.owner_wallet);
@@ -60,6 +83,24 @@ export function createSocialRouter() {
       if (!seals.has(seal)) throw new Error('请选择有效的印记');
       const visit = await store.addVisit({ ownerWallet: owner, visitorKey: key, seal, message: visitMessage(req.body?.message) });
       res.status(201).json({ visit, persistent: store.persistent });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  router.post('/relays', async (req, res) => {
+    try {
+      const owner = ownerAddress(req.body?.owner_wallet);
+      const theme = String(req.body?.theme || '');
+      if (!relayThemes.has(theme)) throw new Error('请选择故事接力主题');
+      const relay = await store.addRelay({
+        ownerWallet: owner,
+        tokenId: tokenId(req.body?.token_id),
+        visitorKey: visitorKey(req.body?.visitor_key),
+        theme,
+        message: relayMessage(req.body?.message)
+      });
+      res.status(201).json({ relay, persistent: store.persistent });
     } catch (error) {
       res.status(400).json({ error: error.message });
     }

@@ -101,6 +101,11 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
   await page.getByLabel("来访笺内容").fill("从手机留下的一页回响。 ");
   await page.getByRole("button", { name: "留下印记" }).click();
   await expect(page.locator("#visit-list")).toContainText("从手机留下的一页回响。");
+  const relay = page.locator(".relay").first();
+  await relay.locator("summary").click();
+  await relay.getByLabel("故事接力内容").fill("这一页记忆也让我想起家里的酒坛。 ");
+  await relay.getByRole("button", { name: "接力" }).click();
+  await expect(page.locator(".relay-list").first()).toContainText("这一页记忆也让我想起家里的酒坛。");
   await expect(page.getByRole("button", { name: "切换玩家" })).toBeVisible();
   await page.getByRole("button", { name: "切换玩家" }).click();
   await expect(page.locator("#address-form")).toBeVisible();
@@ -230,6 +235,18 @@ test("访客可在公开收藏馆留下来访笺", async ({ request }) => {
   expect(visits.ok()).toBe(true);
   const payload = await visits.json() as { visits: Array<{ seal: string; message: string }> };
   expect(payload.visits).toEqual(expect.arrayContaining([expect.objectContaining({ seal: "暖", message: "这段冬酿记忆很温暖。" })]));
+});
+
+test("访客可为单件藏品接力故事", async ({ request }) => {
+  const created = await request.post(`${origin}/api/rpg/social/relays`, {
+    data: { owner_wallet: wallet, token_id: tokenId, visitor_key: "share-mobile-relay-key-001", theme: "守艺", message: "手上的温度，才是记忆的答案。" }
+  });
+  expect(created.status()).toBe(201);
+  await expect(created.json()).resolves.toMatchObject({ relay: { token_id: tokenId, theme: "守艺", message: "手上的温度，才是记忆的答案。" } });
+  const relays = await request.get(`${origin}/api/rpg/social/relays/${wallet}`);
+  expect(relays.ok()).toBe(true);
+  const payload = await relays.json() as { relays: Array<{ token_id: string; theme: string; message: string }> };
+  expect(payload.relays).toEqual(expect.arrayContaining([expect.objectContaining({ token_id: tokenId, theme: "守艺", message: "手上的温度，才是记忆的答案。" })]));
 });
 
 test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ request }) => {
