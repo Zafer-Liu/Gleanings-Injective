@@ -184,6 +184,87 @@ test.describe("第一幕《开坛》", () => {
     ).toBeVisible();
   });
 
+  test("收藏馆区分八枚章节徽章和永久道具", async ({ page }) => {
+    await page.goto("/");
+    await page.evaluate(
+      ({ actOneKey, chapterOneKey }) => {
+        window.localStorage.clear();
+        window.localStorage.setItem(
+          actOneKey,
+          JSON.stringify({
+            inventory: ["item_taipo_note"],
+            act1Complete: true
+          })
+        );
+        window.localStorage.setItem(
+          chapterOneKey,
+          JSON.stringify({
+            version: 2,
+            relics: [
+              "relic_dongniang_rare",
+              "relic_blue_white_cup_remember",
+              "relic_one_jar_echo"
+            ]
+          })
+        );
+        window.localStorage.setItem(
+          "gleanings.chapter-two.save.v1",
+          JSON.stringify({
+            version: 1,
+            relics: [
+              "relic_old_tea_scoop",
+              "relic_qingming_bud",
+              "relic_palm_fire",
+              "relic_one_leaf_origin"
+            ]
+          })
+        );
+      },
+      {
+        actOneKey: SAVE_KEY,
+        chapterOneKey: CHAPTER_SAVE_KEY
+      }
+    );
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "收藏馆" }).click();
+
+    for (const name of [
+      "冬酿印",
+      "红曲痕",
+      "温酒盏",
+      "福建老酒",
+      "旧茶斗",
+      "清明芽",
+      "掌火纹",
+      "西湖龙井"
+    ]) {
+      await expect(
+        page.getByRole("heading", { name, exact: true })
+      ).toBeVisible();
+    }
+    await expect(
+      page.getByRole("heading", { name: "太婆字条" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "上链展示" })
+    ).toHaveCount(9);
+
+    const filters = page.getByRole("group", {
+      name: "筛选收藏类型"
+    });
+    await filters.getByRole("button", { name: "徽章" }).click();
+    await expect(page.locator(".medal")).toHaveCount(8);
+    await expect(
+      page.getByRole("heading", { name: "太婆字条" })
+    ).toBeHidden();
+
+    await filters.getByRole("button", { name: "道具" }).click();
+    await expect(page.locator(".medal")).toHaveCount(1);
+    await expect(
+      page.getByRole("heading", { name: "太婆字条" })
+    ).toBeVisible();
+  });
+
   test("从公寓醒来走完整个揭坛流程，并能刷新恢复与重新体验", async ({
     page
   }) => {

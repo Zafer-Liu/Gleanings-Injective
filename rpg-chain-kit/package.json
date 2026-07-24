@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "compile": "node scripts/compile-contract.mjs"
+    "compile": "node scripts/compile-contract.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "@fontsource/noto-sans-sc": "^5.3.0",
