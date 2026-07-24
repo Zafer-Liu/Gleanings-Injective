@@ -37,6 +37,16 @@ function boundaryCollisions(
 }
 
 export const LONGJING_OBJECT_LAYOUT = {
+  market: {
+    stallWest: { x: 4, y: 5, width: 9, height: 4 },
+    stallNorth: { x: 15, y: 4, width: 8, height: 4 },
+    teaHouse: { x: 28, y: 4, width: 8, height: 7 },
+    tinTable: { x: 9.25, y: 13, width: 6.25, height: 3.5 },
+    recordTable: { x: 22, y: 13, width: 7.25, height: 3.5 }
+  },
+  terrace: {
+    pavilion: { x: 38.5, y: 22.75, width: 4.25, height: 4.25 }
+  },
   workshop: {
     northShelf: { x: 4, y: 4, width: 10, height: 2 },
     dryingRack: { x: 27, y: 5, width: 8, height: 3 },
@@ -45,9 +55,9 @@ export const LONGJING_OBJECT_LAYOUT = {
     basketStack: { x: 4, y: 20, width: 6, height: 3 }
   },
   truth: {
-    oldCabinet: { x: 4, y: 5, width: 7, height: 3 },
+    oldCabinet: { x: 3.25, y: 4.75, width: 5.5, height: 3.5 },
     sealedStove: { x: 13, y: 5, width: 7, height: 4 },
-    signatureCabinet: { x: 24, y: 5, width: 6, height: 3 },
+    signatureCabinet: { x: 26.25, y: 4.75, width: 5, height: 3.5 },
     teaTable: { x: 13, y: 13, width: 8, height: 3 },
     signboard: { x: 4, y: 15, width: 5, height: 2 }
   }
@@ -64,12 +74,16 @@ export const LONGJING_MAPS = {
       chen: { x: 31, y: 12 }
     },
     collisions: [
-      ...boundaryCollisions(38, 26),
-      { id: "stall_west", x: 4, y: 5, width: 9, height: 4 },
-      { id: "stall_north", x: 15, y: 4, width: 8, height: 4 },
-      { id: "tea_house", x: 28, y: 4, width: 8, height: 7 },
-      { id: "tin_table", x: 14, y: 14, width: 6, height: 2 },
-      { id: "record_table", x: 22, y: 14, width: 5, height: 2 }
+      ...boundaryCollisions(38, 26).filter(
+        (collision) => collision.id !== "boundary_bottom"
+      ),
+      { id: "boundary_bottom_west", x: 0, y: 24, width: 16, height: 2 },
+      { id: "boundary_bottom_east", x: 22, y: 24, width: 16, height: 2 },
+      { id: "stall_west", ...LONGJING_OBJECT_LAYOUT.market.stallWest },
+      { id: "stall_north", ...LONGJING_OBJECT_LAYOUT.market.stallNorth },
+      { id: "tea_house", ...LONGJING_OBJECT_LAYOUT.market.teaHouse },
+      { id: "tin_table", ...LONGJING_OBJECT_LAYOUT.market.tinTable },
+      { id: "record_table", ...LONGJING_OBJECT_LAYOUT.market.recordTable }
     ],
     occluders: []
   },
@@ -95,7 +109,7 @@ export const LONGJING_MAPS = {
       { id: "tea_row_c2", x: 16, y: 17, width: 7, height: 2 },
       { id: "tea_row_c3", x: 25, y: 17, width: 7, height: 2 },
       { id: "tea_row_c4", x: 35, y: 17, width: 7, height: 2 },
-      { id: "pavilion", x: 39, y: 23, width: 5, height: 4 }
+      { id: "pavilion", ...LONGJING_OBJECT_LAYOUT.terrace.pavilion }
     ],
     occluders: []
   },
@@ -109,7 +123,18 @@ export const LONGJING_MAPS = {
       merchant: { x: 31, y: 12 }
     },
     collisions: [
-      ...boundaryCollisions(40, 28),
+      ...boundaryCollisions(40, 28).filter(
+        (collision) => collision.id !== "boundary_bottom"
+      ),
+      { id: "boundary_bottom_west", x: 0, y: 26, width: 12.5, height: 2 },
+      {
+        id: "boundary_bottom_center",
+        x: 16.5,
+        y: 26,
+        width: 6.75,
+        height: 2
+      },
+      { id: "boundary_bottom_east", x: 27, y: 26, width: 13, height: 2 },
       {
         id: "north_shelf",
         ...LONGJING_OBJECT_LAYOUT.workshop.northShelf
