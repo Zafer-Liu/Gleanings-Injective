@@ -602,7 +602,10 @@ function HomeView({
             onClick={onStartChapterTwo}
             aria-label="进入第二章：龙井茶"
           >
-            <div className="locked-mark">茶</div>
+            <div className="chapter-card__image">
+              <img src="/maps/map_longjing_workshop_1280x896.png" alt="龙井炒茶工坊像素游戏场景" />
+              <span>可游玩</span>
+            </div>
             <div className="chapter-card__body">
               <small>CHAPTER 02</small>
               <h3>龙井茶 <em>· 一叶来处</em></h3>

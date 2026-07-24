@@ -430,11 +430,29 @@ h1 span {
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-bottom: 48px; }
 .section-heading h2 { margin: 0; color: #eee0ca; font-size: clamp(32px,4vw,54px); font-weight: 500; letter-spacing: .08em; }
 .section-heading > p { max-width: 390px; margin: 0; color: #897966; font-size: 13px; line-height: 1.9; }
-.chapter-grid { display: grid; grid-template-columns: 1.7fr repeat(3,1fr); gap: 14px; }
-.chapter-card { min-width: 0; padding: 0; text-align: left; border: 1px solid rgba(212,180,106,.14); background: #281c17; overflow: hidden; }
-button.chapter-card { cursor: pointer; transition: transform .28s, border-color .28s, box-shadow .28s; }
-button.chapter-card:hover { transform: translateY(-7px); border-color: rgba(212,180,106,.55); box-shadow: 0 20px 40px rgba(0,0,0,.25); }
-.chapter-card__image { position: relative; aspect-ratio: 16/8.5; overflow: hidden; background: #160f0d; }
+.chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  transition: grid-template-columns .48s cubic-bezier(.22, .8, .25, 1);
+}
+.chapter-grid:has(.chapter-card:nth-child(1):hover) { grid-template-columns: 1.55fr .82fr .82fr .82fr; }
+.chapter-grid:has(.chapter-card:nth-child(2):hover) { grid-template-columns: .82fr 1.55fr .82fr .82fr; }
+.chapter-grid:has(.chapter-card:nth-child(3):hover) { grid-template-columns: .82fr .82fr 1.55fr .82fr; }
+.chapter-grid:has(.chapter-card:nth-child(4):hover) { grid-template-columns: .82fr .82fr .82fr 1.55fr; }
+.chapter-card {
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  border: 1px solid rgba(212,180,106,.14);
+  background: #281c17;
+  overflow: hidden;
+  transition: transform .32s ease, border-color .32s ease, box-shadow .32s ease, opacity .32s ease;
+}
+button.chapter-card { cursor: pointer; }
+.chapter-card:hover { transform: translateY(-7px); border-color: rgba(212,180,106,.55); box-shadow: 0 20px 40px rgba(0,0,0,.25); }
+.chapter-grid:has(.chapter-card:hover) .chapter-card:not(:hover) { opacity: .72; }
+.chapter-card__image { position: relative; height: 190px; overflow: hidden; background: #160f0d; }
 .chapter-card__image::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 55%,rgba(24,18,15,.8)); }
 .chapter-card__image img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 .chapter-card__image span { position: absolute; top: 14px; left: 14px; z-index: 2; padding: 5px 8px; background: var(--hongqu); font: 8px var(--mono); letter-spacing: .15em; }
@@ -444,9 +462,8 @@ button.chapter-card:hover { transform: translateY(-7px); border-color: rgba(212,
 .chapter-card__body h3 em { color: #a96051; font-size: 13px; font-style: normal; }
 .chapter-card__body p { margin: 0; color: #837361; font-size: 11px; line-height: 1.8; }
 .chapter-card__body b { margin-top: auto; color: #c7a968; font: 9px var(--mono); letter-spacing: .1em; }
-.chapter-card--locked { position: relative; min-height: 350px; opacity: .62; }
-.locked-mark { height: 173px; display: grid; place-items: center; color: rgba(212,180,106,.15); background: radial-gradient(circle,#3c2921,#211713 68%); font-size: 74px; }
-.chapter-card--tea .locked-mark { color: rgba(212,180,106,.72); background: radial-gradient(circle,#33452f,#1d281c 68%); }
+.chapter-card--locked { position: relative; opacity: .62; }
+.locked-mark { height: 190px; display: grid; place-items: center; color: rgba(212,180,106,.15); background: radial-gradient(circle,#3c2921,#211713 68%); font-size: 74px; }
 .chapter-card--locked .chapter-card__body { min-height: 177px; }
 .manifesto { position: relative; z-index: 1; min-height: 580px; display: grid; place-content: center; text-align: center; background: radial-gradient(circle at center,#39231c,#18120f 68%); }
 .manifesto::before { content: "拾 遗"; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(234,221,197,.025); font-size: min(28vw,430px); font-weight: 900; letter-spacing: .08em; }
@@ -459,5 +476,20 @@ button.chapter-card:hover { transform: translateY(-7px); border-color: rgba(212,
 .brand--footer { transform: scale(.8); transform-origin: left center; }
 .home-footer p { font-size: 11px; letter-spacing: .12em; }
 .home-footer > small { font: 8px var(--mono); letter-spacing: .18em; }
-@media (max-width: 980px) { .hero { grid-template-columns: 1fr; padding-top: 150px; } .hero-copy { padding: 0 5vw; } .hero-art { height: 580px; } .chapter-grid { grid-template-columns: 1fr 1fr; } .scroll-cue { display: none; } }
+@media (max-width: 980px) {
+  .hero { grid-template-columns: 1fr; padding-top: 150px; }
+  .hero-copy { padding: 0 5vw; }
+  .hero-art { height: 580px; }
+  .chapter-grid,
+  .chapter-grid:has(.chapter-card:nth-child(n):hover) { grid-template-columns: 1fr 1fr; }
+  .scroll-cue { display: none; }
+}
 @media (max-width: 680px) { .home-nav, .hero { width: calc(100% - 32px); } .home-nav { height: 82px; } .nav-links a { display: none; } .nav-start { padding: 10px 12px; font-size: 11px; } .hero { min-height: auto; padding: 125px 0 60px; } .hero-copy { padding: 0; } .hero-title { font-size: clamp(40px,12vw,60px); } .hero-actions { align-items: stretch; flex-direction: column; gap: 12px; } .primary-action { width: 100%; } .secondary-action { width: max-content; } .hero-meta { flex-wrap: wrap; line-height: 2.4; } .hero-art { height: 430px; } .floating-note--top { right: -10px; } .chapter-disc { width: 270px; } .collection-section { padding: 78px 18px; } .section-heading { display: block; } .section-heading > p { margin-top: 16px; } .chapter-grid { grid-template-columns: 1fr; } .chapter-card--locked { min-height: 280px; } .locked-mark { height: 125px; } .manifesto { min-height: 480px; padding: 60px 20px; } .home-footer { padding: 25px 18px; flex-direction: column; align-items: flex-start; } }
+@media (max-width: 680px) {
+  .chapter-grid,
+  .chapter-grid:has(.chapter-card:nth-child(n):hover) { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chapter-grid,
+  .chapter-card { transition: none; }
+}
