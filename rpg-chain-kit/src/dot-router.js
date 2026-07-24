@@ -8,6 +8,7 @@ import sharp from 'sharp';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const projectRoot = path.resolve(root, '..');
 const artifact = JSON.parse(fs.readFileSync(path.join(root, 'artifacts', 'RpgItem.json'), 'utf8'));
+const fontBase64 = fs.readFileSync(path.join(root, 'node_modules', '@fontsource', 'noto-sans-sc', 'files', 'noto-sans-sc-chinese-simplified-400-normal.woff2')).toString('base64');
 const rpcUrl = process.env.EVM_RPC_URL;
 const contractAddress = process.env.RPG_ITEM_CONTRACT_ADDRESS || '';
 const chainId = Number(process.env.CHAIN_ID || 1439);
@@ -79,15 +80,8 @@ function artPath(item) {
 }
 
 function displayLines(item, tokenId) {
-  const id = item.collectible_id || item.medal_id;
-  if (id === 'item_taipo_note') return ["GRANDMOTHER'S", 'NOTE'];
-  if (id === 'act1-winter-brewing') return ['WINTER', 'BREWING'];
-  const ascii = String(item.name || '').replace(/[^\x20-\x7E]/g, '').trim();
-  const words = (ascii || `COLLECTIBLE #${tokenId}`).split(/\s+/);
-  const first = [];
-  const second = [];
-  for (const word of words) ((first.join(' ').length + word.length < 15) ? first : second).push(word);
-  return [first.join(' ').slice(0, 16), second.join(' ').slice(0, 16)].filter(Boolean).slice(0, 2);
+  const characters = Array.from(String(item.name || `链上藏品 #${tokenId}`).trim());
+  return [characters.slice(0, 7).join(''), characters.slice(7, 14).join('')].filter(Boolean);
 }
 
 function escapeXml(value) {
@@ -98,18 +92,19 @@ async function renderCard(asset) {
   const [titleOne, titleTwo = ''] = displayLines(asset.item, asset.tokenId).map(escapeXml);
   const shortWallet = `${asset.wallet.slice(0, 6)}...${asset.wallet.slice(-4)}`;
   const svg = Buffer.from(`<svg width="296" height="152" viewBox="0 0 296 152" xmlns="http://www.w3.org/2000/svg">
+    <style>@font-face{font-family:GleaningsNoto;src:url(data:font/woff2;base64,${fontBase64}) format('woff2')}text{font-family:GleaningsNoto,sans-serif}</style>
     <rect width="296" height="152" fill="#fff"/>
     <rect x="1" y="1" width="294" height="150" fill="none" stroke="#000" stroke-width="2"/>
     <line x1="148" y1="8" x2="148" y2="144" stroke="#000" stroke-width="1"/>
-    <text x="158" y="24" font-family="sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">GLEANINGS</text>
-    <text x="158" y="47" font-family="sans-serif" font-size="15" font-weight="700">${titleOne}</text>
-    <text x="158" y="64" font-family="sans-serif" font-size="15" font-weight="700">${titleTwo}</text>
+    <text x="158" y="24" font-size="10" font-weight="700" letter-spacing="1.2">拾遗藏品</text>
+    <text x="158" y="47" font-size="16" font-weight="700">${titleOne}</text>
+    <text x="158" y="65" font-size="16" font-weight="700">${titleTwo}</text>
     <line x1="158" y1="74" x2="286" y2="74" stroke="#000" stroke-width="1"/>
-    <text x="158" y="91" font-family="monospace" font-size="9">INJECTIVE EVM</text>
-    <text x="158" y="106" font-family="monospace" font-size="9">TOKEN #${escapeXml(asset.tokenId)}</text>
-    <text x="158" y="121" font-family="monospace" font-size="8">${escapeXml(shortWallet)}</text>
+    <text x="158" y="91" font-size="9">INJECTIVE EVM</text>
+    <text x="158" y="106" font-size="9">链上编号 #${escapeXml(asset.tokenId)}</text>
+    <text x="158" y="121" font-size="8">${escapeXml(shortWallet)}</text>
     <rect x="158" y="130" width="8" height="8" fill="#000"/>
-    <text x="172" y="138" font-family="sans-serif" font-size="9">TAP TO OPEN</text>
+    <text x="172" y="138" font-size="9">轻触查看</text>
   </svg>`);
   const composites = [{ input: svg, top: 0, left: 0 }];
   const source = artPath(asset.item);
@@ -156,6 +151,17 @@ export function createDotRouter() {
     }
   });
 
+  router.get('/nfc/:tokenId', async (req, res) => {
+    try {
+      const tokenId = BigInt(req.params.tokenId);
+      const owner = await contract().ownerOf(tokenId);
+      res.setHeader('Cache-Control', 'no-store');
+      res.redirect(302, `/share/?wallet=${encodeURIComponent(owner)}&token=${encodeURIComponent(tokenId.toString())}`);
+    } catch {
+      res.status(404).send('Collectible not found');
+    }
+  });
+
   router.post('/push', async (req, res) => {
     try {
       const key = apiKey(req);
@@ -170,7 +176,7 @@ export function createDotRouter() {
       }
       const publicOrigin = (process.env.PUBLIC_SHARE_ORIGIN || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
       const cardUrl = `${publicOrigin}/api/rpg/dot/card/${encodeURIComponent(asset.wallet)}/${encodeURIComponent(asset.tokenId)}.png`;
-      const link = `${publicOrigin}/share/?wallet=${encodeURIComponent(asset.wallet)}&token=${encodeURIComponent(asset.tokenId)}`;
+      const link = `${publicOrigin}/api/rpg/dot/nfc/${encodeURIComponent(asset.tokenId)}`;
       const result = await dotRequest(`/api/authV2/open/device/${encodeURIComponent(id)}/image`, key, {
         method: 'POST',
         body: JSON.stringify({

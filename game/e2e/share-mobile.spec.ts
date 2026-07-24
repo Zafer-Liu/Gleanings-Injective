@@ -113,6 +113,7 @@ test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
   await expect(push).toBeEnabled();
   await push.click();
   await expect(page.getByRole("status")).toContainText("Image API content switched");
+  await expect(page.getByRole("link", { name: "测试 NFC 打开页面" })).toHaveAttribute("href", /\/api\/rpg\/dot\/nfc\/2$/);
 });
 
 test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ page }) => {
@@ -163,5 +164,9 @@ test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ 
     taskAlias: "Gleanings #2"
   });
   expect(String(lastDotPush?.image)).toContain("/api/rpg/dot/card/");
-  expect(String(lastDotPush?.link)).toContain(`/share/?wallet=${wallet}&token=2`);
+  expect(String(lastDotPush?.link)).toContain("/api/rpg/dot/nfc/2");
+
+  const nfc = await request.get(`${origin}/api/rpg/dot/nfc/2`, { maxRedirects: 0 });
+  expect(nfc.status()).toBe(302);
+  expect(nfc.headers().location).toContain(`/share/?wallet=${wallet}&token=2`);
 });

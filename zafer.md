@@ -247,10 +247,10 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 墨屏功能以手机端为主入口，并使用 MindReset Dot. 的新版 Image API。手机公开藏品页可直接进入 `/dot/`，底部固定“从手机发送到墨屏”按钮，电脑端作为辅助管理入口：
 
-- 输出固定为设备原生 `296 × 152` PNG；
+- 输出固定为设备原生 `296 × 152` PNG，并在 SVG 中内嵌 Noto Sans SC 字体后再栅格化，Railway 与 Dot. 端均不依赖系统中文字体；
 - 服务端先将藏品图转为黑白高对比展签，再以 `ditherType: NONE` 推送，保证文字和 Token ID 清晰；
 - 展签包含藏品图、Injective EVM Token ID、持有人缩写和 `TAP TO OPEN`；
-- Image API 的 `link` 指向 `/share/?wallet=...&token=...`，设备 NFC 轻触即可查看链上藏品；
+- Image API 的 `link` 使用短地址 `/api/rpg/dot/nfc/<token>`；轻触后服务端实时查询 `ownerOf` 并跳转至当前持有人的单件藏品页，因此 Token 转赠后 NFC 不会停留在旧钱包；
 - 推送前再次调用合约 `ownerOf`，已转赠的 Token 不会继续以旧持有人身份生成展签。
 - 读取设备时会同时查询 Loop 内容列表；只有包含 `IMAGE_API` 的设备才启用发送按钮，并自动把对应内容 `key` 作为 `taskKey` 推送，避免多内容设备更新错位。
 
@@ -261,6 +261,8 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 3. 在 `/dot/` 页面输入 Key，读取设备并选择推送。
 
 API Key 不写入项目环境变量、数据库或日志，只保存在当前标签页的 `sessionStorage`，并通过 HTTPS 请求头临时发送给 Railway 后端，由后端转发至固定的 `https://dot.mindreset.tech` 官方域名。用户可随时点击“清除 Key”。
+
+推送完成后页面会显示“测试 NFC 打开页面”。该链接用于验证重定向是否正常；物理 NFC 需要安装 Dot App，并用支持 NFC 的手机轻触 Quote/0 右侧空白区域。
 
 官方资料：[Image API](https://dot.mindreset.tech/docs/service/open/image_api) ｜ [获取 API Key](https://dot.mindreset.tech/docs/service/open/get_api) ｜ [获取设备列表](https://dot.mindreset.tech/docs/service/open/list_devices_api)
 
