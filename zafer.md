@@ -1,6 +1,6 @@
 # 《拾遗》Injective 链上收藏系统
 
-> 当前实现版本说明：将《拾遗》游戏内已拾取的文化道具变成玩家可选择上链、可跨浏览器读取、可手机分享的 ERC-721 藏品。
+> 当前实现版本说明：将《拾遗》游戏内已拾取的文化道具变成玩家可选择上链、可跨浏览器读取、可公开展示并可转赠所有权的 ERC-721 藏品。
 >
 > 网络：Injective EVM Testnet ｜ Chain ID：`1439` ｜ 货币：`INJ`
 
@@ -27,6 +27,7 @@ flowchart LR
   D --> E[Injective EVM ERC-721]
   E --> F[任意浏览器连接同一钱包]
   E --> G[手机分享页 /share]
+  E -->|持有人签名转赠| H[接收方钱包]
 ```
 
 ---
@@ -40,6 +41,7 @@ flowchart LR
 5. 后端等待 Injective EVM 交易确认，收藏馆显示 `已上链` 和 Token ID。
 6. 玩家换浏览器后，只要连接同一钱包并点击“读取链上收藏”，已铸造 NFT 会重新出现在收藏馆。
 7. 玩家点击“手机分享”，生成公开链接和二维码；手机打开 `/share/?wallet=0x...` 后可只读浏览藏品。
+8. 已上链藏品可在游戏闪卡或公开藏品页选择“转赠所有权”，填写接收方 `0x...` 地址并由当前持有人签名；交易确认后 Token 从原钱包转移到接收方钱包。
 
 ---
 
@@ -88,7 +90,7 @@ flowchart LR
 
 | 文件 | 功能 |
 |---|---|
-| `game/src/app/App.tsx` | 钱包状态、链上资产读取、收藏馆、上链请求、二维码分享、闪卡交互 |
+| `game/src/app/App.tsx` | 钱包状态、链上资产读取、收藏馆、上链与转赠请求、二维码分享、闪卡交互 |
 | `game/src/app/app.css` | 收藏馆、链上状态、分享面板和翻转藏品卡样式 |
 | `game/src/game/systems/MedalService.ts` | 第一幕完成后保存“冬酿守忆章”本地状态 |
 | `game/src/game/systems/SaveService.ts` | 保存第一幕进度和背包内容；收藏馆从这里读取已拾取道具 |
@@ -103,6 +105,8 @@ flowchart LR
 - `读取链上收藏`：主动刷新当前钱包在合约中的 NFT。
 - `上链展示`：对单个道具创建 MetaMask 铸造请求。
 - `查看藏品卡`：打开可翻转的故事卡。
+- `分享展示链接`：发送只读的单件藏品链接，不改变所有权。
+- `转赠链上所有权`：填写接收方 EVM 地址并签名 `safeTransferFrom`；交易确认后接收方成为 Token 新持有人。
 
 ### 4.2 链上桥服务
 
@@ -116,7 +120,7 @@ flowchart LR
 | `rpg-chain-kit/artifacts/RpgItem.json` | 前端签名页调用合约所需 ABI 与字节码 |
 | `rpg-chain-kit/public/connect.html` | 钱包连接页：自动识别 MetaMask、OKX Wallet 等浏览器扩展，也可用 WalletConnect 二维码让手机钱包连接 |
 | `rpg-chain-kit/public/wallet.html` | 上链/转让确认页：浏览器扩展和手机扫码钱包均可在此签名 |
-| `rpg-chain-kit/public/share/index.html` | 手机优先的公开藏品展示页 |
+| `rpg-chain-kit/public/share/index.html` | 手机优先的公开藏品展示页；支持单件链接分享和链上所有权转赠 |
 | `rpg-chain-kit/.env.example` | 本地链上网络配置模板 |
 
 ### 4.3 Railway 部署文件
@@ -150,7 +154,8 @@ flowchart LR
 | 路径 | 内容 |
 |---|---|
 | `/` | 《拾遗》游戏主页 |
-| `/share/?wallet=0x...` | 公开、只读的手机藏品册 |
+| `/share/?wallet=0x...` | 公开藏品册；查看无需钱包，转赠需要持有人签名 |
+| `/share/?wallet=0x...&token=<id>` | 单件藏品公开链接；网页与手机均可继续发链接或发起所有权转赠 |
 | `/connect.html` | MetaMask 连接窗口 |
 | `/wallet.html?request=<id>` | MetaMask 铸造/转让确认窗口 |
 
@@ -210,6 +215,8 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 ## 7. 藏品图片与闪卡
 
 收藏馆中的每件道具和勋章都可打开翻转闪卡：正面展示像素藏品图、名称和链上状态，背面展示故事介绍与来源，并可调用系统分享面板。公开手机藏品册也会读取同一图片。
+
+“分享展示链接”和“转赠所有权”是两件不同的事：前者只发送公开页面，Token 仍属于原钱包；后者调用 ERC‑721 `safeTransferFrom` 并产生 Injective EVM 交易，确认后不可由网页撤销。链上桥会在创建请求时验证当前持有人，并在完成时核对实际 `Transfer` 事件中的 Token、发送方和接收方。
 
 当前可复用素材：
 

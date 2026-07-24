@@ -85,6 +85,9 @@ function ChainArchive() {
   const [announcedWallets, setAnnouncedWallets] = useState<AnnouncedWallet[]>([]);
   const [selectedCollectible, setSelectedCollectible] = useState<Collectible | null>(null);
   const [cardFlipped, setCardFlipped] = useState(false);
+  const [transferRecipient, setTransferRecipient] = useState("");
+  const [transferring, setTransferring] = useState(false);
+  const [transferNotice, setTransferNotice] = useState("确认后该 Token 将离开你的钱包，此操作需要钱包签名。");
 
   useEffect(() => {
     const syncWallet = () => {
@@ -158,7 +161,12 @@ function ChainArchive() {
         const response = await fetch(`${CHAIN_ORIGIN}/api/rpg/share-link/${wallet}`);
         const data = await response.json() as { url?: string; error?: string };
         if (!response.ok) throw new Error(data.error ?? "无法生成分享链接");
-        url = data.url ?? "";
+        if (data.url) {
+          const itemUrl = new URL(data.url);
+          const tokenId = onChainTokens[collectible.id];
+          if (tokenId) itemUrl.searchParams.set("token", tokenId);
+          url = itemUrl.toString();
+        }
       }
       const text = `${collectible.name}｜${collectible.description}`;
       if (navigator.share) {
@@ -166,7 +174,7 @@ function ChainArchive() {
         setStatus(`已打开 ${collectible.name} 的分享面板。`);
       } else {
         await navigator.clipboard.writeText([text, url].filter(Boolean).join("\n"));
-        setStatus(url ? "藏品介绍和公开链接已复制。" : "藏品介绍已复制，可以发送给朋友。");
+        setStatus(url ? "这件藏品的独立链接已复制，可以发送给朋友。" : "藏品介绍已复制，可以发送给朋友。");
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -279,6 +287,66 @@ function ChainArchive() {
     }
   };
 
+  const transferCollectible = async (collectible: Collectible) => {
+    if (!wallet) return connect();
+    const tokenId = onChainTokens[collectible.id];
+    const recipient = transferRecipient.trim();
+    if (!tokenId) {
+      setTransferNotice("只有已经上链、并由当前钱包持有的藏品才能转赠。");
+      return;
+    }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
+      setTransferNotice("请输入接收方完整的 0x EVM 钱包地址。");
+      return;
+    }
+    if (recipient.toLowerCase() === wallet.toLowerCase()) {
+      setTransferNotice("接收地址不能与当前钱包相同。");
+      return;
+    }
+    setTransferring(true);
+    setTransferNotice("正在创建链上转赠请求…");
+    try {
+      const response = await fetch(`${CHAIN_ORIGIN}/api/rpg/requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "transfer", wallet, token_id: tokenId, to_wallet: recipient })
+      });
+      const data = await response.json() as { request_id?: string; wallet_url?: string; error?: string };
+      if (!response.ok || !data.wallet_url || !data.request_id) throw new Error(data.error ?? "无法创建转赠请求");
+      window.open(data.wallet_url, "gleanings-transfer", "width=560,height=680");
+      setStatus(`请在钱包中确认：把 ${collectible.name}（Token #${tokenId}）转赠给尾号 ${recipient.slice(-4)}。`);
+      setTransferNotice(`请在钱包中确认转赠给尾号 ${recipient.slice(-4)}。`);
+      const timer = window.setInterval(async () => {
+        try {
+          const result = await fetch(`${CHAIN_ORIGIN}/api/rpg/requests/${data.request_id}`).then((item) => item.json()) as { status?: string; error?: string };
+          if (result.status === "confirmed") {
+            window.clearInterval(timer);
+            setTransferRecipient("");
+            setSelectedCollectible(null);
+            setStatus(`${collectible.name} 已转赠给尾号 ${recipient.slice(-4)}，链上所有权已变更。`);
+            setTransferring(false);
+            setSyncVersion((version) => version + 1);
+          }
+          if (result.status === "failed") {
+            window.clearInterval(timer);
+            setStatus(`转赠未完成：${result.error ?? "钱包拒绝或交易失败"}`);
+            setTransferNotice(`转赠未完成：${result.error ?? "钱包拒绝或交易失败"}`);
+            setTransferring(false);
+          }
+        } catch {
+          window.clearInterval(timer);
+          setStatus("暂时无法确认转赠结果，请点击“读取链上收藏”核对。");
+          setTransferNotice("暂时无法确认结果，请返回收藏馆读取链上收藏。");
+          setTransferring(false);
+        }
+      }, 1800);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "转赠请求失败");
+      setTransferNotice(error instanceof Error ? error.message : "转赠请求失败");
+      setTransferring(false);
+    }
+  };
+
   const displayedCollectibles = [
     ...collectibles,
     ...chainCollectibles.filter((chainItem) => !collectibles.some((localItem) => localItem.id === chainItem.id))
@@ -287,6 +355,8 @@ function ChainArchive() {
   const openCollectibleCard = (collectible: Collectible) => {
     setSelectedCollectible(collectible);
     setCardFlipped(false);
+    setTransferRecipient("");
+    setTransferNotice("确认后该 Token 将离开你的钱包，此操作需要钱包签名。");
   };
 
   return <>
@@ -333,7 +403,17 @@ function ChainArchive() {
           </span>
         </span>
       </button>
-      <button className="flashcard-share" onClick={() => void shareCollectible(selectedCollectible)}>分享这张藏品卡</button>
+      <div className="flashcard-actions">
+        <button className="flashcard-share" onClick={() => void shareCollectible(selectedCollectible)}>分享展示链接</button>
+        {onChainTokens[selectedCollectible.id] && <form className="transfer-form" onSubmit={(event) => { event.preventDefault(); void transferCollectible(selectedCollectible); }}>
+          <label htmlFor="transfer-recipient">转赠链上所有权</label>
+          <div>
+            <input id="transfer-recipient" value={transferRecipient} onChange={(event) => setTransferRecipient(event.target.value)} placeholder="接收方 0x 钱包地址" inputMode="text" autoComplete="off" spellCheck={false} />
+            <button type="submit" disabled={transferring}>{transferring ? "准备中…" : "确认转赠"}</button>
+          </div>
+          <small role="status">{transferNotice}</small>
+        </form>}
+      </div>
     </section>}
   </>;
 }

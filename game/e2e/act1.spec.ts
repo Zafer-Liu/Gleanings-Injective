@@ -70,7 +70,7 @@ test.describe("第一幕《开坛》", () => {
     await page.getByRole("button", { name: "翻转太婆字条藏品卡" }).click();
     await page.waitForTimeout(300);
     await expect(page.locator(".flashcard__back").getByText("太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。")).toBeVisible();
-    await expect(page.getByRole("button", { name: "分享这张藏品卡" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "分享展示链接" })).toBeVisible();
   });
 
   test("从公寓醒来走完整个揭坛流程，并能刷新恢复与重新体验", async ({
