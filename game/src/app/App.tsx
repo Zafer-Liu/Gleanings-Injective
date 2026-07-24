@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
 import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
@@ -430,7 +431,7 @@ function ChainArchive() {
       <button className="chain-button" onClick={connect}>{wallet ? `已连接 · ${wallet.slice(-4)}` : "连接钱包"}</button>
       <button className="museum-button" onClick={() => setOpen(true)}>收藏馆</button>
     </div>
-    {walletModalOpen && <section className="wallet-modal" role="dialog" aria-modal="true" aria-label="连接钱包">
+    {walletModalOpen && createPortal(<section className="wallet-modal" role="dialog" aria-modal="true" aria-label="连接钱包">
       <div className="wallet-modal__panel">
         <div className="wallet-modal__head"><div><p>GLEANINGS / WALLET</p><h2>连接你的收藏</h2></div><button onClick={() => setWalletModalOpen(false)} aria-label="关闭连接钱包">关闭 ×</button></div>
         <p className="wallet-modal__intro">钱包只用于读取、展示或上链藏品。剧情进度始终保留在这台设备，连接不是游玩的前提。</p>
@@ -439,16 +440,16 @@ function ChainArchive() {
         {wallet && <button className="wallet-disconnect" onClick={disconnect}>断开此设备的钱包</button>}
         <p className="wallet-modal__status" role="status">{walletModalStatus}</p>
       </div>
-    </section>}
-    {open && <section className="museum" role="dialog" aria-modal="true" aria-label="收藏馆">
+    </section>, document.body)}
+    {open && createPortal(<section className="museum" role="dialog" aria-modal="true" aria-label="收藏馆">
       <div className="museum__head"><div><p>GLEANINGS / COLLECTION</p><h2>拾遗收藏馆</h2></div><button onClick={() => setOpen(false)}>关闭 ×</button></div>
       <p className="museum__status">{status}</p>
       <div className="collection-tools"><button className="chain-button collection-refresh" onClick={refreshChainCollection}>读取链上收藏</button><button className="museum-button" onClick={() => void shareCollection()}>{wallet ? "手机分享" : "连接后分享"}</button></div>
       {shareLink && <div className="share-panel"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareLink)}`} alt="手机打开收藏馆的二维码" /><div><strong>扫码查看我的收藏</strong><p>可扫描二维码打开公开藏品册。</p><code>{shareLink}</code><button className="chain-button" onClick={() => void copyShareLink()}>复制分享链接</button></div></div>}
       {displayedCollectibles.length ? displayedCollectibles.map((collectible) => <article className="medal" key={collectible.id}>{collectible.image ? <img className="medal__image" src={collectible.image} alt="" /> : <div className="medal__seal" aria-hidden="true">{collectible.kind === "勋章" ? "章" : "藏"}</div>}<div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectible.kind} · 可选择上链展示`}</small></div><button className="card-open" onClick={() => openCollectibleCard(collectible)}>查看藏品卡</button>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。</p>}
       <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；链上记录只证明数字剧情藏品的获得与展示，不证明任何现实酒或茶的产地、品质和真伪。</p>
-    </section>}
-    {selectedCollectible && <section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}>
+    </section>, document.body)}
+    {selectedCollectible && createPortal(<section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}>
       <div className="flashcard-modal__head"><p>GLEANINGS / STORY CARD</p><button onClick={() => setSelectedCollectible(null)} aria-label="关闭藏品卡">关闭 ×</button></div>
       <button className={`flashcard ${cardFlipped ? "flashcard--flipped" : ""}`} onClick={() => setCardFlipped((flipped) => !flipped)} aria-label={`翻转${selectedCollectible.name}藏品卡`}>
         <span className="flashcard__inner">
@@ -483,45 +484,38 @@ function ChainArchive() {
           <small role="status">{transferNotice}</small>
         </form>}
       </div>
-    </section>}
+    </section>, document.body)}
   </>;
 }
 
-export function App() {
-  const [chapterMeta, setChapterMeta] = useState<ChapterMeta>(
-    chapterMetaForScene("Boot")
-  );
+const chapters = [
+  { number: "02", name: "茶", subtitle: "一叶渡海", mark: "茶" },
+  { number: "03", name: "瓷", subtitle: "火与白土", mark: "瓷" },
+  { number: "04", name: "丝", subtitle: "万里经纬", mark: "丝" }
+];
 
+function GameView({ onExit, chapterMeta }: { onExit: () => void; chapterMeta: ChapterMeta }) {
   useEffect(() => {
-    const onSceneChange = (event: Event) => {
-      const sceneKey = (event as CustomEvent<{ sceneKey: string }>)
-        .detail.sceneKey;
-      setChapterMeta(chapterMetaForScene(sceneKey));
-    };
-    window.addEventListener("gleanings:scenechange", onSceneChange);
     const game = startGame("game-root");
-    return () => {
-      window.removeEventListener(
-        "gleanings:scenechange",
-        onSceneChange
-      );
-      game.destroy(true);
-    };
+    return () => game.destroy(true);
   }, []);
 
   return (
-    <main
-      className={`app-shell${chapterMeta.title === "一叶来处" ? " app-shell--chapter-two" : ""}`}
-    >
+    <main className={`game-shell${chapterMeta.title === "一叶来处" ? " app-shell--chapter-two" : ""}`}>
       <header className="game-masthead" aria-label="游戏标题">
-        <p className="eyebrow">{chapterMeta.eyebrow}</p>
-        <h1>
-          拾遗 <span>· {chapterMeta.title}</span>
-        </h1>
-        <p className="chapter-note">
-          {chapterMeta.note}
-        </p>
-        <ChainArchive />
+        <div>
+          <p className="eyebrow">{chapterMeta.eyebrow}</p>
+          <h1 className="game-title">
+            拾遗 <span>· {chapterMeta.title}</span>
+          </h1>
+        </div>
+        <div className="game-masthead__aside">
+          <p className="chapter-note">{chapterMeta.note}</p>
+          <ChainArchive />
+          <button className="text-button" type="button" onClick={onExit}>
+            ← 返回收藏馆
+          </button>
+        </div>
       </header>
 
       <section className="stage-wrap" aria-label={chapterMeta.stageLabel}>
@@ -537,4 +531,159 @@ export function App() {
       </footer>
     </main>
   );
+}
+
+function HomeView({ onStart }: { onStart: () => void }) {
+  return (
+    <main className="home">
+      <div className="home-grain" aria-hidden="true" />
+      <nav className="home-nav" aria-label="主页导航">
+        <a className="brand" href="#top" aria-label="拾遗主页">
+          <span className="brand-seal">拾</span>
+          <span>
+            <strong>拾遗</strong>
+            <small>GLEANINGS</small>
+          </span>
+        </a>
+        <div className="nav-links">
+          <a href="#collection">藏馆</a>
+          <a href="#story">缘起</a>
+          <ChainArchive />
+          <button className="nav-start" type="button" onClick={onStart}>
+            进入第一章
+          </button>
+        </div>
+      </nav>
+
+      <section id="top" className="hero">
+        <div className="hero-copy">
+          <p className="hero-kicker"><span /> 中国传统事物叙事收藏游戏</p>
+          <h1 className="hero-title">
+            拾起被遗忘的，
+            <br />
+            <em>让故事再次发生。</em>
+          </h1>
+          <p className="hero-intro">
+            穿过一件旧物的记忆，亲历它从中国走向世界的故事。
+            每一次读懂，都将凝成一枚属于你的文化藏品。
+          </p>
+          <div className="hero-actions">
+            <button className="primary-action" type="button" onClick={onStart}>
+              <span>开始第一章</span>
+              <b aria-hidden="true">→</b>
+            </button>
+            <a className="secondary-action" href="#collection">
+              探索收藏馆
+            </a>
+          </div>
+          <div className="hero-meta" aria-label="游戏特性">
+            <span>纯 2D RPG 探索</span>
+            <span>叙事选择</span>
+            <span>文化收藏</span>
+          </div>
+        </div>
+
+        <div className="hero-art" aria-label="第一章福建老酒">
+          <div className="orbit orbit--outer" aria-hidden="true" />
+          <div className="orbit orbit--inner" aria-hidden="true" />
+          <div className="chapter-disc">
+            <span className="disc-index">壹</span>
+            <img src="/items/it_relic_dongniang_detail_128x128.png" alt="" />
+            <div className="disc-glow" aria-hidden="true" />
+          </div>
+          <div className="floating-note floating-note--top">
+            <small>CHAPTER 01</small>
+            <strong>福建老酒</strong>
+          </div>
+          <div className="floating-note floating-note--bottom">
+            <span className="pulse-dot" />
+            <small>现已开放</small>
+          </div>
+          <span className="art-character art-character--one">酿</span>
+          <span className="art-character art-character--two">忆</span>
+        </div>
+
+        <div className="scroll-cue" aria-hidden="true">
+          <span>向下探索</span><i />
+        </div>
+      </section>
+
+      <section id="collection" className="collection-section">
+        <header className="section-heading">
+          <div>
+            <p className="eyebrow">THE COLLECTION / 藏馆</p>
+            <h2>一物一章，一章一世界</h2>
+          </div>
+          <p>从福建老酒出发，拾起散落在时间里的中国传统事物。</p>
+        </header>
+
+        <div className="chapter-grid">
+          <button className="chapter-card chapter-card--active" type="button" onClick={onStart}>
+            <div className="chapter-card__image">
+              <img src="/previews/preview_brewery_gameplay_640x360.png" alt="冬日福建酒坊像素场景" />
+              <span>可游玩</span>
+            </div>
+            <div className="chapter-card__body">
+              <small>CHAPTER 01</small>
+              <h3>福建老酒 <em>· 冬酿</em></h3>
+              <p>一坛越过重洋的家书，揭开红曲与冬日的记忆。</p>
+              <b>进入故事 →</b>
+            </div>
+          </button>
+
+          {chapters.map((chapter) => (
+            <article className="chapter-card chapter-card--locked" key={chapter.number}>
+              <div className="locked-mark">{chapter.mark}</div>
+              <div className="chapter-card__body">
+                <small>CHAPTER {chapter.number}</small>
+                <h3>{chapter.name} <em>· {chapter.subtitle}</em></h3>
+                <p>记忆尚未苏醒</p>
+                <b>敬请期待</b>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="story" className="manifesto">
+        <p>一件旧物不是过去。</p>
+        <h2>当你走进它的故事，<br />传统便有了新的时间。</h2>
+        <button type="button" onClick={onStart}>开启第一段记忆 <span>→</span></button>
+      </section>
+
+      <footer className="home-footer">
+        <div className="brand brand--footer">
+          <span className="brand-seal">拾</span>
+          <span><strong>拾遗</strong><small>GLEANINGS</small></span>
+        </div>
+        <p>一部关于中国传统事物走向世界的选集式游戏</p>
+        <small>ADVENTUREX 2026</small>
+      </footer>
+    </main>
+  );
+}
+
+export function App() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [chapterMeta, setChapterMeta] = useState<ChapterMeta>(
+    chapterMetaForScene("Boot")
+  );
+
+  useEffect(() => {
+    const onSceneChange = (event: Event) => {
+      const sceneKey = (event as CustomEvent<{ sceneKey: string }>).detail.sceneKey;
+      setChapterMeta(chapterMetaForScene(sceneKey));
+    };
+
+    window.addEventListener("gleanings:scenechange", onSceneChange);
+    return () => window.removeEventListener("gleanings:scenechange", onSceneChange);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [isPlaying]);
+
+  return isPlaying
+    ? <GameView onExit={() => setIsPlaying(false)} chapterMeta={chapterMeta} />
+    : <HomeView onStart={() => setIsPlaying(true)} />;
 }

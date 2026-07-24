@@ -72,7 +72,8 @@ async function seed(
     },
     { key: CHAPTER_SAVE_KEY, value: save }
   );
-  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "开始第一章" }).click();
   await expect(page.locator("canvas")).toBeVisible();
   await expect(page.locator("#game-root")).toHaveAttribute(
     "data-active-scene",

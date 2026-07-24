@@ -24,10 +24,9 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "edge",
+      name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        channel: "msedge",
         viewport: { width: 1280, height: 900 }
       }
     }

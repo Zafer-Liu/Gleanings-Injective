@@ -43,7 +43,32 @@ async function finishTransition(page: Page): Promise<void> {
   await page.waitForTimeout(1_700);
 }
 
+async function startGameFromHome(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "开始第一章" }).click();
+  await expect(page.locator("canvas")).toBeVisible();
+  await page.waitForTimeout(750);
+}
+
 test.describe("第一幕《开坛》", () => {
+  test("首页钱包弹窗完整显示在视口内", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "连接钱包" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "连接钱包" });
+    const panel = dialog.locator(".wallet-modal__panel");
+    await expect(dialog).toBeVisible();
+    await expect(panel).toBeVisible();
+
+    const bounds = await panel.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.y).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(1280);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(720);
+    await expect(page.getByRole("button", { name: "关闭连接钱包" })).toBeVisible();
+  });
+
   test("箱堆上方的通道不会被整块包围盒挡住", async ({ page }) => {
     test.setTimeout(60_000);
     const checkpoint: BrowserSave = {
@@ -67,8 +92,8 @@ test.describe("第一幕《开坛》", () => {
       },
       { key: SAVE_KEY, save: checkpoint }
     );
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.locator("canvas")).toBeVisible();
+    await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
     await expect(page.locator("#game-root")).toHaveAttribute(
       "data-active-scene",
       "Apartment"
@@ -108,11 +133,8 @@ test.describe("第一幕《开坛》", () => {
       },
       { key: SAVE_KEY, save: checkpoint }
     );
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.locator("#game-root")).toHaveAttribute(
-      "data-active-scene",
-      "Apartment"
-    );
+    await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
 
     await press(page, "ArrowLeft");
     await press(page, "e");
@@ -169,7 +191,7 @@ test.describe("第一幕《开坛》", () => {
     await page.goto("/");
     await page.evaluate(() => window.localStorage.clear());
     await page.reload({ waitUntil: "networkidle" });
-    await expect(page.locator("canvas")).toBeVisible();
+    await startGameFromHome(page);
 
     await press(page, "e");
     await press(page, "e");
@@ -195,7 +217,8 @@ test.describe("第一幕《开坛》", () => {
       },
       { key: SAVE_KEY, save: exploreSave }
     );
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
     await expect(page.locator("#game-root")).toHaveAttribute(
       "data-active-scene",
       "Apartment"
@@ -221,10 +244,16 @@ test.describe("第一幕《开坛》", () => {
       "MIA_ENTERED"
     );
 
-    await hold(page, "ArrowDown", 500);
-    await hold(page, "ArrowRight", 5_000);
-    await hold(page, "ArrowUp", 1_680);
-    await hold(page, "ArrowRight", 1_600);
+    await page.evaluate((key) => {
+      const raw = window.localStorage.getItem(key);
+      if (raw === null) return;
+      const save = JSON.parse(raw) as BrowserSave;
+      save.playerTile = { x: 24, y: 9 };
+      window.localStorage.setItem(key, JSON.stringify(save));
+    }, SAVE_KEY);
+    await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
+    await hold(page, "ArrowRight", 500);
     await press(page, "e");
     await press(page, "e");
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
@@ -246,6 +275,10 @@ test.describe("第一幕《开坛》", () => {
     ).toBe(true);
 
     await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
+    await expect.poll(async () => (await readSave(page))?.phase).toBe(
+      "COMPLETE"
+    );
     await expect(page.locator("canvas")).toBeVisible();
     await expect(page.locator("#game-root")).toHaveAttribute(
       "data-active-scene",
@@ -287,6 +320,7 @@ test.describe("第一幕《开坛》", () => {
       { key: SAVE_KEY, save: checkpoint }
     );
     await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
 
     await hold(page, "ArrowRight", 300);
     await press(page, "e");

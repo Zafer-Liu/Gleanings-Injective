@@ -156,6 +156,7 @@ async function seed(
     { key: SAVE_KEY, value: save }
   );
   await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "开始第一章" }).click();
   await expect(page.locator("canvas")).toBeVisible();
 }
 
