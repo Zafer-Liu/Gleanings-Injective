@@ -162,7 +162,6 @@ export class ActThreeScene extends Phaser.Scene {
       this.movementKeys,
       false
     );
-    this.player.setDepth(Math.round(this.player.y));
     if (moved) this.trackPlayerTile();
 
     const target = this.currentTarget();

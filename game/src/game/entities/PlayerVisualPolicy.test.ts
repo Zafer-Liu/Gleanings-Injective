@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  PLAYER_FOOTBOX,
+  PLAYER_WORLD_DEPTH,
   playerAnimationKey,
   playerAnimationSpec
 } from "./PlayerVisualPolicy";
 
 describe("PlayerVisualPolicy", () => {
-  it("mirrors the full-size left frames when 林怡 faces right", () => {
+  it("keeps the player above world sprites and below HUD overlays", () => {
+    expect(PLAYER_WORLD_DEPTH).toBeGreaterThan(9_000);
+    expect(PLAYER_WORLD_DEPTH).toBeLessThan(9_500);
+  });
+
+  it("mirrors the full-size left frames when 林念安 faces right", () => {
     expect(playerAnimationSpec("right")).toEqual({
       frameStart: 3,
       frameEnd: 5,
@@ -42,5 +49,14 @@ describe("PlayerVisualPolicy", () => {
     expect(playerAnimationKey("actor-taipo-middle", "up")).toBe(
       "actor-taipo-middle-up"
     );
+  });
+
+  it("collides only at the character's feet", () => {
+    expect(PLAYER_FOOTBOX).toEqual({
+      width: 18,
+      height: 12,
+      offsetX: 7,
+      offsetY: 33
+    });
   });
 });

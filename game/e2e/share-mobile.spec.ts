@@ -10,6 +10,8 @@ const tokenId = "3";
 let service: ChildProcess;
 let dotMock: Server;
 let lastDotPush: Record<string, unknown> | null = null;
+let tokenId = "";
+let tokenName = "";
 
 test.beforeAll(async () => {
   dotMock = createServer((req, res) => {
@@ -60,6 +62,21 @@ test.beforeAll(async () => {
       return false;
     }
   }, { timeout: 10_000 }).toBe(true);
+
+  const assets = (await fetch(
+    `${origin}/api/rpg/assets/${wallet}`
+  ).then((response) => response.json())) as Array<{
+    token_id: string;
+    item?: { image?: string; name?: string };
+  }>;
+  const illustrated = assets.find(
+    (asset) => asset.item?.image !== undefined
+  );
+  if (illustrated === undefined) {
+    throw new Error("测试钱包需要至少一件带图片的链上藏品");
+  }
+  tokenId = illustrated.token_id;
+  tokenName = illustrated.item?.name ?? `链上藏品 #${tokenId}`;
 });
 
 test.afterAll(() => {
@@ -70,7 +87,9 @@ test.afterAll(() => {
 test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) => {
   test.setTimeout(45_000);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`${origin}/share/?wallet=${wallet}`);
+  await page.goto(
+    `${origin}/share/?wallet=${wallet}&token=${tokenId}`
+  );
   await expect(page.locator("#collection")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("#address-form")).toBeHidden();
   await expect(page.locator("#owner")).toHaveText("0x9a47…4049");
@@ -120,7 +139,7 @@ test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ p
   await expect(page.locator("#collection-title")).toHaveText("分享的藏品", { timeout: 20_000 });
   await expect(page.locator("#count")).toHaveText("1 件");
   await expect(page.locator(".card")).toHaveCount(1);
-  await expect(page.getByRole("heading", { name: "冬酿守忆章" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: tokenName })).toBeVisible();
   await expect(page.getByRole("button", { name: "分享展示链接" })).toBeVisible();
   await page.getByRole("button", { name: "转赠所有权" }).click();
   await expect(page.getByRole("dialog", { name: "转赠链上藏品" })).toBeVisible();
@@ -131,7 +150,12 @@ test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ p
 test("转赠请求会验证当前持有人并记录接收钱包", async ({ request }) => {
   const recipient = "0x000000000000000000000000000000000000dEaD";
   const response = await request.post(`${origin}/api/rpg/requests`, {
-    data: { kind: "transfer", wallet, token_id: tokenId, to_wallet: recipient }
+    data: {
+      kind: "transfer",
+      wallet,
+      token_id: tokenId,
+      to_wallet: recipient
+    }
   });
   expect(response.ok()).toBe(true);
   const created = await response.json() as { request_id: string };
@@ -139,7 +163,12 @@ test("转赠请求会验证当前持有人并记录接收钱包", async ({ reque
   expect(pending.ok()).toBe(true);
   await expect(pending.json()).resolves.toMatchObject({
     status: "awaiting_signature",
-    action: { kind: "transfer", wallet, token_id: tokenId, to_wallet: recipient }
+    action: {
+      kind: "transfer",
+      wallet,
+      token_id: tokenId,
+      to_wallet: recipient
+    }
   });
 });
 

@@ -1,11 +1,20 @@
 import type { Facing } from "./Player";
 
+export const PLAYER_WORLD_DEPTH = 9_400;
+
 export type PlayerAnimationSpec = {
   frameStart: number;
   frameEnd: number;
   idleFrame: number;
   flipX: boolean;
 };
+
+export const PLAYER_FOOTBOX = Object.freeze({
+  width: 18,
+  height: 12,
+  offsetX: 7,
+  offsetY: 33
+});
 
 const SPECS: Record<Facing, PlayerAnimationSpec> = {
   down: {

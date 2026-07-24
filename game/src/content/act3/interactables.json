@@ -44,7 +44,7 @@
   },
   {
     "id": "azhen",
-    "tile": { "x": 29, "y": 18 },
+    "tile": { "x": 26, "y": 18 },
     "range": 1,
     "prompt": "E / 空格 · 把面线端给阿珍",
     "dialogueGroup": "serve",

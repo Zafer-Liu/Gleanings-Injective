@@ -2,22 +2,42 @@ import Phaser from "phaser";
 import {
   HUANGJIU_FILM_DURATION_MS,
   filmSegmentAt,
+  huangjiuFilmSegments,
   type HuangjiuFilmSegment
 } from "../../content/film/huangjiuFilm";
+import { FilmSoundscape } from "../audio/FilmSoundscape";
+import {
+  createFilmAudioState,
+  filmAudioLabel,
+  reduceFilmAudio,
+  type FilmAudioAction,
+  type FilmAudioState
+} from "../domain/FilmAudioControl";
 import { FilmTimeline } from "../domain/FilmTimeline";
 import { reduceChapter } from "../domain/chapterReducer";
 import type { ChapterOneSaveV2 } from "../domain/chapterState";
 import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { publishActiveScene } from "../systems/SceneStatus";
+import {
+  openFilmSource,
+  showFilmEndCard
+} from "../ui/FilmEndCard";
 
 type FilmData = {
   replay?: boolean;
+  returnScene?: "ChapterComplete" | "LongjingComplete";
 };
 
 type FilmKeys = {
   pause: Phaser.Input.Keyboard.Key;
   subtitles: Phaser.Input.Keyboard.Key;
   skip: Phaser.Input.Keyboard.Key;
+  volumeUp: Phaser.Input.Keyboard.Key;
+  volumeDown: Phaser.Input.Keyboard.Key;
+  mute: Phaser.Input.Keyboard.Key;
+  complete: Phaser.Input.Keyboard.Key;
+  replay: Phaser.Input.Keyboard.Key;
+  source: Phaser.Input.Keyboard.Key;
 };
 
 export class HuangjiuFilmScene extends Phaser.Scene {
@@ -33,9 +53,15 @@ export class HuangjiuFilmScene extends Phaser.Scene {
   private subtitleText!: Phaser.GameObjects.Text;
   private sourceText!: Phaser.GameObjects.Text;
   private stateText!: Phaser.GameObjects.Text;
+  private audioText!: Phaser.GameObjects.Text;
+  private audioState: FilmAudioState = createFilmAudioState();
   private subtitlesVisible = true;
   private replay = false;
+  private returnScene: "ChapterComplete" | "LongjingComplete" =
+    "ChapterComplete";
   private finishing = false;
+  private endCardOpen = false;
+  private readonly soundscape = new FilmSoundscape();
   private readonly saveService = new ChapterSaveService(
     window.localStorage
   );
@@ -44,9 +70,10 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     super("HuangjiuFilm");
   }
 
-  create(data: FilmData): void {
+  create(data: FilmData = {}): void {
     const saved = this.saveService.load();
     this.replay = data.replay === true;
+    this.returnScene = data.returnScene ?? "ChapterComplete";
     if (
       saved === null ||
       (saved.currentAct !== "film" &&
@@ -58,16 +85,43 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     this.state = saved;
     publishActiveScene("HuangjiuFilm");
     this.timeline = new FilmTimeline(HUANGJIU_FILM_DURATION_MS);
+    this.audioState = createFilmAudioState();
+    this.soundscape.start();
+    this.applyAudioState();
     this.cameras.main.setBackgroundColor("#17110F");
     this.createControls();
     this.createChrome();
     this.renderSegment(filmSegmentAt(0));
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.soundscape.stop();
+    });
   }
 
   update(_time: number, delta: number): void {
     if (!this.keys || this.finishing) return;
+    if (this.endCardOpen) {
+      if (Phaser.Input.Keyboard.JustDown(this.keys.complete)) {
+        this.finishFilm(false);
+      } else if (Phaser.Input.Keyboard.JustDown(this.keys.replay)) {
+        this.replayFilm();
+      } else if (Phaser.Input.Keyboard.JustDown(this.keys.source)) {
+        const firstSource = huangjiuFilmSegments.find(
+          (segment) => segment.sourceUrl !== undefined
+        );
+        if (firstSource?.sourceUrl !== undefined) {
+          openFilmSource(firstSource.sourceUrl);
+        }
+      }
+      return;
+    }
     if (Phaser.Input.Keyboard.JustDown(this.keys.pause)) {
       this.timeline.togglePause();
+      if (this.timeline.paused) {
+        this.tweens.pauseAll();
+      } else {
+        this.tweens.resumeAll();
+      }
+      this.soundscape.setPaused(this.timeline.paused);
       this.stateText.setText(
         this.timeline.paused ? "已暂停" : "播放中"
       );
@@ -76,6 +130,15 @@ export class HuangjiuFilmScene extends Phaser.Scene {
       this.subtitlesVisible = !this.subtitlesVisible;
       this.subtitleBack.setVisible(this.subtitlesVisible);
       this.subtitleText.setVisible(this.subtitlesVisible);
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keys.volumeUp)) {
+      this.updateAudio({ type: "VOLUME_UP" });
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keys.volumeDown)) {
+      this.updateAudio({ type: "VOLUME_DOWN" });
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keys.mute)) {
+      this.updateAudio({ type: "TOGGLE_MUTE" });
     }
     if (Phaser.Input.Keyboard.JustDown(this.keys.skip)) {
       this.timeline.skip();
@@ -92,9 +155,7 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     if (segment.id !== this.activeSegmentId) {
       this.renderSegment(segment);
     }
-    if (this.timeline.ended) {
-      this.finishFilm(false);
-    }
+    if (this.timeline.ended) this.showEndCard();
   }
 
   private createControls(): void {
@@ -105,7 +166,13 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     this.keys = {
       pause: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
       subtitles: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-      skip: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC)
+      skip: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC),
+      volumeUp: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
+      volumeDown: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
+      mute: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M),
+      complete: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
+      replay: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R),
+      source: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.O)
     };
   }
 
@@ -174,14 +241,78 @@ export class HuangjiuFilmScene extends Phaser.Scene {
         color: "#D4B46A"
       })
       .setDepth(1_100);
+    this.audioText = this.add
+      .text(90, 340, filmAudioLabel(this.audioState), {
+        fontFamily: '"Cascadia Mono", Consolas, monospace',
+        fontSize: "7px",
+        color: "#D4B46A"
+      })
+      .setDepth(1_100);
     this.add
-      .text(600, 340, "SPACE 暂停  ·  S 字幕  ·  ESC 跳过", {
+      .text(
+        600,
+        340,
+        "↑↓ 音量 · M 静音 · SPACE 暂停 · S 字幕 · ESC 跳过",
+        {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "7px",
         color: "#B7C2C0"
-      })
+        }
+      )
       .setOrigin(1, 0)
       .setDepth(1_100);
+  }
+
+  private updateAudio(action: FilmAudioAction): void {
+    this.audioState = reduceFilmAudio(this.audioState, action);
+    this.applyAudioState();
+    this.audioText.setText(filmAudioLabel(this.audioState));
+  }
+
+  private applyAudioState(): void {
+    this.sound.volume = this.audioState.volume;
+    this.sound.mute = this.audioState.muted;
+    this.soundscape.setLevel(
+      this.audioState.volume,
+      this.audioState.muted
+    );
+  }
+
+  private showEndCard(): void {
+    if (this.endCardOpen) return;
+    this.endCardOpen = true;
+    this.tweens.pauseAll();
+    this.soundscape.setPaused(true);
+    this.stateText.setText("片尾来源卡");
+    const sources = huangjiuFilmSegments.flatMap((segment) =>
+      segment.sourceUrl === undefined
+        ? []
+        : [
+            {
+              label: segment.sourceLabel,
+              url: segment.sourceUrl
+            }
+          ]
+    );
+    showFilmEndCard(this, {
+      title: "从一坛福建老酒，到中国黄酒",
+      subtitle: "文化科普与来源 · 点击条目可在新窗口查看",
+      disclaimer:
+        "本片为文化科普，不构成饮酒建议。未成年人请勿饮酒。",
+      accent: 0xc9873f,
+      accentCss: "#6E4932",
+      sources,
+      onComplete: () => this.finishFilm(false),
+      onReplay: () => this.replayFilm()
+    });
+  }
+
+  private replayFilm(): void {
+    this.soundscape.stop();
+    this.scene.restart({
+      replay: this.replay,
+      returnScene: this.returnScene
+    });
   }
 
   private renderSegment(segment: HuangjiuFilmSegment): void {
@@ -433,6 +564,7 @@ export class HuangjiuFilmScene extends Phaser.Scene {
   private finishFilm(skipped: boolean): void {
     if (this.finishing) return;
     this.finishing = true;
+    this.soundscape.stop();
     if (!this.replay) {
       this.state = reduceChapter(this.state, {
         type: skipped ? "FILM_SKIPPED" : "FILM_SEEN"
@@ -441,7 +573,7 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     }
     this.cameras.main.fadeOut(420, 23, 17, 15);
     this.time.delayedCall(440, () => {
-      this.scene.start("ChapterComplete");
+      this.scene.start(this.returnScene);
     });
   }
 }

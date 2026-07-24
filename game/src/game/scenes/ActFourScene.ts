@@ -19,7 +19,8 @@ import type {
 import { Player, type MovementKeys } from "../entities/Player";
 import {
   buildApartmentGeometry,
-  tileToPixelCenter
+  tileToPixelCenter,
+  type PixelOccluder
 } from "../render/ApartmentRenderer";
 import { findChapterTarget } from "../systems/ChapterInteraction";
 import { ChapterSaveService } from "../systems/ChapterSaveService";
@@ -108,6 +109,11 @@ export class ActFourScene extends Phaser.Scene {
       .setOrigin(0)
       .setDisplaySize(geometry.width, geometry.height)
       .setDepth(0);
+    this.createForegroundOccluders(
+      geometry.occluders,
+      geometry.width,
+      geometry.height
+    );
 
     const jar = tileToPixelCenter(
       { x: 26, y: 8 },
@@ -189,7 +195,6 @@ export class ActFourScene extends Phaser.Scene {
       this.movementKeys,
       false
     );
-    this.player.setDepth(Math.round(this.player.y));
     if (moved) this.trackPlayerTile();
     const target = this.currentMiaTarget();
     this.hud.setPrompt(
@@ -289,7 +294,7 @@ export class ActFourScene extends Phaser.Scene {
       [
         {
           speakerId: "yi",
-          speakerName: "林怡",
+            speakerName: "林念安",
           text: selected.feedback
         }
       ],
@@ -459,6 +464,39 @@ export class ActFourScene extends Phaser.Scene {
     this.questMarker
       .setPosition(pixel.x, pixel.y - 52)
       .setVisible(true);
+  }
+
+  private createForegroundOccluders(
+    occluders: PixelOccluder[],
+    width: number,
+    height: number
+  ): void {
+    const rectanglesByDepth = new Map<number, PixelOccluder[]>();
+    for (const occluder of occluders) {
+      const group = rectanglesByDepth.get(occluder.depth) ?? [];
+      group.push(occluder);
+      rectanglesByDepth.set(occluder.depth, group);
+    }
+
+    for (const [depth, rectangles] of rectanglesByDepth) {
+      const maskSource = this.make.graphics({ x: 0, y: 0 });
+      maskSource.fillStyle(0xffffff, 1);
+      for (const rectangle of rectangles) {
+        maskSource.fillRect(
+          rectangle.x,
+          rectangle.y,
+          rectangle.width,
+          rectangle.height
+        );
+      }
+
+      this.add
+        .image(0, 0, "map-apartment")
+        .setOrigin(0)
+        .setDisplaySize(width, height)
+        .setDepth(depth)
+        .setMask(maskSource.createGeometryMask());
+    }
   }
 
   private trackPlayerTile(): void {

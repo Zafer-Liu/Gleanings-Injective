@@ -2,7 +2,9 @@ import Phaser from "phaser";
 import { sceneForChapterAct } from "../domain/ChapterRoute";
 import { apartmentBackgroundPolicy } from "../render/SceneVisualPolicy";
 import { ChapterSaveService } from "../systems/ChapterSaveService";
+import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { SaveService } from "../systems/SaveService";
+import { sceneForLongjingAct } from "../domain/LongjingRoute";
 
 type FailedFile = {
   key?: string;
@@ -133,6 +135,13 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     if (this.failedAssets.size > 0) {
       this.showLoadError([...this.failedAssets]);
+      return;
+    }
+    const longjing = new LongjingSaveService(
+      window.localStorage
+    ).load();
+    if (longjing !== null) {
+      this.scene.start(sceneForLongjingAct(longjing.currentAct));
       return;
     }
     const chapter = new ChapterSaveService(window.localStorage).load();
