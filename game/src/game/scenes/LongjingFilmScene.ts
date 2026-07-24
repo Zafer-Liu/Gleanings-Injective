@@ -22,6 +22,7 @@ import {
   openFilmSource,
   showFilmEndCard
 } from "../ui/FilmEndCard";
+import { advancedWrap } from "../ui/textWrap";
 
 type FilmData = {
   replay?: boolean;
@@ -184,7 +185,8 @@ export class LongjingFilmScene extends Phaser.Scene {
       .text(34, 28, "", {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "9px",
-        color: "#91AB73"
+        color: "#91AB73",
+        ...advancedWrap(300)
       })
       .setDepth(1_100);
     this.titleText = this.add
@@ -192,7 +194,9 @@ export class LongjingFilmScene extends Phaser.Scene {
         fontFamily:
           '"Microsoft YaHei", "PingFang SC", sans-serif',
         fontSize: "19px",
-        color: "#F0E4CA"
+        color: "#F0E4CA",
+        lineSpacing: 2,
+        ...advancedWrap(340)
       })
       .setDepth(1_100);
     this.sourceText = this.add
@@ -201,7 +205,7 @@ export class LongjingFilmScene extends Phaser.Scene {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "7px",
         color: "#839CA0",
-        wordWrap: { width: 220 }
+        ...advancedWrap(220)
       })
       .setOrigin(1, 0)
       .setDepth(1_100);
@@ -212,7 +216,9 @@ export class LongjingFilmScene extends Phaser.Scene {
         fontSize: "8px",
         color: "#262223",
         backgroundColor: "#B2C58A",
-        padding: { x: 6, y: 3 }
+        padding: { x: 6, y: 3 },
+        align: "right",
+        ...advancedWrap(200)
       })
       .setOrigin(1, 0)
       .setDepth(1_100);
@@ -229,7 +235,7 @@ export class LongjingFilmScene extends Phaser.Scene {
         fontSize: "11px",
         color: "#F0E4CA",
         lineSpacing: 4,
-        wordWrap: { width: 544 }
+        ...advancedWrap(544)
       })
       .setDepth(1_101);
 
@@ -515,7 +521,7 @@ export class LongjingFilmScene extends Phaser.Scene {
           fontFamily: '"Microsoft YaHei", sans-serif',
           fontSize: "10px",
           color: "#F0E4CA",
-          wordWrap: { width: 80 },
+          ...advancedWrap(80),
           align: "center"
         })
         .setOrigin(0.5);

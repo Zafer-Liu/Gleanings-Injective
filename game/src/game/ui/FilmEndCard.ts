@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { advancedWrap } from "./textWrap";
 
 export type FilmSourceLink = {
   label: string;
@@ -40,31 +41,37 @@ export function showFilmEndCard(
   const title = scene.add.text(50, 61, options.title, {
     fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
     fontSize: "20px",
-    color: "#F0E4CA"
+    color: "#F0E4CA",
+    ...advancedWrap(536)
   });
   const subtitle = scene.add.text(50, 91, options.subtitle, {
     fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
     fontSize: "9px",
-    color: "#AFC3BD"
+    color: "#AFC3BD",
+    ...advancedWrap(536)
   });
   container.add([back, panel, eyebrow, title, subtitle]);
 
+  let sourceY = 122;
   options.sources.slice(0, 5).forEach((source, index) => {
     const sourceText = scene.add
-      .text(50, 122 + index * 25, `${index + 1}. ${source.label}`, {
+      .text(50, sourceY, `${index + 1}. ${source.label}`, {
         fontFamily:
           '"Microsoft YaHei", "PingFang SC", sans-serif',
-        fontSize: "9px",
+        fontSize: "8px",
         color: "#D6E1D5",
         backgroundColor: "#3A302B",
         padding: { x: 7, y: 4 },
-        fixedWidth: 540
+        fixedWidth: 540,
+        lineSpacing: 1,
+        ...advancedWrap(526)
       })
       .setInteractive({ useHandCursor: true })
       .on("pointerover", () => sourceText.setColor(options.accentCss))
       .on("pointerout", () => sourceText.setColor("#D6E1D5"))
       .on("pointerup", () => openFilmSource(source.url));
     container.add(sourceText);
+    sourceY += Math.max(23, sourceText.height + 3);
   });
 
   const complete = scene.add
@@ -99,7 +106,8 @@ export function showFilmEndCard(
     fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
     fontSize: "8px",
     color: "#839CA0",
-    wordWrap: { width: 536 }
+    lineSpacing: 1,
+    ...advancedWrap(536)
   });
   container.add([
     complete,

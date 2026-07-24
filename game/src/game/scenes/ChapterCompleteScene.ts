@@ -4,6 +4,7 @@ import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
 import { publishActiveScene } from "../systems/SceneStatus";
+import { advancedWrap } from "../ui/textWrap";
 
 export class ChapterCompleteScene extends Phaser.Scene {
   private readonly saveService = new ChapterSaveService(
@@ -43,12 +44,14 @@ export class ChapterCompleteScene extends Phaser.Scene {
     this.add.text(64, 108, `${label.chineseName}`, {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "14px",
-      color: "#D4B46A"
+      color: "#D4B46A",
+      ...advancedWrap(520)
     });
     this.add.text(64, 132, label.englishName, {
       fontFamily: "Georgia, serif",
       fontSize: "10px",
-      color: "#B7C2C0"
+      color: "#B7C2C0",
+      ...advancedWrap(520)
     });
 
     const relics = [
@@ -77,13 +80,14 @@ export class ChapterCompleteScene extends Phaser.Scene {
         fontFamily:
           '"Microsoft YaHei", "PingFang SC", sans-serif',
         fontSize: "12px",
-        color: "#F4EBDD"
+        color: "#F4EBDD",
+        ...advancedWrap(116)
       });
       this.add.text(item.x + 12, 214, item.mark, {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "8px",
         color: "#D4B46A",
-        wordWrap: { width: 112 }
+        ...advancedWrap(112)
       });
     });
     this.add.text(

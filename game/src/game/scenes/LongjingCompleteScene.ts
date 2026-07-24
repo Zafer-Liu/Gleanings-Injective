@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { LongjingInscription } from "../domain/longjingState";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { publishActiveScene } from "../systems/SceneStatus";
+import { advancedWrap } from "../ui/textWrap";
 
 const INSCRIPTION_COPY: Record<
   LongjingInscription,
@@ -60,7 +61,8 @@ export class LongjingCompleteScene extends Phaser.Scene {
     this.add.text(60, 101, `${inscription.title} · ${inscription.line}`, {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "12px",
-      color: "#D6E1D5"
+      color: "#D6E1D5",
+      ...advancedWrap(520)
     });
 
     this.drawRelic(62, 142, "第一章", "一坛回声", "坛");
@@ -98,7 +100,7 @@ export class LongjingCompleteScene extends Phaser.Scene {
         fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
         fontSize: "8px",
         color: "#839CA0",
-        wordWrap: { width: 520 }
+        ...advancedWrap(520)
       }
     );
 
@@ -142,12 +144,14 @@ export class LongjingCompleteScene extends Phaser.Scene {
     this.add.text(x + 66, y + 17, eyebrow, {
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "7px",
-      color: "#839CA0"
+      color: "#839CA0",
+      ...advancedWrap(74)
     });
     this.add.text(x + 66, y + 38, title, {
       fontFamily: '"Microsoft YaHei", sans-serif',
       fontSize: "12px",
-      color: "#F0E4CA"
+      color: "#F0E4CA",
+      ...advancedWrap(74)
     });
   }
 }

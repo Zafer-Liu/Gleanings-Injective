@@ -22,6 +22,7 @@ import {
   openFilmSource,
   showFilmEndCard
 } from "../ui/FilmEndCard";
+import { advancedWrap } from "../ui/textWrap";
 
 type FilmData = {
   replay?: boolean;
@@ -190,7 +191,8 @@ export class HuangjiuFilmScene extends Phaser.Scene {
       .text(34, 28, "", {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "9px",
-        color: "#D4B46A"
+        color: "#D4B46A",
+        ...advancedWrap(300)
       })
       .setDepth(1_100);
     this.titleText = this.add
@@ -198,14 +200,18 @@ export class HuangjiuFilmScene extends Phaser.Scene {
         fontFamily:
           '"Microsoft YaHei", "PingFang SC", sans-serif',
         fontSize: "20px",
-        color: "#F4EBDD"
+        color: "#F4EBDD",
+        lineSpacing: 2,
+        ...advancedWrap(340)
       })
       .setDepth(1_100);
     this.sourceText = this.add
       .text(606, 30, "", {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "7px",
-        color: "#6E6259"
+        color: "#6E6259",
+        align: "right",
+        ...advancedWrap(220)
       })
       .setOrigin(1, 0)
       .setDepth(1_100);
@@ -222,7 +228,7 @@ export class HuangjiuFilmScene extends Phaser.Scene {
         fontSize: "12px",
         color: "#F4EBDD",
         lineSpacing: 5,
-        wordWrap: { width: 544 }
+        ...advancedWrap(544)
       })
       .setDepth(1_101);
 

@@ -5,6 +5,7 @@ import { effectProfileForChoice } from "../fx/JarMemoryEffect";
 import { SaveService } from "../systems/SaveService";
 import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { publishActiveScene } from "../systems/SceneStatus";
+import { advancedWrap } from "../ui/textWrap";
 
 type CompleteData = {
   choice?: SenseChoice | null;
@@ -56,7 +57,8 @@ export class ActOneCompleteScene extends Phaser.Scene {
       .text(102, 148, `你的第一眼 · ${profile.motif}`, {
         fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
         fontSize: "14px",
-        color: "#D4B46A"
+        color: "#D4B46A",
+        ...advancedWrap(420)
       });
     this.add.text(
       102,
@@ -67,7 +69,7 @@ export class ActOneCompleteScene extends Phaser.Scene {
         fontSize: "11px",
         color: "#B7C2C0",
         lineSpacing: 5,
-        wordWrap: { width: 420 }
+        ...advancedWrap(420)
       }
     );
 

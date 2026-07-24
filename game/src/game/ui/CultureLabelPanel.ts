@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { CultureLabel } from "../domain/cultureLabel";
+import { advancedWrap } from "./textWrap";
 
 export type CultureLabelAction = "accept" | "retry";
 
@@ -35,18 +36,21 @@ export class CultureLabelPanel {
     this.nameText = scene.add.text(78, 62, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "23px",
-      color: "#F4EBDD"
+      color: "#F4EBDD",
+      ...advancedWrap(486)
     });
     this.englishNameText = scene.add.text(78, 94, "", {
       fontFamily: "Georgia, serif",
       fontSize: "12px",
-      color: "#D4B46A"
+      color: "#D4B46A",
+      ...advancedWrap(486)
     });
     this.introText = scene.add.text(78, 119, "", {
       fontFamily: "Georgia, serif",
       fontSize: "10px",
       color: "#B7C2C0",
-      wordWrap: { width: 486 }
+      lineSpacing: 2,
+      ...advancedWrap(486)
     });
     this.factText = scene.add.text(78, 158, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
@@ -55,33 +59,37 @@ export class CultureLabelPanel {
       backgroundColor: "#30231D",
       padding: { x: 8, y: 6 },
       fixedWidth: 486,
-      wordWrap: { width: 470 }
+      lineSpacing: 2,
+      ...advancedWrap(470)
     });
     this.creativeText = scene.add.text(78, 205, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "11px",
       color: "#F4EBDD",
       lineSpacing: 4,
-      wordWrap: { width: 486 }
+      ...advancedWrap(486)
     });
     this.metaText = scene.add.text(78, 260, "", {
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "8px",
-      color: "#6E6259"
+      color: "#6E6259",
+      ...advancedWrap(486)
     });
     this.acceptText = scene.add.text(78, 290, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "11px",
       color: "#F4EBDD",
       backgroundColor: "#6E4932",
-      padding: { x: 12, y: 7 }
+      padding: { x: 12, y: 7 },
+      ...advancedWrap(150)
     });
     this.retryText = scene.add.text(258, 290, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "11px",
       color: "#B7C2C0",
       backgroundColor: "#30231D",
-      padding: { x: 12, y: 7 }
+      padding: { x: 12, y: 7 },
+      ...advancedWrap(180)
     });
     const controls = scene.add
       .text(566, 298, "↑↓ 选择 · E 确认", {
@@ -123,6 +131,16 @@ export class CultureLabelPanel {
     this.creativeText.setText(`创意表达：${label.creativeText}`);
     this.metaText.setText(
       `${label.templateSource}  ·  PATH ${label.pathHash}`
+    );
+    this.englishNameText.setY(
+      this.nameText.y + this.nameText.height + 5
+    );
+    this.introText.setY(
+      this.englishNameText.y + this.englishNameText.height + 7
+    );
+    this.factText.setY(this.introText.y + this.introText.height + 8);
+    this.creativeText.setY(
+      this.factText.y + this.factText.height + 8
     );
     this.actions = canRetry ? ["accept", "retry"] : ["accept"];
     this.selectedIndex = 0;

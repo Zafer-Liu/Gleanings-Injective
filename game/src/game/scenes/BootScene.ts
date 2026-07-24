@@ -5,6 +5,7 @@ import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { SaveService } from "../systems/SaveService";
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
+import { advancedWrap } from "../ui/textWrap";
 
 type FailedFile = {
   key?: string;
@@ -182,7 +183,7 @@ export class BootScene extends Phaser.Scene {
         fontFamily: "monospace",
         fontSize: "11px",
         color: "#D4B46A",
-        wordWrap: { width: 450 }
+        ...advancedWrap(450)
       })
       .setOrigin(0.5);
     this.add

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { CultureLabel } from "../domain/cultureLabel";
+import { advancedWrap } from "./textWrap";
 
 export class JourneyRecordPanel {
   private readonly container: Phaser.GameObjects.Container;
@@ -16,12 +17,14 @@ export class JourneyRecordPanel {
     const tag = scene.add.text(118, 82, "JOURNEY RECORD / 酒签留存", {
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "9px",
-      color: "#A83B32"
+      color: "#A83B32",
+      ...advancedWrap(400)
     });
     const title = scene.add.text(118, 110, "把这段回声收进酒签", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "21px",
-      color: "#F4EBDD"
+      color: "#F4EBDD",
+      ...advancedWrap(400)
     });
     const note = scene.add.text(
       118,
@@ -33,13 +36,14 @@ export class JourneyRecordPanel {
         fontSize: "11px",
         color: "#B7C2C0",
         lineSpacing: 5,
-        wordWrap: { width: 400 }
+        ...advancedWrap(400)
       }
     );
     this.labelText = scene.add.text(118, 210, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "14px",
-      color: "#D4B46A"
+      color: "#D4B46A",
+      ...advancedWrap(400)
     });
     const controls = scene.add
       .text(516, 266, "E / 回车 · 收好酒签", {

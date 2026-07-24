@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { advancedWrap } from "./textWrap";
 
 export type ChapterHudView = {
   actLabel: string;
@@ -15,6 +16,8 @@ const TEXT_STYLE = {
 
 export class ChapterHud {
   private readonly container: Phaser.GameObjects.Container;
+  private readonly questBack: Phaser.GameObjects.Rectangle;
+  private readonly accent: Phaser.GameObjects.Rectangle;
   private readonly actText: Phaser.GameObjects.Text;
   private readonly questText: Phaser.GameObjects.Text;
   private readonly hintText: Phaser.GameObjects.Text;
@@ -29,27 +32,32 @@ export class ChapterHud {
       .container(0, 0)
       .setScrollFactor(0)
       .setDepth(10_000);
-    const questBack = scene.add
+    this.questBack = scene.add
       .rectangle(12, 12, 332, 64, 0x211a17, 0.94)
       .setOrigin(0)
       .setStrokeStyle(1, 0xc9873f);
-    const accent = scene.add
+    this.accent = scene.add
       .rectangle(20, 20, 4, 48, 0xa83b32)
       .setOrigin(0);
     this.actText = scene.add.text(32, 18, "", {
       ...TEXT_STYLE,
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "9px",
-      color: "#D4B46A"
+      color: "#D4B46A",
+      ...advancedWrap(296)
     });
     this.questText = scene.add.text(32, 35, "", {
       ...TEXT_STYLE,
-      fontSize: "13px"
+      fontSize: "13px",
+      lineSpacing: 2,
+      ...advancedWrap(296)
     });
     this.hintText = scene.add.text(32, 57, "", {
       ...TEXT_STYLE,
       fontSize: "9px",
-      color: "#B7C2C0"
+      color: "#B7C2C0",
+      lineSpacing: 2,
+      ...advancedWrap(296)
     });
 
     const inventoryBack = scene.add
@@ -60,7 +68,9 @@ export class ChapterHud {
       .text(620, 21, "", {
         ...TEXT_STYLE,
         fontSize: "9px",
-        color: "#D4B46A"
+        color: "#D4B46A",
+        align: "right",
+        ...advancedWrap(116)
       })
       .setOrigin(1, 0);
 
@@ -71,7 +81,10 @@ export class ChapterHud {
     this.promptText = scene.add
       .text(320, 332, "", {
         ...TEXT_STYLE,
-        fontSize: "11px"
+        fontSize: "11px",
+        align: "center",
+        lineSpacing: 2,
+        ...advancedWrap(260)
       })
       .setOrigin(0.5)
       .setVisible(false);
@@ -81,14 +94,16 @@ export class ChapterHud {
         fontSize: "11px",
         color: "#211A17",
         backgroundColor: "#D4B46A",
-        padding: { x: 10, y: 6 }
+        padding: { x: 10, y: 6 },
+        align: "center",
+        ...advancedWrap(420)
       })
       .setOrigin(0.5)
       .setVisible(false);
 
     this.container.add([
-      questBack,
-      accent,
+      this.questBack,
+      this.accent,
       this.actText,
       this.questText,
       this.hintText,
@@ -103,7 +118,17 @@ export class ChapterHud {
   update(view: ChapterHudView, showHint = true): void {
     this.actText.setText(view.actLabel);
     this.questText.setText(`当前目标 · ${view.questTitle}`);
+    this.questText.setY(this.actText.y + this.actText.height + 2);
     this.hintText.setText(showHint ? view.hint : "");
+    this.hintText.setY(this.questText.y + this.questText.height + 3);
+    const contentBottom =
+      this.hintText.text.length > 0
+        ? this.hintText.y + this.hintText.height
+        : this.questText.y + this.questText.height;
+    const panelHeight = Math.max(64, contentBottom - 12 + 10);
+    this.questBack.setSize(332, panelHeight);
+    this.accent.setSize(4, Math.max(48, panelHeight - 16));
+    this.toastText.setY(Math.max(92, 12 + panelHeight + 16));
     const progress = view.progress ? `  ·  ${view.progress}` : "";
     this.inventoryText.setText(
       `随身物件 ${view.inventoryCount}${progress}`
@@ -113,7 +138,13 @@ export class ChapterHud {
   setPrompt(message: string | null): void {
     const visible = message !== null && message.length > 0;
     this.promptText.setText(message ?? "").setVisible(visible);
-    this.promptBack.setVisible(visible);
+    const height = Math.max(28, this.promptText.height + 10);
+    const centerY = 346 - height / 2;
+    this.promptText.setY(centerY);
+    this.promptBack
+      .setPosition(320, centerY)
+      .setSize(280, height)
+      .setVisible(visible);
   }
 
   showToast(message: string): void {

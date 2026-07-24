@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { ChapterDialogueChoice } from "../../content/chapter/types";
+import { advancedWrap } from "./textWrap";
 
 export type ChapterChoicePanelCopy = {
   eyebrow: string;
@@ -21,39 +22,46 @@ export class ChapterChoicePanel<TValue extends string> {
       .rectangle(0, 0, 640, 360, 0x17110f, 0.72)
       .setOrigin(0);
     const panel = scene.add
-      .rectangle(106, 42, 428, 276, 0x211a17, 0.99)
+      .rectangle(86, 18, 468, 324, 0x211a17, 0.99)
       .setOrigin(0)
       .setStrokeStyle(2, 0xc9873f);
-    this.eyebrow = scene.add.text(136, 67, "", {
+    this.eyebrow = scene.add.text(116, 40, "", {
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "9px",
-      color: "#A83B32"
+      color: "#A83B32",
+      ...advancedWrap(408)
     });
-    this.title = scene.add.text(136, 90, "", {
+    this.title = scene.add.text(116, 61, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
-      fontSize: "18px",
-      color: "#F4EBDD"
+      fontSize: "17px",
+      color: "#F4EBDD",
+      lineSpacing: 2,
+      ...advancedWrap(408)
     });
-    this.subtitle = scene.add.text(136, 121, "", {
+    this.subtitle = scene.add.text(116, 96, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "10px",
-      color: "#B7C2C0"
+      color: "#B7C2C0",
+      lineSpacing: 2,
+      ...advancedWrap(408)
     });
     for (let index = 0; index < 3; index += 1) {
       this.optionTexts.push(
-        scene.add.text(142, 158 + index * 40, "", {
+        scene.add.text(126, 132 + index * 52, "", {
           fontFamily:
             '"Microsoft YaHei", "PingFang SC", sans-serif',
-          fontSize: "12px",
+          fontSize: "11px",
           color: "#B7C2C0",
           backgroundColor: "#30231D",
-          fixedWidth: 356,
-          padding: { x: 12, y: 9 }
+          fixedWidth: 388,
+          padding: { x: 12, y: 8 },
+          lineSpacing: 2,
+          ...advancedWrap(364)
         })
       );
     }
     const controls = scene.add
-      .text(504, 292, "↑↓ 选择    E 确认", {
+      .text(524, 310, "↑↓ 选择    E 确认", {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "9px",
         color: "#B7C2C0"
@@ -86,7 +94,13 @@ export class ChapterChoicePanel<TValue extends string> {
     this.selectedIndex = 0;
     this.eyebrow.setText(copy.eyebrow);
     this.title.setText(copy.title);
+    this.title.setY(this.eyebrow.y + this.eyebrow.height + 6);
     this.subtitle.setText(copy.subtitle);
+    this.subtitle.setY(this.title.y + this.title.height + 5);
+    const firstOptionY = this.subtitle.y + this.subtitle.height + 10;
+    this.optionTexts.forEach((text, index) => {
+      text.setY(firstOptionY + index * 52);
+    });
     this.container.setVisible(true);
     this.render();
   }
