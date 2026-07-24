@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { startGame } from "../game/startGame";
-import { MedalService } from "../game/systems/MedalService";
-import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
-import winterBrewingImage from "../../../assets/rpg_v2/collection/winter-brewing.png";
 import { resolveChainOrigin } from "./chainConfig";
+import {
+  collectibleFromChainItem,
+  collectibleKindLabel,
+  filterCollectibles,
+  loadCollectedItems,
+  mergeCollectibles,
+  mintItemForCollectible,
+  type ChainCollectibleItem,
+  type Collectible,
+  type CollectibleFilter
+} from "./collectibleCatalog";
 import {
   chapterMetaForScene,
   type ChapterMeta
@@ -20,8 +28,10 @@ const LEGACY_WALLET_STORAGE_KEY = "gleanings.collection.wallet.v1";
 type Eip1193Provider = { request: (request: { method: string; params?: unknown[] }) => Promise<unknown>; isMetaMask?: boolean; isOkxWallet?: boolean; providers?: Eip1193Provider[] };
 type AnnouncedWallet = { info?: { name?: string }; provider: Eip1193Provider };
 
-type Collectible = { id: string; name: string; description: string; source: string; kind: "道具" | "勋章"; image?: string };
-type ChainAsset = { token_id: string; item?: { collectible_id?: string; medal_id?: string; name?: string; description?: string; category?: string; item_type?: string; source?: string; image?: string } };
+type ChainAsset = {
+  token_id: string;
+  item?: ChainCollectibleItem & { item_type?: string };
+};
 
 async function readChainAssets(wallet: string): Promise<ChainAsset[]> {
   const response = await fetch(`${CHAIN_ORIGIN}/api/rpg/assets/${wallet}`);
@@ -29,56 +39,6 @@ async function readChainAssets(wallet: string): Promise<ChainAsset[]> {
   if (!response.ok) throw new Error((body as { error?: string }).error ?? "无法读取链上收藏");
   if (!Array.isArray(body)) throw new Error("链上服务返回了无效的收藏数据");
   return body as ChainAsset[];
-}
-
-function loadCollectedItems(): Collectible[] {
-  try {
-    const save = JSON.parse(localStorage.getItem("gleanings.act1.save.v1") ?? "{}") as { inventory?: string[]; act1Complete?: boolean };
-    const items: Collectible[] = (save.inventory ?? []).flatMap((id) => id === "item_taipo_note" ? [{ id, name: "太婆字条", description: "太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。", source: "《拾遗》· 第一幕 / 纸箱", kind: "道具" as const, image: taipoNoteImage }] : []);
-    if (save.act1Complete) {
-      const medal = new MedalService(window.localStorage).unlockActOne()[0];
-      if (medal) items.push({ id: medal.id, name: medal.name, description: medal.description, source: "《拾遗》· 第一幕 / 开坛", kind: "勋章", image: winterBrewingImage });
-    }
-    const longjing = JSON.parse(
-      localStorage.getItem("gleanings.chapter-two.save.v1") ?? "{}"
-    ) as { relics?: string[]; chapterComplete?: boolean };
-    const longjingRelics: Record<
-      string,
-      Omit<Collectible, "id">
-    > = {
-      relic_old_tea_scoop: {
-        name: "旧茶斗",
-        description: "陈守一封锅后留下的旧茶斗，也是林念安进入茶园记忆的触点。",
-        source: "《拾遗》· 第二章 / 同号茶罐",
-        kind: "道具"
-      },
-      relic_qingming_bud: {
-        name: "清明芽签",
-        description: "记录十二次芽叶判断：节气不是催促，先问这一片叶是否适合今天这一锅。",
-        source: "《拾遗》· 第二章 / 清明之前",
-        kind: "道具"
-      },
-      relic_palm_fire: {
-        name: "掌火纹",
-        description: "看叶、听叶、感受温度后留下的掌火记忆；手法不是固定连招。",
-        source: "《拾遗》· 第二章 / 一掌春火",
-        kind: "道具"
-      },
-      relic_one_leaf_origin: {
-        name: "一叶来处",
-        description: "数字剧情纪念品，只记录玩家完成本章，不构成对现实茶叶产地、品质、地理标志或真伪的证明。",
-        source: "《拾遗》· 第二章 / 名字的重量",
-        kind: "勋章"
-      }
-    };
-    (longjing.relics ?? []).forEach((id) => {
-      const collectible = longjingRelics[id];
-      if (collectible !== undefined) {
-        items.push({ id, ...collectible });
-      }
-    });
-    return items;
-  } catch { return []; }
 }
 
 function savedWallet(): string {
@@ -92,13 +52,6 @@ function walletName(wallet: AnnouncedWallet, index: number): string {
   if (wallet.provider.isOkxWallet) return "OKX Wallet";
   if (wallet.provider.isMetaMask) return "MetaMask";
   return `浏览器钱包 ${index + 1}`;
-}
-
-function imageForCollectible(id: string, provided?: string): string | undefined {
-  if (provided) return provided;
-  if (id === "item_taipo_note") return taipoNoteImage;
-  if (id === "act1-winter-brewing") return winterBrewingImage;
-  return undefined;
 }
 
 async function loadWalletConnectProvider(): Promise<{ init: (options: Record<string, unknown>) => Promise<Eip1193Provider & { connect: () => Promise<unknown> }> }> {
@@ -131,6 +84,7 @@ function ChainArchive() {
   const [connectingWallet, setConnectingWallet] = useState(false);
   const [announcedWallets, setAnnouncedWallets] = useState<AnnouncedWallet[]>([]);
   const [selectedCollectible, setSelectedCollectible] = useState<Collectible | null>(null);
+  const [collectionFilter, setCollectionFilter] = useState<CollectibleFilter>("all");
   const [cardFlipped, setCardFlipped] = useState(false);
   const [transferRecipient, setTransferRecipient] = useState("");
   const [transferring, setTransferring] = useState(false);
@@ -145,15 +99,24 @@ function ChainArchive() {
       if (!address) return;
       readChainAssets(address)
         .then((assets) => {
-          setChainCollectibles(assets.map((asset) => {
-            const item = asset.item ?? {};
-            const id = item.collectible_id ?? item.medal_id ?? `chain-token-${asset.token_id}`;
-            return { id, name: item.name ?? `链上藏品 #${asset.token_id}`, description: item.description ?? "从钱包同步的链上收藏。", source: item.source ?? "Injective EVM Testnet", kind: item.category === "勋章" || item.medal_id ? "勋章" : "道具", image: imageForCollectible(id, item.image) };
+          const normalized = assets.map((asset) => ({
+            tokenId: asset.token_id,
+            collectible: collectibleFromChainItem(
+              asset.item ?? {},
+              asset.token_id
+            )
           }));
-          setOnChainTokens(Object.fromEntries(assets.flatMap((asset) => {
-            const id = asset.item?.collectible_id ?? asset.item?.medal_id ?? `chain-token-${asset.token_id}`;
-            return [[id, asset.token_id]];
-          })));
+          setChainCollectibles(
+            normalized.map((entry) => entry.collectible)
+          );
+          setOnChainTokens(
+            Object.fromEntries(
+              normalized.map((entry) => [
+                entry.collectible.id,
+                entry.tokenId
+              ])
+            )
+          );
         })
         .catch((error) => {
           setStatus(`读取链上收藏失败：${error instanceof Error ? error.message : "请确认链上桥服务正在运行"}`);
@@ -318,16 +281,10 @@ function ChainArchive() {
         body: JSON.stringify({
           kind: "mint",
           wallet,
-          item: {
-            name: collectible.name,
-            item_type: "Gleanings Collectible",
-            collectible_id: collectible.id,
-            category: collectible.kind,
-            rarity: "Story",
-            description: collectible.description,
-            source: collectible.source,
-            image: collectible.image ? new URL(collectible.image, window.location.origin).href : undefined
-          }
+          item: mintItemForCollectible(
+            collectible,
+            window.location.origin
+          )
         })
       });
       const data = (await response.json()) as { request_id?: string; wallet_url?: string; error?: string };
@@ -414,10 +371,14 @@ function ChainArchive() {
     }
   };
 
-  const displayedCollectibles = [
-    ...collectibles,
-    ...chainCollectibles.filter((chainItem) => !collectibles.some((localItem) => localItem.id === chainItem.id))
-  ];
+  const displayedCollectibles = mergeCollectibles(
+    collectibles,
+    chainCollectibles
+  );
+  const visibleCollectibles = filterCollectibles(
+    displayedCollectibles,
+    collectionFilter
+  );
 
   const openCollectibleCard = (collectible: Collectible) => {
     setSelectedCollectible(collectible);
@@ -445,17 +406,27 @@ function ChainArchive() {
       <div className="museum__head"><div><p>GLEANINGS / COLLECTION</p><h2>拾遗收藏馆</h2></div><button onClick={() => setOpen(false)}>关闭 ×</button></div>
       <p className="museum__status">{status}</p>
       <div className="collection-tools"><button className="chain-button collection-refresh" onClick={refreshChainCollection}>读取链上收藏</button><button className="museum-button" onClick={() => void shareCollection()}>{wallet ? "手机分享" : "连接后分享"}</button></div>
+      <div className="collection-filter-row">
+        <div className="collection-filters" role="group" aria-label="筛选收藏类型">
+          {([
+            ["all", "全部"],
+            ["badge", "徽章"],
+            ["item", "道具"]
+          ] as const).map(([filter, label]) => <button key={filter} type="button" aria-pressed={collectionFilter === filter} onClick={() => setCollectionFilter(filter)}>{label}</button>)}
+        </div>
+        <small>{visibleCollectibles.length} / {displayedCollectibles.length} 件</small>
+      </div>
       {shareLink && <div className="share-panel"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareLink)}`} alt="手机打开收藏馆的二维码" /><div><strong>扫码查看我的收藏</strong><p>可扫描二维码打开公开藏品册。</p><code>{shareLink}</code><button className="chain-button" onClick={() => void copyShareLink()}>复制分享链接</button></div></div>}
-      {displayedCollectibles.length ? displayedCollectibles.map((collectible) => <article className="medal" key={collectible.id}>{collectible.image ? <img className="medal__image" src={collectible.image} alt="" /> : <div className="medal__seal" aria-hidden="true">{collectible.kind === "勋章" ? "章" : "藏"}</div>}<div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectible.kind} · 可选择上链展示`}</small></div><button className="card-open" onClick={() => openCollectibleCard(collectible)}>查看藏品卡</button>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。</p>}
-      <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；链上记录只证明数字剧情藏品的获得与展示，不证明任何现实酒或茶的产地、品质和真伪。</p>
+      {visibleCollectibles.length ? visibleCollectibles.map((collectible) => <article className="medal" key={collectible.id}>{collectible.image ? <img className={`medal__image${collectible.kind === "badge" ? " medal__image--badge" : ""}`} src={collectible.image} alt="" /> : <div className="medal__seal" aria-hidden="true">{collectible.kind === "badge" ? "章" : "藏"}</div>}<div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectibleKindLabel(collectible.kind)} · 可选择上链展示`}</small></div><button className="card-open" onClick={() => openCollectibleCard(collectible)}>查看藏品卡</button>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">{displayedCollectibles.length ? "当前分类还没有收藏。" : "尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。"}</p>}
+      <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；链上记录保存玩家自行发起的数字剧情藏品及所有权变化，不作为完成剧情或现实酒茶产地、品质和真伪的独立证明。</p>
     </section>, document.body)}
     {selectedCollectible && createPortal(<section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}>
       <div className="flashcard-modal__head"><p>GLEANINGS / STORY CARD</p><button onClick={() => setSelectedCollectible(null)} aria-label="关闭藏品卡">关闭 ×</button></div>
       <button className={`flashcard ${cardFlipped ? "flashcard--flipped" : ""}`} onClick={() => setCardFlipped((flipped) => !flipped)} aria-label={`翻转${selectedCollectible.name}藏品卡`}>
         <span className="flashcard__inner">
           <span className="flashcard__face flashcard__front">
-            {selectedCollectible.image ? <span className="flashcard__art"><img src={selectedCollectible.image} alt={selectedCollectible.name} /></span> : <span className="flashcard__seal">{selectedCollectible.kind === "勋章" ? "章" : "藏"}</span>}
-            <span className="flashcard__label">{selectedCollectible.kind} / GLEANINGS</span>
+            {selectedCollectible.image ? <span className={`flashcard__art${selectedCollectible.kind === "badge" ? " flashcard__art--badge" : ""}`}><img src={selectedCollectible.image} alt={selectedCollectible.name} /></span> : <span className="flashcard__seal">{selectedCollectible.kind === "badge" ? "章" : "藏"}</span>}
+            <span className="flashcard__label">{collectibleKindLabel(selectedCollectible.kind)} / GLEANINGS</span>
             <strong>{selectedCollectible.name}</strong>
             <small>{onChainTokens[selectedCollectible.id] ? `INJECTIVE EVM · TOKEN #${onChainTokens[selectedCollectible.id]}` : "本地旅程收藏"}</small>
             <em>轻触翻转，读取故事</em>

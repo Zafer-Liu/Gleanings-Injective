@@ -109,6 +109,46 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
   expect(widths.document).toBeLessThanOrEqual(widths.viewport);
 });
 
+test("公开分享页把稳定 badge 类型显示为徽章", async ({ page }) => {
+  await page.route("**/api/rpg/assets/**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify([
+        {
+          token_id: "99",
+          owner: wallet,
+          item: {
+            collectible_id:
+              "badge_ch1_fujian_aged_rice_wine",
+            badge_id:
+              "badge_ch1_fujian_aged_rice_wine",
+            category: "badge",
+            name_zh: "福建老酒",
+            name_en: "Fujian Aged Rice Wine",
+            description_zh: "第一章文化纪念。",
+            image:
+              `${origin}/collection/ink/fujian-aged-rice-wine.svg`
+          }
+        }
+      ])
+    });
+  });
+
+  await page.goto(`${origin}/share/?wallet=${wallet}`);
+  const card = page.locator(
+    '.card[data-collectible-kind="badge"]'
+  );
+  await expect(card).toBeVisible();
+  await expect(card.locator(".tag")).toHaveText("徽章");
+  await expect(
+    card.getByRole("heading", { name: "福建老酒" })
+  ).toBeVisible();
+  await expect(card.locator(".card-art img")).toHaveAttribute(
+    "src",
+    /\/collection\/ink\/fujian-aged-rice-wine\.svg$/
+  );
+});
+
 test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${origin}/dot/?wallet=${wallet}&token=${tokenId}`);

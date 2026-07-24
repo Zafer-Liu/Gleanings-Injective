@@ -272,10 +272,19 @@ h1 span {
 .collection-refresh { margin:0; }
 .collection-tools { display:flex; align-items:stretch; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
 .collection-tools > button { display:inline-flex; align-items:center; justify-content:center; min-height:46px; }
+.collection-filter-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:12px 0 4px; }
+.collection-filter-row > small { color:#b9ab99; font:10px "Cascadia Mono",monospace; white-space:nowrap; }
+.collection-filters { display:flex; gap:6px; padding:4px; background:#17110f; border:1px solid #5a4032; }
+.collection-filters button { min-width:58px; border:1px solid transparent; color:#b9ab99; background:transparent; padding:7px 10px; cursor:pointer; font:12px inherit; }
+.collection-filters button:hover { color:#f4ebdd; border-color:#6e4932; }
+.collection-filters button[aria-pressed="true"] { color:#17110f; background:var(--straw); border-color:var(--straw); }
+.collection-filters button:focus-visible { outline:3px solid #f4ebdd; outline-offset:3px; }
 .share-panel { display:grid; grid-template-columns:112px 1fr; gap:14px; align-items:center; margin:12px 0; padding:12px; background:#17110f; border:1px solid #6e4932; }.share-panel img { width:112px; height:112px; background:#fff; }.share-panel strong { color:#f4ebdd; font-size:15px; font-weight:500; }.share-panel p { margin:5px 0; color:var(--frost); font-size:12px; line-height:1.5; }.share-panel code { display:block; margin-bottom:8px; color:var(--straw); font:10px "Cascadia Mono",monospace; overflow-wrap:anywhere; }
 .medal { display: flex; align-items: center; gap: 14px; margin: 18px 0; padding: 14px 0; border-block: 1px solid #5a4032; }
 .medal__seal { display: grid; place-items: center; flex: 0 0 58px; height: 58px; color: #f4ebdd; background: var(--hongqu); border: 2px solid var(--amber); border-radius: 50%; font-size: 24px; }
 .medal__image { flex:0 0 58px; width:58px; height:58px; padding:7px; object-fit:contain; image-rendering:pixelated; background:#17110f; border:1px solid #6e4932; }
+.medal__image--badge { padding:3px; image-rendering:pixelated; background:#0f0d0c; }
+.flashcard__art--badge img { image-rendering:pixelated; background:transparent; }
 .medal__copy { flex: 1; min-width:0; }.medal__copy p { margin: 5px 0; color: #c7cecb; font-size: 12px; line-height: 1.55; }.medal__copy small { color: var(--straw); }
 .museum__note { margin: 0; padding-top: 14px; border-top: 1px solid #5a4032; }
 .onchain { color: var(--straw); font: 11px "Cascadia Mono", monospace; white-space: nowrap; }
