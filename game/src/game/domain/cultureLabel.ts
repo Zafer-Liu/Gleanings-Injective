@@ -91,8 +91,8 @@ export function generateCultureLabel(
   const pathHash = stableHash(pathKey(state));
   const creativeText =
     state.labelTemplate === 0
-      ? `太婆把一个冬天封进坛里，又把一碗老酒面线端到人前。林怡最终接住的，是“${INSCRIPTION_LABEL[inscription]}”留下的回声。`
-      : `从红曲染过的指尖，到异乡公寓里被揭开的坛口，太婆没有写完的家书，由林怡沿着“${QUESTION_LABEL[question]}”继续读了下去。`;
+      ? `太婆把一个冬天封进坛里，又把一碗老酒面线端到人前。林念安最终接住的，是“${INSCRIPTION_LABEL[inscription]}”留下的回声。`
+      : `从红曲染过的指尖，到异乡公寓里被揭开的坛口，太婆没有写完的家书，由林念安沿着“${QUESTION_LABEL[question]}”继续读了下去。`;
 
   return {
     chineseName: name.chinese,

@@ -4,6 +4,13 @@ import {
   filmSegmentAt,
   type HuangjiuFilmSegment
 } from "../../content/film/huangjiuFilm";
+import {
+  createFilmAudioState,
+  filmAudioLabel,
+  reduceFilmAudio,
+  type FilmAudioAction,
+  type FilmAudioState
+} from "../domain/FilmAudioControl";
 import { FilmTimeline } from "../domain/FilmTimeline";
 import { reduceChapter } from "../domain/chapterReducer";
 import type { ChapterOneSaveV2 } from "../domain/chapterState";
@@ -12,12 +19,16 @@ import { publishActiveScene } from "../systems/SceneStatus";
 
 type FilmData = {
   replay?: boolean;
+  returnScene?: "ChapterComplete" | "LongjingComplete";
 };
 
 type FilmKeys = {
   pause: Phaser.Input.Keyboard.Key;
   subtitles: Phaser.Input.Keyboard.Key;
   skip: Phaser.Input.Keyboard.Key;
+  volumeUp: Phaser.Input.Keyboard.Key;
+  volumeDown: Phaser.Input.Keyboard.Key;
+  mute: Phaser.Input.Keyboard.Key;
 };
 
 export class HuangjiuFilmScene extends Phaser.Scene {
@@ -33,8 +44,12 @@ export class HuangjiuFilmScene extends Phaser.Scene {
   private subtitleText!: Phaser.GameObjects.Text;
   private sourceText!: Phaser.GameObjects.Text;
   private stateText!: Phaser.GameObjects.Text;
+  private audioText!: Phaser.GameObjects.Text;
+  private audioState: FilmAudioState = createFilmAudioState();
   private subtitlesVisible = true;
   private replay = false;
+  private returnScene: "ChapterComplete" | "LongjingComplete" =
+    "ChapterComplete";
   private finishing = false;
   private readonly saveService = new ChapterSaveService(
     window.localStorage
@@ -47,6 +62,7 @@ export class HuangjiuFilmScene extends Phaser.Scene {
   create(data: FilmData): void {
     const saved = this.saveService.load();
     this.replay = data.replay === true;
+    this.returnScene = data.returnScene ?? "ChapterComplete";
     if (
       saved === null ||
       (saved.currentAct !== "film" &&
@@ -58,6 +74,8 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     this.state = saved;
     publishActiveScene("HuangjiuFilm");
     this.timeline = new FilmTimeline(HUANGJIU_FILM_DURATION_MS);
+    this.audioState = createFilmAudioState();
+    this.applyAudioState();
     this.cameras.main.setBackgroundColor("#17110F");
     this.createControls();
     this.createChrome();
@@ -76,6 +94,15 @@ export class HuangjiuFilmScene extends Phaser.Scene {
       this.subtitlesVisible = !this.subtitlesVisible;
       this.subtitleBack.setVisible(this.subtitlesVisible);
       this.subtitleText.setVisible(this.subtitlesVisible);
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keys.volumeUp)) {
+      this.updateAudio({ type: "VOLUME_UP" });
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keys.volumeDown)) {
+      this.updateAudio({ type: "VOLUME_DOWN" });
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keys.mute)) {
+      this.updateAudio({ type: "TOGGLE_MUTE" });
     }
     if (Phaser.Input.Keyboard.JustDown(this.keys.skip)) {
       this.timeline.skip();
@@ -105,7 +132,10 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     this.keys = {
       pause: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
       subtitles: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-      skip: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC)
+      skip: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC),
+      volumeUp: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
+      volumeDown: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
+      mute: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M)
     };
   }
 
@@ -174,14 +204,37 @@ export class HuangjiuFilmScene extends Phaser.Scene {
         color: "#D4B46A"
       })
       .setDepth(1_100);
+    this.audioText = this.add
+      .text(90, 340, filmAudioLabel(this.audioState), {
+        fontFamily: '"Cascadia Mono", Consolas, monospace',
+        fontSize: "7px",
+        color: "#D4B46A"
+      })
+      .setDepth(1_100);
     this.add
-      .text(600, 340, "SPACE 暂停  ·  S 字幕  ·  ESC 跳过", {
+      .text(
+        600,
+        340,
+        "↑↓ 音量 · M 静音 · SPACE 暂停 · S 字幕 · ESC 跳过",
+        {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "7px",
         color: "#B7C2C0"
-      })
+        }
+      )
       .setOrigin(1, 0)
       .setDepth(1_100);
+  }
+
+  private updateAudio(action: FilmAudioAction): void {
+    this.audioState = reduceFilmAudio(this.audioState, action);
+    this.applyAudioState();
+    this.audioText.setText(filmAudioLabel(this.audioState));
+  }
+
+  private applyAudioState(): void {
+    this.sound.volume = this.audioState.volume;
+    this.sound.mute = this.audioState.muted;
   }
 
   private renderSegment(segment: HuangjiuFilmSegment): void {
@@ -441,7 +494,7 @@ export class HuangjiuFilmScene extends Phaser.Scene {
     }
     this.cameras.main.fadeOut(420, 23, 17, 15);
     this.time.delayedCall(440, () => {
-      this.scene.start("ChapterComplete");
+      this.scene.start(this.returnScene);
     });
   }
 }

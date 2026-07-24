@@ -7,8 +7,9 @@ describe("act four content", () => {
       .flat()
       .map((line) => line.speakerName);
 
-    expect(names).toContain("林怡");
+    expect(names).toContain("林念安");
     expect(names).toContain("米娅");
+    expect(names).not.toContain("林怡");
   });
 
   it("bridges the family story into the longer huangjiu tradition", () => {

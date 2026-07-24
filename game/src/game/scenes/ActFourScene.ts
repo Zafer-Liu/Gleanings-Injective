@@ -290,7 +290,7 @@ export class ActFourScene extends Phaser.Scene {
       [
         {
           speakerId: "yi",
-          speakerName: "林怡",
+            speakerName: "林念安",
           text: selected.feedback
         }
       ],

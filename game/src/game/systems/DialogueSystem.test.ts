@@ -4,7 +4,7 @@ import { DialogueSystem } from "./DialogueSystem";
 
 const lines: DialogueLine[] = [
   { speakerId: "narrator", speakerName: "旁白", text: "第一句。" },
-  { speakerId: "actor_yi", speakerName: "林怡", text: "第二句。" }
+  { speakerId: "actor_yi", speakerName: "林念安", text: "第二句。" }
 ];
 
 describe("DialogueSystem", () => {

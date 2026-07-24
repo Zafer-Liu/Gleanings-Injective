@@ -47,6 +47,18 @@ input {
   align-items: center;
 }
 
+.app-shell--chapter-two {
+  --ink: #26372d;
+  --wood-deep: #34493a;
+  --wood: #50664f;
+  --hongqu: #7f3029;
+  --amber: #91ab73;
+  --straw: #b2c58a;
+  --paper: #f0e4ca;
+  --frost: #d6e1d5;
+  background-color: var(--ink);
+}
+
 .game-masthead {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

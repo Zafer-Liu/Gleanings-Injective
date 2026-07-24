@@ -26,6 +26,19 @@ describe("huangjiu epilogue content", () => {
     expect(script).toContain("它并不是今天的黄酒");
   });
 
+  it("uses the approved production narration", () => {
+    const script = huangjiuFilmSegments
+      .map((segment) => segment.subtitle)
+      .join("");
+
+    expect(script).toContain(
+      "故事从太婆留下的一坛福建老酒开始"
+    );
+    expect(script).toContain("谷物与微生物共同完成的酿造酒");
+    expect(script).toContain("清酒与浊酒仍然并存");
+    expect(script).toContain("酿酒的人和他们的故事，不该消失");
+  });
+
   it("avoids the rejected absolute claims", () => {
     const script = JSON.stringify(huangjiuFilmSegments);
 
