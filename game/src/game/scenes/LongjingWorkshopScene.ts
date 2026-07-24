@@ -110,6 +110,9 @@ export class LongjingWorkshopScene extends Phaser.Scene {
 
   update(): void {
     if (!this.player) return;
+    this.marker.setSuppressed(
+      this.dialogue.isActive || this.choices.isOpen
+    );
     if (this.handleDialogue()) return;
     if (this.handleChoice()) return;
     const moved = this.player.updateMovement(
@@ -149,7 +152,12 @@ export class LongjingWorkshopScene extends Phaser.Scene {
     if (action === null) return true;
     const beforeStep = this.state.firingStep;
     const round = LONGJING_FIRING_ROUNDS[beforeStep];
-    const correct = round?.idealAction === action;
+    const correct =
+      (
+        round?.idealActions as
+          | readonly LongjingFiringAction[]
+          | undefined
+      )?.includes(action) ?? false;
     this.choices.close();
     this.dispatch({
       type: "WORKSHOP_CHOOSE_ACTION",
@@ -191,8 +199,11 @@ export class LongjingWorkshopScene extends Phaser.Scene {
     this.choices.open(
       {
         eyebrow: `${round.stage} · ${this.state.firingStep + 1}/${LONGJING_FIRING_ROUNDS.length}`,
-        title: round.cue,
-        subtitle: "观察叶色、声音和手心温度，再决定动作。"
+        title: `${round.cue}${this.sensoryStateHint()}`,
+        subtitle:
+          this.state.pickCorrect >= 10
+            ? "原料较匀齐。观察叶色、声音和手心温度，再决定动作。"
+            : "原料不够匀齐，何师傅会多给一层感官提示。"
       },
       round.choices.map((action) => ({
         value: action,
@@ -200,6 +211,19 @@ export class LongjingWorkshopScene extends Phaser.Scene {
         feedback: round.hint
       }))
     );
+  }
+
+  private sensoryStateHint(): string {
+    if (this.state.firingHeat >= 4) {
+      return " 手心热得太快，要先顾住受热。";
+    }
+    if (this.state.firingMoisture >= 4) {
+      return " 叶边仍湿，锅里的声音还重。";
+    }
+    if (this.state.firingShape <= 1 && this.state.firingStep >= 3) {
+      return " 叶条仍松，要边观察边整理。";
+    }
+    return " 锅里的声音正在变轻。";
   }
 
   private currentTarget(): ChapterInteractable | null {

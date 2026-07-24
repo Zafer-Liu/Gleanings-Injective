@@ -3,6 +3,7 @@ import { CHARACTERS } from "../characters";
 import {
   LONGJING_MAPS,
   LONGJING_MARKET_INTERACTABLES,
+  LONGJING_OBJECT_LAYOUT,
   LONGJING_PICKING_LEAVES,
   LONGJING_TRUTH_INTERACTABLES,
   longjingDialogue
@@ -162,6 +163,40 @@ describe("Longjing chapter content", () => {
         canReachTarget(map, target),
         `target ${target.tile.x},${target.tile.y}`
       ).toBe(true);
+    });
+  });
+
+  it("uses the same declared object layout for rendering and collisions", () => {
+    const cases = [
+      ["workshop", "stove", LONGJING_OBJECT_LAYOUT.workshop.stove],
+      [
+        "workshop",
+        "ledger_table",
+        LONGJING_OBJECT_LAYOUT.workshop.ledgerTable
+      ],
+      [
+        "workshop",
+        "basket_stack",
+        LONGJING_OBJECT_LAYOUT.workshop.basketStack
+      ],
+      [
+        "truth",
+        "sealed_stove",
+        LONGJING_OBJECT_LAYOUT.truth.sealedStove
+      ],
+      [
+        "truth",
+        "tea_table",
+        LONGJING_OBJECT_LAYOUT.truth.teaTable
+      ]
+    ] as const;
+
+    cases.forEach(([mapKey, id, layout]) => {
+      expect(
+        LONGJING_MAPS[mapKey].collisions.find(
+          (collision) => collision.id === id
+        )
+      ).toMatchObject(layout);
     });
   });
 });

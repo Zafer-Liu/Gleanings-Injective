@@ -97,12 +97,51 @@ describe("Longjing chapter reducer", () => {
     LONGJING_FIRING_ROUNDS.forEach((round) => {
       state = reduceLongjing(state, {
         type: "WORKSHOP_CHOOSE_ACTION",
-        action: round.idealAction
+        action: round.idealActions[0]
       });
     });
 
     expect(state.workshopPhase).toBe("MEMORY");
     expect(state.firingScore).toBe(LONGJING_FIRING_ROUNDS.length);
+  });
+
+  it("accepts different hand-action paths and records hidden leaf state", () => {
+    const start: LongjingSaveV1 = {
+      ...reachTerrace(),
+      currentAct: "workshop",
+      terracePhase: "COMPLETE"
+    };
+    let first = reduceLongjing(start, {
+      type: "WORKSHOP_BEGIN_FIRING"
+    });
+    let second = reduceLongjing(start, {
+      type: "WORKSHOP_BEGIN_FIRING"
+    });
+
+    LONGJING_FIRING_ROUNDS.forEach((round) => {
+      first = reduceLongjing(first, {
+        type: "WORKSHOP_CHOOSE_ACTION",
+        action: round.idealActions[0]
+      });
+      second = reduceLongjing(second, {
+        type: "WORKSHOP_CHOOSE_ACTION",
+        action: round.idealActions[1]
+      });
+    });
+
+    expect(first.workshopPhase).toBe("MEMORY");
+    expect(second.workshopPhase).toBe("MEMORY");
+    expect(first.firingScore).toBe(5);
+    expect(second.firingScore).toBe(5);
+    expect([
+      first.firingHeat,
+      first.firingMoisture,
+      first.firingShape
+    ]).not.toEqual([
+      second.firingHeat,
+      second.firingMoisture,
+      second.firingShape
+    ]);
   });
 
   it("closes the evidence loop, stores the inscription and completes the film", () => {

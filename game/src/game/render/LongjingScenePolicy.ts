@@ -45,7 +45,7 @@ export function longjingMarkerStyle() {
     glyph: "▼",
     fill: "#F0E4CA",
     stroke: "#514137",
-    strokeThickness: 2,
+    strokeThickness: 1,
     bobDistance: 2,
     objectGap: 8,
     shadow: false

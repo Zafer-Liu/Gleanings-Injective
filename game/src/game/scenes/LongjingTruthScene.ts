@@ -114,6 +114,11 @@ export class LongjingTruthScene extends Phaser.Scene {
 
   update(): void {
     if (!this.player) return;
+    this.marker.setSuppressed(
+      this.dialogue.isActive ||
+        this.board.isOpen ||
+        this.choices.isOpen
+    );
     if (this.handleDialogue()) return;
     if (this.handleBoard()) return;
     if (this.handleChoice()) return;

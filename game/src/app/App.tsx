@@ -103,7 +103,14 @@ function ChainArchive() {
     };
     syncWallet();
     window.addEventListener("focus", syncWallet);
-    return () => { window.removeEventListener("focus", syncWallet); };
+    window.addEventListener("gleanings:scenechange", syncWallet);
+    return () => {
+      window.removeEventListener("focus", syncWallet);
+      window.removeEventListener(
+        "gleanings:scenechange",
+        syncWallet
+      );
+    };
   }, [syncVersion]);
 
   const refreshChainCollection = () => {
@@ -243,7 +250,7 @@ export function App() {
       <footer className="controls-note">
         <span>移动 WASD / 方向键</span>
         <span>交互 E / 空格</span>
-        <span>背包 I · 面板方向键 · 影片暂停 Space · 字幕 S</span>
+        <span>背包 I · 面板方向键 · 影片暂停 Space · 字幕 S · 音量 ↑↓</span>
       </footer>
     </main>
   );

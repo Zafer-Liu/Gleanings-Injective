@@ -1,9 +1,11 @@
 import Phaser from "phaser";
 import {
   LONGJING_FILM_DURATION_MS,
+  longjingFilmSegments,
   longjingFilmSegmentAt,
   type LongjingFilmSegment
 } from "../../content/film/longjingFilm";
+import { FilmSoundscape } from "../audio/FilmSoundscape";
 import {
   createFilmAudioState,
   filmAudioLabel,
@@ -16,6 +18,10 @@ import { reduceLongjing } from "../domain/longjingReducer";
 import type { LongjingSaveV1 } from "../domain/longjingState";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { publishActiveScene } from "../systems/SceneStatus";
+import {
+  openFilmSource,
+  showFilmEndCard
+} from "../ui/FilmEndCard";
 
 type FilmData = {
   replay?: boolean;
@@ -28,6 +34,9 @@ type FilmKeys = {
   volumeUp: Phaser.Input.Keyboard.Key;
   volumeDown: Phaser.Input.Keyboard.Key;
   mute: Phaser.Input.Keyboard.Key;
+  complete: Phaser.Input.Keyboard.Key;
+  replay: Phaser.Input.Keyboard.Key;
+  source: Phaser.Input.Keyboard.Key;
 };
 
 export class LongjingFilmScene extends Phaser.Scene {
@@ -49,6 +58,8 @@ export class LongjingFilmScene extends Phaser.Scene {
   private subtitlesVisible = true;
   private replay = false;
   private finishing = false;
+  private endCardOpen = false;
+  private readonly soundscape = new FilmSoundscape();
   private readonly saveService = new LongjingSaveService(
     window.localStorage
   );
@@ -57,7 +68,7 @@ export class LongjingFilmScene extends Phaser.Scene {
     super("LongjingFilm");
   }
 
-  create(data: FilmData): void {
+  create(data: FilmData = {}): void {
     const saved = this.saveService.load();
     this.replay = data.replay === true;
     if (
@@ -72,17 +83,37 @@ export class LongjingFilmScene extends Phaser.Scene {
     publishActiveScene("LongjingFilm");
     this.timeline = new FilmTimeline(LONGJING_FILM_DURATION_MS);
     this.audioState = createFilmAudioState();
+    this.soundscape.start();
     this.applyAudioState();
     this.cameras.main.setBackgroundColor("#171516");
     this.createControls();
     this.createChrome();
     this.renderSegment(longjingFilmSegmentAt(0));
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.soundscape.stop();
+    });
   }
 
   update(_time: number, delta: number): void {
     if (!this.keys || this.finishing) return;
+    if (this.endCardOpen) {
+      if (Phaser.Input.Keyboard.JustDown(this.keys.complete)) {
+        this.finishFilm(false);
+      } else if (Phaser.Input.Keyboard.JustDown(this.keys.replay)) {
+        this.replayFilm();
+      } else if (Phaser.Input.Keyboard.JustDown(this.keys.source)) {
+        openFilmSource(longjingFilmSegments[0]!.sourceUrl);
+      }
+      return;
+    }
     if (Phaser.Input.Keyboard.JustDown(this.keys.pause)) {
       this.timeline.togglePause();
+      if (this.timeline.paused) {
+        this.tweens.pauseAll();
+      } else {
+        this.tweens.resumeAll();
+      }
+      this.soundscape.setPaused(this.timeline.paused);
       this.stateText.setText(
         this.timeline.paused ? "已暂停" : "播放中"
       );
@@ -118,7 +149,7 @@ export class LongjingFilmScene extends Phaser.Scene {
     if (segment.id !== this.activeSegmentId) {
       this.renderSegment(segment);
     }
-    if (this.timeline.ended) this.finishFilm(false);
+    if (this.timeline.ended) this.showEndCard();
   }
 
   private createControls(): void {
@@ -132,7 +163,10 @@ export class LongjingFilmScene extends Phaser.Scene {
       skip: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC),
       volumeUp: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
       volumeDown: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
-      mute: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M)
+      mute: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M),
+      complete: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
+      replay: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R),
+      source: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.O)
     };
   }
 
@@ -245,6 +279,45 @@ export class LongjingFilmScene extends Phaser.Scene {
   private applyAudioState(): void {
     this.sound.volume = this.audioState.volume;
     this.sound.mute = this.audioState.muted;
+    this.soundscape.setLevel(
+      this.audioState.volume,
+      this.audioState.muted
+    );
+  }
+
+  private showEndCard(): void {
+    if (this.endCardOpen) return;
+    this.endCardOpen = true;
+    this.tweens.pauseAll();
+    this.soundscape.setPaused(true);
+    this.stateText.setText("片尾来源卡");
+    const sources = [
+      ...new Map(
+        longjingFilmSegments.map((segment) => [
+          segment.sourceUrl,
+          {
+            label: segment.sourceLabel,
+            url: segment.sourceUrl
+          }
+        ])
+      ).values()
+    ];
+    showFilmEndCard(this, {
+      title: "一片叶，为什么叫西湖龙井",
+      subtitle: "史实与来源 · 点击条目可在新窗口查看",
+      disclaimer:
+        "剧情人物与具体案件为虚构。现实商品请以规范标识、可核记录与主管部门信息为准。",
+      accent: 0x91ab73,
+      accentCss: "#3E6345",
+      sources,
+      onComplete: () => this.finishFilm(false),
+      onReplay: () => this.replayFilm()
+    });
+  }
+
+  private replayFilm(): void {
+    this.soundscape.stop();
+    this.scene.restart({ replay: this.replay });
   }
 
   private renderSegment(segment: LongjingFilmSegment): void {
@@ -489,6 +562,7 @@ export class LongjingFilmScene extends Phaser.Scene {
   private finishFilm(skipped: boolean): void {
     if (this.finishing) return;
     this.finishing = true;
+    this.soundscape.stop();
     if (!this.replay) {
       this.state = reduceLongjing(this.state, {
         type: skipped

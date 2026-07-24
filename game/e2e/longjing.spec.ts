@@ -26,6 +26,9 @@ type BrowserLongjingSave = {
   firingScore: number;
   firingMistakes: number;
   firingRetryUsed: boolean;
+  firingHeat: number;
+  firingMoisture: number;
+  firingShape: number;
   inscription: string | null;
   filmSeen: boolean;
   chapterComplete: boolean;
@@ -54,6 +57,9 @@ function longjingSave(
     firingScore: 0,
     firingMistakes: 0,
     firingRetryUsed: false,
+    firingHeat: 1,
+    firingMoisture: 5,
+    firingShape: 0,
     inscription: null,
     filmSeen: false,
     chapterComplete: false,

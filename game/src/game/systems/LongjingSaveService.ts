@@ -175,6 +175,58 @@ function safeTile(value: unknown, act: LongjingAct): TilePosition {
   return { x, y };
 }
 
+function isProgressConsistent(state: LongjingSaveV1): boolean {
+  switch (state.currentAct) {
+    case "market":
+      return state.marketPhase !== "COMPLETE";
+    case "terrace":
+      return (
+        state.marketPhase === "COMPLETE" &&
+        state.terracePhase !== "COMPLETE" &&
+        state.pickAttempts < 12
+      );
+    case "workshop":
+      return (
+        state.marketPhase === "COMPLETE" &&
+        state.terracePhase === "COMPLETE" &&
+        state.workshopPhase !== "COMPLETE" &&
+        ((state.workshopPhase === "ARRIVE" &&
+          state.firingStep === 0) ||
+          (state.workshopPhase === "FIRING" &&
+            state.firingStep < LONGJING_FIRING_ROUNDS_COUNT) ||
+          (state.workshopPhase === "MEMORY" &&
+            state.firingStep === LONGJING_FIRING_ROUNDS_COUNT))
+      );
+    case "truth":
+      return (
+        state.marketPhase === "COMPLETE" &&
+        state.terracePhase === "COMPLETE" &&
+        state.workshopPhase === "COMPLETE" &&
+        state.truthPhase !== "COMPLETE"
+      );
+    case "film":
+      return (
+        state.marketPhase === "COMPLETE" &&
+        state.terracePhase === "COMPLETE" &&
+        state.workshopPhase === "COMPLETE" &&
+        state.truthPhase === "COMPLETE" &&
+        state.inscription !== null
+      );
+    case "complete":
+      return (
+        state.marketPhase === "COMPLETE" &&
+        state.terracePhase === "COMPLETE" &&
+        state.workshopPhase === "COMPLETE" &&
+        state.truthPhase === "COMPLETE" &&
+        state.inscription !== null &&
+        state.filmSeen &&
+        state.chapterComplete
+      );
+  }
+}
+
+const LONGJING_FIRING_ROUNDS_COUNT = 5;
+
 export class LongjingSaveService {
   static readonly STORAGE_KEY = "gleanings.chapter-two.save.v1";
   static readonly CORRUPT_KEY = "gleanings.chapter-two.corrupt";
@@ -227,7 +279,7 @@ export class LongjingSaveService {
     const currentAct = value.currentAct as LongjingAct;
     const pickedLeaves = enumArray(value.pickedLeaves, LEAF_KINDS);
     const firingStep = safeCount(value.firingStep, 5);
-    return {
+    const normalized: LongjingSaveV1 = {
       ...base,
       currentAct,
       checkpoint:
@@ -262,6 +314,15 @@ export class LongjingSaveService {
       firingScore: safeCount(value.firingScore, 5),
       firingMistakes: safeCount(value.firingMistakes, 5),
       firingRetryUsed: value.firingRetryUsed === true,
+      firingHeat:
+        typeof value.firingHeat === "number"
+          ? safeCount(value.firingHeat, 5)
+          : base.firingHeat,
+      firingMoisture:
+        typeof value.firingMoisture === "number"
+          ? safeCount(value.firingMoisture, 5)
+          : base.firingMoisture,
+      firingShape: safeCount(value.firingShape, 5),
       inscription: nullableEnum(value.inscription, INSCRIPTIONS),
       filmSeen: value.filmSeen === true,
       chapterComplete: value.chapterComplete === true,
@@ -270,5 +331,6 @@ export class LongjingSaveService {
       cultureCards: stringArray(value.cultureCards),
       playerTile: safeTile(value.playerTile, currentAct)
     };
+    return isProgressConsistent(normalized) ? normalized : null;
   }
 }

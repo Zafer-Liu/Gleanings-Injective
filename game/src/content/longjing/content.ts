@@ -36,6 +36,23 @@ function boundaryCollisions(
   ];
 }
 
+export const LONGJING_OBJECT_LAYOUT = {
+  workshop: {
+    northShelf: { x: 4, y: 4, width: 10, height: 2 },
+    dryingRack: { x: 27, y: 5, width: 8, height: 3 },
+    stove: { x: 17, y: 12, width: 7, height: 4 },
+    ledgerTable: { x: 28, y: 11, width: 6, height: 3 },
+    basketStack: { x: 5, y: 17, width: 5, height: 3 }
+  },
+  truth: {
+    oldCabinet: { x: 4, y: 5, width: 7, height: 3 },
+    sealedStove: { x: 13, y: 5, width: 7, height: 4 },
+    signatureCabinet: { x: 24, y: 5, width: 6, height: 3 },
+    teaTable: { x: 13, y: 13, width: 8, height: 3 },
+    signboard: { x: 4, y: 15, width: 5, height: 2 }
+  }
+} as const;
+
 export const LONGJING_MAPS = {
   market: {
     size: { width: 38, height: 26 },
@@ -93,11 +110,23 @@ export const LONGJING_MAPS = {
     },
     collisions: [
       ...boundaryCollisions(40, 28),
-      { id: "north_shelf", x: 4, y: 4, width: 10, height: 2 },
-      { id: "drying_rack", x: 27, y: 5, width: 8, height: 3 },
-      { id: "stove", x: 17, y: 12, width: 7, height: 4 },
-      { id: "ledger_table", x: 28, y: 11, width: 6, height: 3 },
-      { id: "basket_stack", x: 5, y: 17, width: 5, height: 3 }
+      {
+        id: "north_shelf",
+        ...LONGJING_OBJECT_LAYOUT.workshop.northShelf
+      },
+      {
+        id: "drying_rack",
+        ...LONGJING_OBJECT_LAYOUT.workshop.dryingRack
+      },
+      { id: "stove", ...LONGJING_OBJECT_LAYOUT.workshop.stove },
+      {
+        id: "ledger_table",
+        ...LONGJING_OBJECT_LAYOUT.workshop.ledgerTable
+      },
+      {
+        id: "basket_stack",
+        ...LONGJING_OBJECT_LAYOUT.workshop.basketStack
+      }
     ],
     occluders: []
   },
@@ -111,11 +140,26 @@ export const LONGJING_MAPS = {
     },
     collisions: [
       ...boundaryCollisions(34, 24),
-      { id: "old_cabinet", x: 4, y: 5, width: 7, height: 3 },
-      { id: "sealed_stove", x: 13, y: 5, width: 7, height: 4 },
-      { id: "signature_cabinet", x: 24, y: 5, width: 6, height: 3 },
-      { id: "tea_table", x: 13, y: 13, width: 8, height: 3 },
-      { id: "signboard", x: 4, y: 15, width: 5, height: 2 }
+      {
+        id: "old_cabinet",
+        ...LONGJING_OBJECT_LAYOUT.truth.oldCabinet
+      },
+      {
+        id: "sealed_stove",
+        ...LONGJING_OBJECT_LAYOUT.truth.sealedStove
+      },
+      {
+        id: "signature_cabinet",
+        ...LONGJING_OBJECT_LAYOUT.truth.signatureCabinet
+      },
+      {
+        id: "tea_table",
+        ...LONGJING_OBJECT_LAYOUT.truth.teaTable
+      },
+      {
+        id: "signboard",
+        ...LONGJING_OBJECT_LAYOUT.truth.signboard
+      }
     ],
     occluders: []
   }

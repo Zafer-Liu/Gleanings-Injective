@@ -68,4 +68,45 @@ describe("LongjingSaveService", () => {
       storage.getItem(LongjingSaveService.CORRUPT_KEY)
     ).toBe("{bad-json");
   });
+
+  it.each([
+    {
+      currentAct: "terrace",
+      marketPhase: "COMPLETE",
+      terracePhase: "PICKING",
+      pickAttempts: 12
+    },
+    {
+      currentAct: "workshop",
+      marketPhase: "COMPLETE",
+      terracePhase: "COMPLETE",
+      workshopPhase: "FIRING",
+      firingStep: 5
+    },
+    {
+      currentAct: "workshop",
+      marketPhase: "COMPLETE",
+      terracePhase: "COMPLETE",
+      workshopPhase: "ARRIVE",
+      firingStep: 5
+    },
+    {
+      currentAct: "truth",
+      marketPhase: "COMPLETE",
+      terracePhase: "COMPLETE",
+      workshopPhase: "COMPLETE",
+      truthPhase: "COMPLETE"
+    }
+  ])("rejects a progress combination that would strand the player", (patch) => {
+    const storage = new MemoryStorage();
+    const service = new LongjingSaveService(storage);
+    const raw = JSON.stringify({
+      ...createLongjingState(),
+      ...patch
+    });
+    storage.setItem(LongjingSaveService.STORAGE_KEY, raw);
+
+    expect(service.load()).toBeNull();
+    expect(storage.getItem(LongjingSaveService.CORRUPT_KEY)).toBe(raw);
+  });
 });

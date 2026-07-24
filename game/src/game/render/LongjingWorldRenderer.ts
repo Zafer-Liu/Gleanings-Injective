@@ -1,7 +1,16 @@
 import Phaser from "phaser";
-import { LONGJING_MAPS } from "../../content/longjing/content";
+import {
+  LONGJING_MAPS,
+  LONGJING_OBJECT_LAYOUT,
+  type LongjingPickingLeaf
+} from "../../content/longjing/content";
 
 export type LongjingMapKey = keyof typeof LONGJING_MAPS;
+export type LeafVisualPolicy = {
+  silhouette: "bud" | "standard" | "wide";
+  dew: boolean;
+  damaged: boolean;
+};
 
 const COLOR = {
   ink: 0x171516,
@@ -198,22 +207,65 @@ function renderWorkshop(
   graphics.fillRect(0, 0, 64, height);
   graphics.fillRect(width - 64, 0, 64, height);
 
+  const rect = (item: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => ({
+    x: item.x * 32,
+    y: item.y * 32,
+    width: item.width * 32,
+    height: item.height * 32
+  });
+
+  const leftStorage = rect(
+    present
+      ? LONGJING_OBJECT_LAYOUT.truth.oldCabinet
+      : LONGJING_OBJECT_LAYOUT.workshop.northShelf
+  );
+  const rightStorage = rect(
+    present
+      ? LONGJING_OBJECT_LAYOUT.truth.signatureCabinet
+      : LONGJING_OBJECT_LAYOUT.workshop.dryingRack
+  );
   graphics.fillStyle(0x514137);
-  graphics.fillRect(128, 128, 320, 64);
-  graphics.fillRect(864, 160, 256, 96);
+  graphics.fillRect(
+    leftStorage.x,
+    leftStorage.y,
+    leftStorage.width,
+    leftStorage.height
+  );
+  graphics.fillRect(
+    rightStorage.x,
+    rightStorage.y,
+    rightStorage.width,
+    rightStorage.height
+  );
   graphics.fillStyle(0x91ab73);
-  for (let x = 150; x < 430; x += 32) {
-    graphics.fillRect(x, 144, 20, 8);
+  for (
+    let x = leftStorage.x + 22;
+    x < leftStorage.x + leftStorage.width - 18;
+    x += 32
+  ) {
+    graphics.fillRect(x, leftStorage.y + 16, 20, 8);
   }
 
-  const stoveX = present ? 416 : 544;
-  const stoveY = 384;
+  const stove = rect(
+    present
+      ? LONGJING_OBJECT_LAYOUT.truth.sealedStove
+      : LONGJING_OBJECT_LAYOUT.workshop.stove
+  );
+  const stoveX = stove.x;
+  const stoveY = stove.y;
+  graphics.fillStyle(0x514137);
+  graphics.fillRect(stoveX, stoveY, stove.width, stove.height);
   graphics.fillStyle(0x262223);
-  graphics.fillRect(stoveX, stoveY, 224, 128);
+  graphics.fillRect(stoveX + 18, stoveY + 14, stove.width - 36, 82);
   graphics.fillStyle(0x171516);
-  graphics.fillCircle(stoveX + 112, stoveY + 48, 78);
-  graphics.lineStyle(7, 0xa68a68, 1);
-  graphics.strokeCircle(stoveX + 112, stoveY + 48, 78);
+  graphics.fillCircle(stoveX + 112, stoveY + 48, 54);
+  graphics.lineStyle(5, 0xa68a68, 1);
+  graphics.strokeCircle(stoveX + 112, stoveY + 48, 54);
   if (!present) {
     graphics.fillStyle(COLOR.ember);
     graphics.fillRect(stoveX + 90, stoveY + 108, 44, 12);
@@ -222,22 +274,90 @@ function renderWorkshop(
     graphics.fillRect(stoveX + 24, stoveY + 20, 176, 32);
   }
 
+  const workTable = rect(
+    present
+      ? LONGJING_OBJECT_LAYOUT.truth.teaTable
+      : LONGJING_OBJECT_LAYOUT.workshop.ledgerTable
+  );
   graphics.fillStyle(0x514137);
-  graphics.fillRect(416, 512, 256, 96);
+  graphics.fillRect(
+    workTable.x,
+    workTable.y,
+    workTable.width,
+    workTable.height
+  );
   graphics.fillStyle(0xded0b3);
-  graphics.fillRect(446, 532, 196, 42);
+  graphics.fillRect(
+    workTable.x + 30,
+    workTable.y + 20,
+    workTable.width - 60,
+    42
+  );
   graphics.fillStyle(0x7f3029);
-  graphics.fillRect(602, 540, 20, 20);
+  graphics.fillRect(
+    workTable.x + workTable.width - 70,
+    workTable.y + 28,
+    20,
+    20
+  );
 
   if (present) {
+    const signboard = rect(LONGJING_OBJECT_LAYOUT.truth.signboard);
     graphics.fillStyle(0x262223);
-    graphics.fillRect(128, 480, 160, 96);
+    graphics.fillRect(
+      signboard.x,
+      signboard.y,
+      signboard.width,
+      signboard.height
+    );
     graphics.fillStyle(0xa68a68);
-    graphics.fillRect(150, 502, 116, 16);
-    textLabel(scene, 528, 500, "旧账 · 留底 · 来源声明");
-    textLabel(scene, 528, 284, "封存十二年的锅");
+    graphics.fillRect(
+      signboard.x + 22,
+      signboard.y + 22,
+      signboard.width - 44,
+      16
+    );
+    textLabel(
+      scene,
+      workTable.x + workTable.width / 2,
+      workTable.y - 12,
+      "旧账 · 留底 · 来源声明"
+    );
+    textLabel(
+      scene,
+      stoveX + stove.width / 2,
+      stoveY - 4,
+      "封存十二年的锅"
+    );
   } else {
-    textLabel(scene, 656, 380, "青锅 · 回潮 · 辉锅");
+    const baskets = rect(
+      LONGJING_OBJECT_LAYOUT.workshop.basketStack
+    );
+    graphics.fillStyle(0x514137);
+    graphics.fillRect(
+      baskets.x,
+      baskets.y,
+      baskets.width,
+      baskets.height
+    );
+    graphics.fillStyle(0xc4a883);
+    for (let x = baskets.x + 18; x < baskets.x + baskets.width; x += 46) {
+      graphics.fillRect(x, baskets.y + 18, 30, 48);
+      graphics.lineStyle(2, 0x262223, 1);
+      graphics.strokeRect(x, baskets.y + 18, 30, 48);
+    }
+    textLabel(
+      scene,
+      stoveX + stove.width / 2,
+      stoveY - 4,
+      "青锅 · 回潮 · 辉锅"
+    );
+    textLabel(
+      scene,
+      workTable.x + workTable.width / 2,
+      workTable.y - 4,
+      "旧签样与账桌"
+    );
     textLabel(
       scene,
       640,
@@ -270,13 +390,48 @@ export function createLeafMarker(
   scene: Phaser.Scene,
   x: number,
   y: number,
+  kind: LongjingPickingLeaf["kind"],
   active: boolean
 ): Phaser.GameObjects.Graphics {
   const leaf = scene.add.graphics().setPosition(x, y).setDepth(y);
-  leaf.fillStyle(active ? COLOR.teaPale : COLOR.teaMid, 1);
-  leaf.fillTriangle(-9, 4, 0, -10, 1, 5);
-  leaf.fillTriangle(0, 5, 9, -7, 9, 7);
+  const policy = leafVisualPolicy(kind);
+  const fill = active ? COLOR.teaPale : COLOR.teaMid;
+  leaf.fillStyle(fill, 1);
+  if (policy.silhouette === "bud") {
+    leaf.fillTriangle(-4, 4, 0, -9, 2, 5);
+    leaf.fillRect(3, -2, 3, 8);
+  } else if (policy.silhouette === "wide") {
+    leaf.fillTriangle(-13, 6, -2, -12, 0, 7);
+    leaf.fillTriangle(0, 7, 13, -9, 12, 9);
+  } else {
+    leaf.fillTriangle(-9, 4, 0, -10, 1, 5);
+    leaf.fillTriangle(0, 5, 9, -7, 9, 7);
+  }
+  if (policy.dew) {
+    leaf.fillStyle(COLOR.rainLight, 1);
+    leaf.fillRect(-6, -1, 3, 3);
+    leaf.fillRect(5, 2, 3, 4);
+  }
+  if (policy.damaged) {
+    leaf.fillStyle(COLOR.ink, 1);
+    leaf.fillTriangle(5, -4, 10, -1, 6, 2);
+  }
   leaf.lineStyle(2, COLOR.teaDark, 1);
   leaf.lineBetween(0, 7, 0, -8);
   return leaf;
+}
+
+export function leafVisualPolicy(
+  kind: LongjingPickingLeaf["kind"]
+): LeafVisualPolicy {
+  return {
+    silhouette:
+      kind === "too_young"
+        ? "bud"
+        : kind === "mature"
+          ? "wide"
+          : "standard",
+    dew: kind === "wet",
+    damaged: kind === "damaged"
+  };
 }

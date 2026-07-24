@@ -84,7 +84,10 @@ export type LongjingFiringRound = {
     LongjingFiringAction,
     LongjingFiringAction
   ];
-  idealAction: LongjingFiringAction;
+  idealActions: readonly [
+    LongjingFiringAction,
+    LongjingFiringAction
+  ];
 };
 
 export const LONGJING_FIRING_ROUNDS = [
@@ -93,40 +96,40 @@ export const LONGJING_FIRING_ROUNDS = [
       stage: "青锅",
       cue: "鲜叶刚入锅，叶片挤在一起，受热不均。",
       hint: "先让叶片散开，让热气能够出去。",
-      choices: ["抖", "压", "抓"] as const,
-      idealAction: "抖"
+      choices: ["抖", "摊放", "抓"] as const,
+      idealActions: ["抖", "摊放"] as const
     },
     {
       id: "guide_leaf",
       stage: "青锅",
       cue: "叶片已经变软，边缘仍带着水汽。",
       hint: "顺着锅壁带动叶片，继续散湿。",
-      choices: ["带", "挤", "扣"] as const,
-      idealAction: "带"
+      choices: ["带", "挺", "扣"] as const,
+      idealActions: ["带", "挺"] as const
     },
     {
       id: "redistribute_moisture",
       stage: "回潮",
       cue: "叶片外层干得更快，内外水分还没有重新分布。",
       hint: "这一次不急着动手，让叶片先歇一会儿。",
-      choices: ["摊放", "甩", "磨"] as const,
-      idealAction: "摊放"
+      choices: ["摊放", "抖", "甩"] as const,
+      idealActions: ["摊放", "抖"] as const
     },
     {
       id: "straighten",
       stage: "辉锅",
       cue: "叶条已经回软，可以理直，但还不能重压。",
       hint: "动作要稳，沿着叶条把形理顺。",
-      choices: ["挺", "拓", "压"] as const,
-      idealAction: "挺"
+      choices: ["挺", "带", "拓"] as const,
+      idealActions: ["挺", "带"] as const
     },
     {
       id: "finish_dry",
       stage: "辉锅",
       cue: "锅里的声音轻下来了，叶片接近足干。",
       hint: "最后收住表面与形态，准备起锅。",
-      choices: ["磨", "抓", "甩"] as const,
-      idealAction: "磨"
+      choices: ["磨", "抓", "挺"] as const,
+      idealActions: ["磨", "抓"] as const
     }
   ] as const satisfies readonly LongjingFiringRound[];
 
@@ -146,6 +149,9 @@ export type LongjingSaveV1 = {
   firingScore: number;
   firingMistakes: number;
   firingRetryUsed: boolean;
+  firingHeat: number;
+  firingMoisture: number;
+  firingShape: number;
   inscription: LongjingInscription | null;
   filmSeen: boolean;
   chapterComplete: boolean;
@@ -172,6 +178,9 @@ export function createLongjingState(): LongjingSaveV1 {
     firingScore: 0,
     firingMistakes: 0,
     firingRetryUsed: false,
+    firingHeat: 1,
+    firingMoisture: 5,
+    firingShape: 0,
     inscription: null,
     filmSeen: false,
     chapterComplete: false,

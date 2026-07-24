@@ -117,6 +117,9 @@ export class LongjingTerraceScene extends Phaser.Scene {
 
   update(): void {
     if (!this.player) return;
+    this.marker.setSuppressed(
+      this.dialogue.isActive || this.choices.isOpen
+    );
     if (this.handleDialogue()) return;
     if (this.handleChoice()) return;
 
@@ -141,6 +144,7 @@ export class LongjingTerraceScene extends Phaser.Scene {
         this,
         pixel.x,
         pixel.y,
+        leaf.kind,
         index === this.state.pickAttempts
       );
       sprite.setVisible(index >= this.state.pickAttempts);
@@ -192,7 +196,18 @@ export class LongjingTerraceScene extends Phaser.Scene {
       ],
       () => {
         if (this.state.currentAct === "workshop") {
-          this.dialogue.play(longjingLines("terraceEnd"), () => {
+          const evaluation =
+            this.state.pickCorrect >= 10
+              ? "这篓叶子匀齐。你已经懂得先看叶，再动手了。"
+              : "这篓叶子不够匀齐。进锅以后要看得更细，手不能只凭习惯。";
+          this.dialogue.play([
+            {
+              speakerId: "master_he",
+              speakerName: "何师傅",
+              text: evaluation
+            },
+            ...longjingLines("terraceEnd")
+          ], () => {
             this.cameras.main.fadeOut(420, 23, 21, 22);
             this.time.delayedCall(440, () => {
               this.scene.start("LongjingWorkshop");

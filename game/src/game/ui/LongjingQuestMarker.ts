@@ -7,6 +7,8 @@ import {
 
 export class LongjingQuestMarker {
   private readonly container: Phaser.GameObjects.Container;
+  private hasTarget = false;
+  private suppressed = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -37,13 +39,20 @@ export class LongjingQuestMarker {
 
   update(target: LongjingMarkerTarget | null): void {
     if (target === null) {
+      this.hasTarget = false;
       this.container.setVisible(false);
       return;
     }
+    this.hasTarget = true;
     const style = longjingMarkerStyle();
     const pixel = tileToPixelCenter(target.tile, this.tileSize);
     this.container
       .setPosition(pixel.x, pixel.y - 40 - style.objectGap)
-      .setVisible(true);
+      .setVisible(!this.suppressed);
+  }
+
+  setSuppressed(suppressed: boolean): void {
+    this.suppressed = suppressed;
+    this.container.setVisible(this.hasTarget && !suppressed);
   }
 }

@@ -60,6 +60,27 @@ function addEvidence(
   );
 }
 
+const FIRING_EFFECTS: Record<
+  LongjingFiringAction,
+  { heat: number; moisture: number; shape: number }
+> = {
+  抖: { heat: 1, moisture: -1, shape: 0 },
+  带: { heat: 1, moisture: -1, shape: 1 },
+  挤: { heat: 1, moisture: -1, shape: 1 },
+  甩: { heat: 0, moisture: -1, shape: 0 },
+  挺: { heat: 0, moisture: -1, shape: 1 },
+  拓: { heat: 0, moisture: -1, shape: 1 },
+  扣: { heat: 1, moisture: -1, shape: 1 },
+  抓: { heat: 1, moisture: -1, shape: 1 },
+  压: { heat: 1, moisture: -1, shape: 2 },
+  磨: { heat: 1, moisture: -1, shape: 2 },
+  摊放: { heat: -1, moisture: 0, shape: 0 }
+};
+
+function clampFiringState(value: number): number {
+  return Math.min(5, Math.max(0, value));
+}
+
 export function reduceLongjing(
   state: LongjingSaveV1,
   event: LongjingEvent
@@ -207,7 +228,9 @@ export function reduceLongjing(
       }
       const round = LONGJING_FIRING_ROUNDS[state.firingStep];
       if (round === undefined) return state;
-      const correct = event.action === round.idealAction;
+      const correct = (
+        round.idealActions as readonly LongjingFiringAction[]
+      ).includes(event.action);
       if (!correct && !state.firingRetryUsed) {
         return {
           ...state,
@@ -216,6 +239,7 @@ export function reduceLongjing(
           checkpoint: `longjing_firing_retry_${round.id}`
         };
       }
+      const effect = FIRING_EFFECTS[event.action];
       const firingStep = state.firingStep + 1;
       const finished = firingStep >= LONGJING_FIRING_ROUNDS.length;
       return {
@@ -224,6 +248,15 @@ export function reduceLongjing(
         firingScore: state.firingScore + (correct ? 1 : 0),
         firingMistakes:
           state.firingMistakes + (!correct ? 1 : 0),
+        firingHeat: clampFiringState(
+          state.firingHeat + effect.heat
+        ),
+        firingMoisture: clampFiringState(
+          state.firingMoisture + effect.moisture
+        ),
+        firingShape: clampFiringState(
+          state.firingShape + effect.shape
+        ),
         workshopPhase: finished ? "MEMORY" : "FIRING",
         checkpoint: finished
           ? "longjing_workshop_memory"

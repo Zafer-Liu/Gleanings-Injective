@@ -116,6 +116,9 @@ export class LongjingMarketScene extends Phaser.Scene {
 
   update(): void {
     if (!this.player) return;
+    this.marker.setSuppressed(
+      this.dialogue.isActive || this.board.isOpen
+    );
     if (this.handleDialogue()) return;
     if (this.handleBoard()) return;
 
