@@ -30,6 +30,7 @@ import { ChapterHud } from "../ui/ChapterHud";
 import { CultureLabelPanel } from "../ui/CultureLabelPanel";
 import { JourneyRecordPanel } from "../ui/JourneyRecordPanel";
 import { DialogueBox } from "../ui/DialogueBox";
+import { QuestMarker } from "../ui/QuestMarker";
 import { RelicPanel } from "../ui/RelicPanel";
 
 type CommandKeys = {
@@ -80,7 +81,7 @@ export class ActFourScene extends Phaser.Scene {
   private labelPanel!: CultureLabelPanel;
   private journeyRecord!: JourneyRecordPanel;
   private relic!: RelicPanel;
-  private questMarker!: Phaser.GameObjects.Container;
+  private questMarker!: QuestMarker;
   private currentLabel?: CultureLabel;
   private lastTile = { x: -1, y: -1 };
   private readonly saveService = new ChapterSaveService(
@@ -430,40 +431,22 @@ export class ActFourScene extends Phaser.Scene {
   }
 
   private createQuestMarker(): void {
-    const arrow = this.add
-      .text(0, 0, "▼", {
-        fontFamily: '"Cascadia Mono", Consolas, monospace',
-        fontSize: "18px",
-        color: "#F4C45E",
-        stroke: "#211A17",
-        strokeThickness: 4
-      })
-      .setOrigin(0.5, 1);
-    this.questMarker = this.add
-      .container(0, 0, [arrow])
-      .setDepth(9_500);
-    this.tweens.add({
-      targets: arrow,
-      y: "-=5",
-      duration: 420,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut"
-    });
+    this.questMarker = new QuestMarker(this);
   }
 
   private refreshQuestMarker(): void {
     if (this.state.act4Phase !== "ARRIVE") {
-      this.questMarker.setVisible(false);
+      this.questMarker.setTarget(null);
       return;
     }
     const pixel = tileToPixelCenter(
       MIA_TILE,
       act1Content.map.tileSize
     );
-    this.questMarker
-      .setPosition(pixel.x, pixel.y - 52)
-      .setVisible(true);
+    this.questMarker.setTarget({
+      x: pixel.x,
+      y: pixel.y - 52
+    });
   }
 
   private createForegroundOccluders(

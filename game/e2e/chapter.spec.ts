@@ -94,6 +94,49 @@ async function press(page: Page, key: string): Promise<void> {
   await page.waitForTimeout(100);
 }
 
+async function questGoldPixels(
+  page: Page,
+  bounds: { x: number; y: number; width: number; height: number }
+): Promise<number> {
+  const screenshot = await page.locator("#game-root canvas").screenshot();
+  return page.evaluate(
+    async ({ png, sample }) => {
+      const source = new Image();
+      source.src = `data:image/png;base64,${png}`;
+      await source.decode();
+      const snapshot = document.createElement("canvas");
+      snapshot.width = source.width;
+      snapshot.height = source.height;
+      const context = snapshot.getContext("2d");
+      if (context === null) return 0;
+      context.drawImage(source, 0, 0);
+      const scaleX = source.width / 640;
+      const scaleY = source.height / 360;
+      const pixels = context.getImageData(
+        Math.round(sample.x * scaleX),
+        Math.round(sample.y * scaleY),
+        Math.round(sample.width * scaleX),
+        Math.round(sample.height * scaleY)
+      ).data;
+      let matches = 0;
+      for (let index = 0; index < pixels.length; index += 4) {
+        if (
+          pixels[index] > 220 &&
+          pixels[index + 1] > 165 &&
+          pixels[index + 2] < 130
+        ) {
+          matches += 1;
+        }
+      }
+      return matches;
+    },
+    {
+      png: screenshot.toString("base64"),
+      sample: bounds
+    }
+  );
+}
+
 test.describe("第一章后续幕", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
@@ -170,6 +213,22 @@ test.describe("第一章后续幕", () => {
         route.scene
       );
     }
+  });
+
+  test("任务点离开镜头时在对应画面边缘显示方向箭头", async ({
+    page
+  }) => {
+    await seed(page, chapterSave());
+    await page.waitForTimeout(250);
+
+    expect(
+      await questGoldPixels(page, {
+        x: 214,
+        y: 74,
+        width: 40,
+        height: 28
+      })
+    ).toBeGreaterThan(2);
   });
 
   test("正式地图上的冬酿和煮面工位可以完成交互", async ({
