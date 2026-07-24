@@ -7,6 +7,13 @@ import { SaveService } from "../systems/SaveService";
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
 import { advancedWrap } from "../ui/textWrap";
 import { LONGJING_WORLD_ASSETS } from "../render/LongjingWorldRenderer";
+import {
+  LONGJING_BADGE_ASSETS,
+  LONGJING_CHARACTER_ASSETS,
+  LONGJING_FIRING_ASSET,
+  LONGJING_LEAF_ASSET,
+  LONGJING_OBJECT_ASSET
+} from "../render/LongjingAssetCatalog";
 
 type FailedFile = {
   key?: string;
@@ -133,6 +140,25 @@ export class BootScene extends Phaser.Scene {
       "/items/it_blue_white_cup_128x128.png"
     );
     Object.values(LONGJING_WORLD_ASSETS).forEach((asset) => {
+      this.load.image(asset.key, asset.path);
+    });
+    Object.values(LONGJING_CHARACTER_ASSETS).forEach((asset) => {
+      this.load.spritesheet(asset.key, asset.path, {
+        frameWidth: 32,
+        frameHeight: 48
+      });
+    });
+    [
+      LONGJING_OBJECT_ASSET,
+      LONGJING_LEAF_ASSET,
+      LONGJING_FIRING_ASSET
+    ].forEach((asset) => {
+      this.load.spritesheet(asset.key, asset.path, {
+        frameWidth: asset.frameWidth,
+        frameHeight: asset.frameHeight
+      });
+    });
+    LONGJING_BADGE_ASSETS.forEach((asset) => {
       this.load.image(asset.key, asset.path);
     });
   }

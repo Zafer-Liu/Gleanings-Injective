@@ -18,6 +18,9 @@ import {
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
 import { Player, type MovementKeys } from "../entities/Player";
 import { activeLongjingMarker } from "../render/LongjingScenePolicy";
+import { longjingActorTexture } from "../render/LongjingActorPolicy";
+import { LongjingObjectLayer } from "../render/LongjingObjectLayer";
+import { LongjingFiringVisual } from "../render/LongjingFiringVisual";
 import { renderLongjingWorld } from "../render/LongjingWorldRenderer";
 import { findChapterTarget } from "../systems/ChapterInteraction";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
@@ -45,6 +48,8 @@ export class LongjingWorkshopScene extends Phaser.Scene {
   private dialogue!: DialogueBox;
   private choices!: ChapterChoicePanel<LongjingFiringAction>;
   private marker!: LongjingQuestMarker;
+  private objectLayer!: LongjingObjectLayer;
+  private firingVisual!: LongjingFiringVisual;
   private lastTile = { x: -1, y: -1 };
   private readonly saveService = new LongjingSaveService(
     window.localStorage
@@ -68,11 +73,17 @@ export class LongjingWorkshopScene extends Phaser.Scene {
     publishActiveScene("LongjingWorkshop");
     const map = LONGJING_MAPS.workshop;
     renderLongjingWorld(this, "workshop");
+    this.objectLayer = new LongjingObjectLayer(
+      this,
+      map.tileSize,
+      "workshop"
+    );
+    this.objectLayer.sync(this.state);
     this.player = createLongjingPlayer(
       this,
       map,
       this.state.playerTile,
-      "actor-taipo-young"
+      longjingActorTexture("chen_young")
     );
     this.lastTile = { ...this.state.playerTile };
     installLongjingWorldPhysics(this, this.player, map);
@@ -80,17 +91,15 @@ export class LongjingWorkshopScene extends Phaser.Scene {
       this,
       map,
       map.npcSpawns.masterHe,
-      "actor-afeng",
-      "master_he",
-      0xd6e1d5
+      longjingActorTexture("master_he"),
+      "master_he"
     );
     createLongjingActor(
       this,
       map,
       map.npcSpawns.merchant,
-      "actor-azhen",
-      "tea_merchant",
-      0xc4a883
+      longjingActorTexture("tea_merchant"),
+      "tea_merchant"
     );
 
     const input = configureLongjingInput(this);
@@ -99,6 +108,7 @@ export class LongjingWorkshopScene extends Phaser.Scene {
     this.hud = new ChapterHud(this);
     this.dialogue = new DialogueBox(this);
     this.choices = new ChapterChoicePanel<LongjingFiringAction>(this);
+    this.firingVisual = new LongjingFiringVisual(this);
     this.marker = new LongjingQuestMarker(this, map.tileSize);
     this.refreshAll();
     if (this.state.workshopPhase === "FIRING") {
@@ -156,6 +166,7 @@ export class LongjingWorkshopScene extends Phaser.Scene {
     const correct =
       decision?.idealActions.includes(action) ?? false;
     this.choices.close();
+    this.firingVisual.hide();
     this.dispatch({
       type: "WORKSHOP_CHOOSE_ACTION",
       action
@@ -206,8 +217,10 @@ export class LongjingWorkshopScene extends Phaser.Scene {
         value: action,
         label: action,
         feedback: round.hint
-      }))
+      })),
+      { rightInset: 112 }
     );
+    this.firingVisual.show(this.state);
   }
 
   private sensoryStateHint(): string {
@@ -296,6 +309,7 @@ export class LongjingWorkshopScene extends Phaser.Scene {
       progress: `掌火 ${this.state.firingStep}/${LONGJING_FIRING_ROUNDS.length}`
     });
     this.marker.update(activeLongjingMarker(this.state));
+    this.objectLayer.sync(this.state);
   }
 
   private trackTile(): void {
