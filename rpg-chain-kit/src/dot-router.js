@@ -105,10 +105,10 @@ function textPath(text, x, baseline, size, bold = false) {
   return `<path d="${pathData}" fill="#000"${bold ? ' stroke="#000" stroke-width=".25"' : ''}/>`;
 }
 
-async function renderCard(asset, publicLink) {
+async function renderCard(asset, collectionLink) {
   const [titleOne, titleTwo = ''] = displayLines(asset.item, asset.tokenId);
   const shortWallet = `${asset.wallet.slice(0, 6)}...${asset.wallet.slice(-4)}`;
-  const qrCode = await QRCode.toBuffer(publicLink, {
+  const qrCode = await QRCode.toBuffer(collectionLink, {
     type: 'png',
     errorCorrectionLevel: 'L',
     margin: 1,
@@ -169,8 +169,8 @@ export function createDotRouter() {
     try {
       const asset = await ownedAsset(req.params.wallet, req.params.tokenId);
       const publicOrigin = (process.env.PUBLIC_SHARE_ORIGIN || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
-      const publicLink = `${publicOrigin}/api/rpg/dot/nfc/${encodeURIComponent(asset.tokenId)}`;
-      const card = await renderCard(asset, publicLink);
+      const collectionLink = `${publicOrigin}/share/?wallet=${encodeURIComponent(asset.wallet)}`;
+      const card = await renderCard(asset, collectionLink);
       res.setHeader('Content-Type', 'image/png');
       res.setHeader('Cache-Control', 'no-store');
       res.send(card);

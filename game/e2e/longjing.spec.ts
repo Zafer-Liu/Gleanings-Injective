@@ -156,7 +156,7 @@ async function seed(
     { key: SAVE_KEY, value: save }
   );
   await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "开始第一章" }).click();
+  await page.getByRole("button", { name: "进入第二章：龙井茶" }).click();
   await expect(page.locator("canvas")).toBeVisible();
 }
 
@@ -177,6 +177,23 @@ async function readSave(
 test.describe("第二章《一叶来处》", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
+  });
+
+  test("未游玩第一章也可以从主页独立进入第二章", async ({ page }) => {
+    await page.evaluate(() => window.localStorage.clear());
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "进入第二章：龙井茶" }).click();
+
+    await expect(page.locator("canvas")).toBeVisible();
+    await expect(page.locator("#game-root")).toHaveAttribute(
+      "data-active-scene",
+      "LongjingMarket"
+    );
+    await expect
+      .poll(() =>
+        page.evaluate((key) => window.localStorage.getItem(key), SAVE_KEY)
+      )
+      .not.toBeNull();
   });
 
   test("六个章节断点都能刷新续玩并更新章标题", async ({ page }) => {

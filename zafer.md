@@ -249,7 +249,7 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 - 输出固定为设备原生 `296 × 152` PNG；服务端使用 Noto Sans SC 将中文转换为 SVG 矢量字形后再栅格化，Railway 与 Dot. 端均不依赖系统中文字体或 SVG WebFont 支持；
 - 服务端先将藏品图转为黑白高对比展签，再以 `ditherType: NONE` 推送，保证文字和 Token ID 清晰；
-- 展签包含藏品图、Injective EVM Token ID、持有人缩写和公开查看二维码；
+- 展签包含藏品图、Injective EVM Token ID、持有人缩写和公开收藏馆二维码；扫码会打开该持有人的全部公开链上收藏，而不是只打开当前单件藏品；
 - Image API 的 `link` 使用短地址 `/api/rpg/dot/nfc/<token>`；轻触后服务端实时查询 `ownerOf` 并跳转至当前持有人的单件藏品页，因此 Token 转赠后 NFC 不会停留在旧钱包；
 - Quote/0 的 NFC 会先进入 Dot App，访客需要由设备主人通过“添加共享”授予设备权限；展签同时内置公开藏品二维码，未共享设备权限的访客可直接扫码查看；
 - 推送前再次调用合约 `ownerOf`，已转赠的 Token 不会继续以旧持有人身份生成展签。

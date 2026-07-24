@@ -84,6 +84,24 @@ h1 span {
   text-align: right;
 }
 
+.game-masthead__aside {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: end;
+  justify-content: end;
+  gap: 10px 8px;
+}
+
+.game-masthead__aside .chapter-note {
+  grid-column: 1 / -1;
+  grid-row: auto;
+}
+
+.game-masthead__aside .chain-actions {
+  grid-column: 1;
+  margin-top: 0;
+}
+
 .app-shell--chapter-two {
   --ink: #26372d;
   --wood-deep: #34493a;
@@ -97,10 +115,11 @@ h1 span {
 }
 
 .chain-actions { grid-column: 2; display: flex; justify-content: end; gap: 8px; margin-top: 12px; }
-.chain-button, .museum-button, .mint-button, .museum__head button { border: 1px solid var(--straw); color: #f4ebdd; background: #49362d; padding: 8px 10px; cursor: pointer; font: 12px inherit; }
+.chain-button, .museum-button, .mint-button, .museum__head button, .text-button { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--straw); color: #f4ebdd; background: #49362d; padding: 8px 10px; cursor: pointer; font: 12px inherit; }
 .museum-button, .mint-button { background: var(--hongqu); border-color: #d9a052; }
-.chain-button:hover, .museum-button:hover, .mint-button:hover, .museum__head button:hover { filter: brightness(1.15); }
-.chain-button:focus-visible, .museum-button:focus-visible, .mint-button:focus-visible, .museum__head button:focus-visible { outline: 3px solid #f4ebdd; outline-offset: 3px; }
+.text-button { grid-column: 2; color: var(--straw); background: #211a17; border-color: #765035; }
+.chain-button:hover, .museum-button:hover, .mint-button:hover, .museum__head button:hover, .text-button:hover { filter: brightness(1.15); }
+.chain-button:focus-visible, .museum-button:focus-visible, .mint-button:focus-visible, .museum__head button:focus-visible, .text-button:focus-visible { outline: 3px solid #f4ebdd; outline-offset: 3px; }
 .mint-button:disabled { cursor: wait; opacity: .68; }
 
 .wallet-modal__panel,
@@ -145,6 +164,54 @@ h1 span {
   background: #4a382e;
   border: 1px solid var(--amber);
   box-shadow: 12px 12px 0 #251b17;
+}
+
+.fullscreen-button {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 8;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--straw);
+  color: #f4ebdd;
+  background: rgba(33, 26, 23, .9);
+  cursor: pointer;
+  font: 11px "Cascadia Mono", monospace;
+  letter-spacing: .08em;
+  backdrop-filter: blur(6px);
+}
+
+.fullscreen-button:hover {
+  background: var(--hongqu);
+}
+
+.fullscreen-button:focus-visible {
+  outline: 3px solid #f4ebdd;
+  outline-offset: 3px;
+}
+
+.stage-wrap:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: clamp(8px, 2vw, 28px);
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: #0e0a08;
+  box-shadow: none;
+}
+
+.stage-wrap:fullscreen .game-frame {
+  width: min(100%, calc((100vh - 32px) * 16 / 9));
+  max-height: 100%;
+}
+
+.stage-wrap:fullscreen .fullscreen-button {
+  position: fixed;
+  top: 18px;
+  right: 18px;
 }
 
 .game-frame {
@@ -366,6 +433,7 @@ button.chapter-card:hover { transform: translateY(-7px); border-color: rgba(212,
 .chapter-card__body b { margin-top: auto; color: #c7a968; font: 9px var(--mono); letter-spacing: .1em; }
 .chapter-card--locked { position: relative; min-height: 350px; opacity: .62; }
 .locked-mark { height: 173px; display: grid; place-items: center; color: rgba(212,180,106,.15); background: radial-gradient(circle,#3c2921,#211713 68%); font-size: 74px; }
+.chapter-card--tea .locked-mark { color: rgba(212,180,106,.72); background: radial-gradient(circle,#33452f,#1d281c 68%); }
 .chapter-card--locked .chapter-card__body { min-height: 177px; }
 .manifesto { position: relative; z-index: 1; min-height: 580px; display: grid; place-content: center; text-align: center; background: radial-gradient(circle at center,#39231c,#18120f 68%); }
 .manifesto::before { content: "拾 遗"; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(234,221,197,.025); font-size: min(28vw,430px); font-weight: 900; letter-spacing: .08em; }
