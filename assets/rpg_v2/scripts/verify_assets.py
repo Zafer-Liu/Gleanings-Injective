@@ -58,9 +58,10 @@ def verify_yi_back_crown() -> list[str]:
                 continue
             crown_y, crown_width = visible_rows[0]
             next_width = visible_rows[1][1]
-            if crown_y != 0:
+            if crown_y < 2:
                 failures.append(
-                    f"spr_yi frame {frame}: back crown starts at row {crown_y}, expected 0"
+                    f"spr_yi frame {frame}: back crown has only "
+                    f"{crown_y}px top padding, expected at least 2px"
                 )
             if crown_width > 6 or next_width <= crown_width:
                 failures.append(
