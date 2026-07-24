@@ -1,10 +1,9 @@
 import Phaser from "phaser";
-import type { DemoMintReceipt } from "../domain/cultureLabel";
+import type { CultureLabel } from "../domain/cultureLabel";
 
-export class DemoMintPanel {
+export class JourneyRecordPanel {
   private readonly container: Phaser.GameObjects.Container;
-  private readonly tokenText: Phaser.GameObjects.Text;
-  private readonly hashText: Phaser.GameObjects.Text;
+  private readonly labelText: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     const shade = scene.add
@@ -14,12 +13,12 @@ export class DemoMintPanel {
       .rectangle(92, 58, 456, 244, 0x211a17, 1)
       .setOrigin(0)
       .setStrokeStyle(2, 0xc9873f);
-    const tag = scene.add.text(118, 82, "LOCAL DEMO / NO WALLET", {
+    const tag = scene.add.text(118, 82, "JOURNEY RECORD / 酒签留存", {
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "9px",
       color: "#A83B32"
     });
-    const title = scene.add.text(118, 110, "把这坛回声留在本地", {
+    const title = scene.add.text(118, 110, "把这段回声收进酒签", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "21px",
       color: "#F4EBDD"
@@ -27,7 +26,7 @@ export class DemoMintPanel {
     const note = scene.add.text(
       118,
       150,
-      "这是演示铸造：不会连接钱包，不会发送交易，也不会产生真实链上资产。",
+      "这张酒签收录了你一路做出的选择，留作这段旅程的回声。",
       {
         fontFamily:
           '"Microsoft YaHei", "PingFang SC", sans-serif',
@@ -37,18 +36,13 @@ export class DemoMintPanel {
         wordWrap: { width: 400 }
       }
     );
-    this.tokenText = scene.add.text(118, 205, "", {
-      fontFamily: '"Cascadia Mono", Consolas, monospace',
-      fontSize: "11px",
+    this.labelText = scene.add.text(118, 210, "", {
+      fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+      fontSize: "14px",
       color: "#D4B46A"
     });
-    this.hashText = scene.add.text(118, 229, "", {
-      fontFamily: '"Cascadia Mono", Consolas, monospace',
-      fontSize: "9px",
-      color: "#6E6259"
-    });
     const controls = scene.add
-      .text(516, 266, "E / 回车 · 完成演示", {
+      .text(516, 266, "E / 回车 · 收好酒签", {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "9px",
         color: "#B7C2C0"
@@ -61,8 +55,7 @@ export class DemoMintPanel {
         tag,
         title,
         note,
-        this.tokenText,
-        this.hashText,
+        this.labelText,
         controls
       ])
       .setScrollFactor(0)
@@ -74,11 +67,8 @@ export class DemoMintPanel {
     return this.container.visible;
   }
 
-  show(receipt: DemoMintReceipt): void {
-    this.tokenText.setText(`TOKEN  ${receipt.tokenId}`);
-    this.hashText.setText(
-      `PATH   ${receipt.pathHash}  ·  NETWORK ${receipt.network}`
-    );
+  show(label: CultureLabel): void {
+    this.labelText.setText(`《${label.chineseName}》`);
     this.container.setVisible(true);
   }
 
