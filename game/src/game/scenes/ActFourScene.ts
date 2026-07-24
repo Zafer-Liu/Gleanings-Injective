@@ -5,7 +5,6 @@ import {
 } from "../../content/act4/content";
 import { act1Content } from "../../content/act1/content";
 import {
-  createDemoMint,
   generateCultureLabel,
   type CultureLabel
 } from "../domain/cultureLabel";
@@ -28,7 +27,7 @@ import { publishActiveScene } from "../systems/SceneStatus";
 import { ChapterChoicePanel } from "../ui/ChapterChoicePanel";
 import { ChapterHud } from "../ui/ChapterHud";
 import { CultureLabelPanel } from "../ui/CultureLabelPanel";
-import { DemoMintPanel } from "../ui/DemoMintPanel";
+import { JourneyRecordPanel } from "../ui/JourneyRecordPanel";
 import { DialogueBox } from "../ui/DialogueBox";
 import { RelicPanel } from "../ui/RelicPanel";
 
@@ -59,9 +58,9 @@ const ACT4_QUEST = {
     title: "确认双语文化酒签",
     hint: "创意表达可重试一次"
   },
-  MINT: {
-    title: "完成本地演示铸造",
-    hint: "不会连接钱包或链上服务"
+  RECORD: {
+    title: "收好这张文化酒签",
+    hint: "确认后继续故事"
   },
   COMPLETE: {
     title: "一坛回声",
@@ -78,7 +77,7 @@ export class ActFourScene extends Phaser.Scene {
   private dialogue!: DialogueBox;
   private choices!: ChapterChoicePanel<Act4Explanation>;
   private labelPanel!: CultureLabelPanel;
-  private mintPanel!: DemoMintPanel;
+  private journeyRecord!: JourneyRecordPanel;
   private relic!: RelicPanel;
   private questMarker!: Phaser.GameObjects.Container;
   private currentLabel?: CultureLabel;
@@ -162,7 +161,7 @@ export class ActFourScene extends Phaser.Scene {
     this.dialogue = new DialogueBox(this);
     this.choices = new ChapterChoicePanel<Act4Explanation>(this);
     this.labelPanel = new CultureLabelPanel(this);
-    this.mintPanel = new DemoMintPanel(this);
+    this.journeyRecord = new JourneyRecordPanel(this);
     this.relic = new RelicPanel(this);
     this.createQuestMarker();
     this.refreshAll();
@@ -183,7 +182,7 @@ export class ActFourScene extends Phaser.Scene {
     if (this.handleDialogueInput()) return;
     if (this.handleChoiceInput()) return;
     if (this.handleLabelInput()) return;
-    if (this.handleMintInput()) return;
+    if (this.handleJourneyRecordInput()) return;
     if (this.handleRelicInput()) return;
 
     const moved = this.player.updateMovement(
@@ -329,19 +328,19 @@ export class ActFourScene extends Phaser.Scene {
     const label =
       this.currentLabel ?? generateCultureLabel(this.state);
     this.dialogue.play(act4Dialogue("mintIntro"), () => {
-      this.mintPanel.show(createDemoMint(label));
+      this.journeyRecord.show(label);
     });
     return true;
   }
 
-  private handleMintInput(): boolean {
-    if (!this.mintPanel.isOpen) return false;
+  private handleJourneyRecordInput(): boolean {
+    if (!this.journeyRecord.isOpen) return false;
     this.player.updateMovement(this.movementKeys, true);
     if (this.actionJustDown()) {
-      this.dispatch({ type: "ACT4_DEMO_MINT" });
-      this.mintPanel.close();
+      this.dispatch({ type: "ACT4_SAVE_LABEL" });
+      this.journeyRecord.close();
       this.relic.show({
-        eyebrow: "章节徽章 · 本地演示",
+        eyebrow: "章节徽章",
         name: "一坛回声",
         rarity: "章节完成",
         description:
@@ -378,10 +377,10 @@ export class ActFourScene extends Phaser.Scene {
           this.currentLabel,
           !this.state.labelRetryUsed
         );
-      } else if (this.state.act4Phase === "MINT") {
+      } else if (this.state.act4Phase === "RECORD") {
         const label = generateCultureLabel(this.state);
         this.currentLabel = label;
-        this.mintPanel.show(createDemoMint(label));
+        this.journeyRecord.show(label);
       }
     });
   }

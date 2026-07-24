@@ -105,7 +105,7 @@ export class ChapterCompleteScene extends Phaser.Scene {
     this.add.text(
       64,
       316,
-      "本章所有酒签、编号与铸造结果均为浏览器本地演示。",
+      "本章酒签与故事进度均保存在浏览器本地。",
       {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "8px",

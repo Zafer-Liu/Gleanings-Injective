@@ -17,13 +17,6 @@ export type CultureLabel = {
   pathHash: string;
 };
 
-export type DemoMintReceipt = {
-  tokenId: string;
-  pathHash: string;
-  status: "local-demo";
-  network: "none";
-};
-
 const NAME_BY_SENSE: Record<
   SenseChoice,
   { chinese: string; english: string }
@@ -109,16 +102,5 @@ export function generateCultureLabel(
     ],
     templateSource: "LOCAL_TEMPLATE_V1",
     pathHash
-  };
-}
-
-export function createDemoMint(
-  label: CultureLabel
-): DemoMintReceipt {
-  return {
-    tokenId: `DEMO-${label.pathHash.toUpperCase()}`,
-    pathHash: label.pathHash,
-    status: "local-demo",
-    network: "none"
   };
 }

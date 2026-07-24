@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { reduceChapter } from "./chapterReducer";
 import { createChapterFromActOne } from "./chapterState";
-import {
-  createDemoMint,
-  generateCultureLabel
-} from "./cultureLabel";
+import { generateCultureLabel } from "./cultureLabel";
 
 function completedChoices() {
   let state = createChapterFromActOne("hongqu_red");
@@ -74,14 +71,4 @@ describe("local culture label", () => {
     expect(label.creativeText).toContain("太婆");
   });
 
-  it("creates a stable receipt explicitly marked as a local demo", () => {
-    const label = generateCultureLabel(completedChoices());
-    const receipt = createDemoMint(label);
-
-    expect(receipt.tokenId).toMatch(/^DEMO-/);
-    expect(receipt.pathHash).toBe(label.pathHash);
-    expect(receipt.status).toBe("local-demo");
-    expect(receipt.network).toBe("none");
-    expect(createDemoMint(label)).toEqual(receipt);
-  });
 });
