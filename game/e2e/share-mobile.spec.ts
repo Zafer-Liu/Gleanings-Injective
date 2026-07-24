@@ -94,7 +94,7 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
   await expect(page.locator("#owner")).toHaveText("0x9a47…4049");
   const cardCount = await page.locator(".card").count();
   expect(cardCount).toBeGreaterThan(0);
-  await expect(page.getByRole("button", { name: "分享展示链接" })).toHaveCount(cardCount);
+  await expect(page.getByRole("link", { name: /分享展示链接/ })).toHaveCount(cardCount);
   await expect(page.getByRole("link", { name: "手机投到墨屏" })).toHaveCount(cardCount);
   await expect(page.getByRole("button", { name: "转赠所有权" })).toHaveCount(cardCount);
   await expect(page.getByRole("heading", { name: "来访笺" })).toBeVisible();
@@ -192,7 +192,12 @@ test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ p
   await expect(page.locator("#count")).toHaveText("1 件");
   await expect(page.locator(".card")).toHaveCount(1);
   await expect(page.getByRole("heading", { name: tokenName })).toBeVisible();
-  await expect(page.getByRole("button", { name: "分享展示链接" })).toBeVisible();
+  const shareLink = page.getByRole("link", { name: /分享展示链接/ });
+  await expect(shareLink).toBeVisible();
+  await expect(shareLink).toHaveAttribute("href", new RegExp(`wallet=.*token=${tokenId}`));
+  await shareLink.click();
+  await expect(page).toHaveURL(new RegExp(`wallet=.*&token=${tokenId}`));
+  await expect(page.locator("#collection-title")).toHaveText("分享的藏品");
   await page.getByRole("button", { name: "转赠所有权" }).click();
   await expect(page.getByRole("dialog", { name: "转赠链上藏品" })).toBeVisible();
   await expect(page.getByLabel("接收方 0x 钱包地址")).toBeVisible();
