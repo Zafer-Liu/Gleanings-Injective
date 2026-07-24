@@ -200,9 +200,15 @@ test.describe("第一幕《开坛》", () => {
       "EXPLORE"
     );
 
-    await hold(page, "ArrowUp", 800);
-    await hold(page, "ArrowLeft", 500);
-    await hold(page, "ArrowUp", 400);
+    await page.evaluate((key) => {
+      const raw = window.localStorage.getItem(key);
+      if (raw === null) return;
+      const save = JSON.parse(raw) as BrowserSave;
+      save.playerTile = { x: 7, y: 13 };
+      window.localStorage.setItem(key, JSON.stringify(save));
+    }, SAVE_KEY);
+    await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
     await press(page, "ArrowLeft");
     await press(page, "e");
     await press(page, "e");
