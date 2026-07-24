@@ -17,29 +17,29 @@ const contractAddress = process.env.RPG_ITEM_CONTRACT_ADDRESS || '';
 const chainId = Number(process.env.CHAIN_ID || 1439);
 const dotOrigin = (process.env.DOT_API_ORIGIN || 'https://dot.mindreset.tech').replace(/\/$/, '');
 const provider = new ethers.JsonRpcProvider(rpcUrl, { chainId, name: process.env.CHAIN_NAME || 'Injective EVM Testnet' });
-const inkArtRoot = path.join(projectRoot, 'assets', 'rpg_v2', 'collection', 'ink');
+const badgeArtRoot = path.join(projectRoot, 'assets', 'rpg_v2', 'collection', 'badges');
 
 const badgeArtById = new Map([
-  ['badge_ch1_winter_brew_seal', 'winter-brew-seal.svg'],
-  ['act1-winter-brewing', 'winter-brew-seal.svg'],
-  ['badge_ch1_red_koji_trace', 'red-koji-trace.svg'],
-  ['relic_dongniang_common', 'red-koji-trace.svg'],
-  ['relic_dongniang_rare', 'red-koji-trace.svg'],
-  ['relic_liubai_legendary', 'red-koji-trace.svg'],
-  ['badge_ch1_warm_wine_cup', 'warm-wine-cup.svg'],
-  ['relic_blue_white_cup_warm', 'warm-wine-cup.svg'],
-  ['relic_blue_white_cup_inherit', 'warm-wine-cup.svg'],
-  ['relic_blue_white_cup_remember', 'warm-wine-cup.svg'],
-  ['badge_ch1_fujian_aged_rice_wine', 'fujian-aged-rice-wine.svg'],
-  ['relic_one_jar_echo', 'fujian-aged-rice-wine.svg'],
-  ['badge_ch2_old_tea_scoop', 'old-tea-scoop.svg'],
-  ['relic_old_tea_scoop', 'old-tea-scoop.svg'],
-  ['badge_ch2_qingming_bud', 'qingming-bud.svg'],
-  ['relic_qingming_bud', 'qingming-bud.svg'],
-  ['badge_ch2_hand_fire_mark', 'hand-fire-mark.svg'],
-  ['relic_palm_fire', 'hand-fire-mark.svg'],
-  ['badge_ch2_west_lake_longjing', 'west-lake-longjing-tea.svg'],
-  ['relic_one_leaf_origin', 'west-lake-longjing-tea.svg']
+  ['badge_ch1_winter_brew_seal', 'winter-brew-seal.png'],
+  ['act1-winter-brewing', 'winter-brew-seal.png'],
+  ['badge_ch1_red_koji_trace', 'red-koji-trace.png'],
+  ['relic_dongniang_common', 'red-koji-trace.png'],
+  ['relic_dongniang_rare', 'red-koji-trace.png'],
+  ['relic_liubai_legendary', 'red-koji-trace.png'],
+  ['badge_ch1_warm_wine_cup', 'warm-wine-cup.png'],
+  ['relic_blue_white_cup_warm', 'warm-wine-cup.png'],
+  ['relic_blue_white_cup_inherit', 'warm-wine-cup.png'],
+  ['relic_blue_white_cup_remember', 'warm-wine-cup.png'],
+  ['badge_ch1_fujian_aged_rice_wine', 'fujian-aged-rice-wine.png'],
+  ['relic_one_jar_echo', 'fujian-aged-rice-wine.png'],
+  ['badge_ch2_old_tea_scoop', 'old-tea-scoop.png'],
+  ['relic_old_tea_scoop', 'old-tea-scoop.png'],
+  ['badge_ch2_qingming_bud', 'qingming-bud.png'],
+  ['relic_qingming_bud', 'qingming-bud.png'],
+  ['badge_ch2_hand_fire_mark', 'hand-fire-mark.png'],
+  ['relic_palm_fire', 'hand-fire-mark.png'],
+  ['badge_ch2_west_lake_longjing', 'west-lake-longjing-tea.png'],
+  ['relic_one_leaf_origin', 'west-lake-longjing-tea.png']
 ]);
 
 function contract() {
@@ -102,7 +102,7 @@ async function dotRequest(route, key, options = {}) {
 export function artPath(item) {
   const id = item.collectible_id || item.badge_id || item.medal_id;
   const badgeFilename = badgeArtById.get(id);
-  if (badgeFilename) return path.join(inkArtRoot, badgeFilename);
+  if (badgeFilename) return path.join(badgeArtRoot, badgeFilename);
   if (id === 'item_taipo_note') return path.join(projectRoot, 'assets', 'rpg_v2', 'collection', 'taipo-note.png');
   return '';
 }
@@ -130,7 +130,70 @@ function textPath(text, x, baseline, size, bold = false) {
   return `<path d="${pathData}" fill="#000"${bold ? ' stroke="#000" stroke-width=".25"' : ''}/>`;
 }
 
+const bayer4 = [
+  0, 8, 2, 10,
+  12, 4, 14, 6,
+  3, 11, 1, 9,
+  15, 7, 13, 5
+];
+
+async function renderBadgeArt(source) {
+  const { data, info } = await sharp(source)
+    .resize(124, 124, { fit: 'contain' })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const pixels = Buffer.alloc(info.width * info.height);
+
+  for (let y = 0; y < info.height; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const sourceIndex = (y * info.width + x) * info.channels;
+      const red = data[sourceIndex];
+      const green = data[sourceIndex + 1];
+      const blue = data[sourceIndex + 2];
+      const brightest = Math.max(red, green, blue);
+      const darkest = Math.min(red, green, blue);
+      const targetIndex = y * info.width + x;
+
+      if (brightest <= 24 && brightest - darkest <= 10) {
+        pixels[targetIndex] = 255;
+        continue;
+      }
+
+      const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+      const adjusted = Math.max(
+        0,
+        Math.min(255, (luminance - 10) * 1.8 + 30)
+      );
+      const threshold = (
+        bayer4[(y % 4) * 4 + (x % 4)] + 0.5
+      ) * 16;
+      pixels[targetIndex] = adjusted < threshold ? 0 : 255;
+    }
+  }
+
+  return sharp(pixels, {
+    raw: {
+      width: info.width,
+      height: info.height,
+      channels: 1
+    }
+  })
+    .extend({
+      top: 4,
+      bottom: 4,
+      left: 4,
+      right: 4,
+      background: '#ffffff'
+    })
+    .png()
+    .toBuffer();
+}
+
 async function renderArt(source) {
+  if (path.dirname(source) === badgeArtRoot) {
+    return renderBadgeArt(source);
+  }
   const base = sharp(source)
     .resize(132, 132, {
       fit: 'contain',

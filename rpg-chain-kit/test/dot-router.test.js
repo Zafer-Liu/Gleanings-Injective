@@ -11,60 +11,61 @@ import {
 const BADGES = [
   [
     "badge_ch1_winter_brew_seal",
-    "winter-brew-seal.svg"
+    "winter-brew-seal.png"
   ],
   [
     "badge_ch1_red_koji_trace",
-    "red-koji-trace.svg"
+    "red-koji-trace.png"
   ],
   [
     "badge_ch1_warm_wine_cup",
-    "warm-wine-cup.svg"
+    "warm-wine-cup.png"
   ],
   [
     "badge_ch1_fujian_aged_rice_wine",
-    "fujian-aged-rice-wine.svg"
+    "fujian-aged-rice-wine.png"
   ],
   [
     "badge_ch2_old_tea_scoop",
-    "old-tea-scoop.svg"
+    "old-tea-scoop.png"
   ],
   [
     "badge_ch2_qingming_bud",
-    "qingming-bud.svg"
+    "qingming-bud.png"
   ],
   [
     "badge_ch2_hand_fire_mark",
-    "hand-fire-mark.svg"
+    "hand-fire-mark.png"
   ],
   [
     "badge_ch2_west_lake_longjing",
-    "west-lake-longjing-tea.svg"
+    "west-lake-longjing-tea.png"
   ]
 ];
 
 describe("Dot e-ink badge cards", () => {
-  it("maps all canonical badge IDs to dedicated SVG art", () => {
+  it("uses the same shaped badge source as the color collection", () => {
     for (const [id, filename] of BADGES) {
       const source = artPath({
         collectible_id: id,
         category: "badge"
       });
       assert.equal(path.basename(source), filename);
+      assert.equal(path.basename(path.dirname(source)), "badges");
       assert.equal(fs.existsSync(source), true);
     }
   });
 
   it("keeps legacy reward IDs compatible", () => {
     const aliases = {
-      "act1-winter-brewing": "winter-brew-seal.svg",
-      relic_dongniang_rare: "red-koji-trace.svg",
-      relic_blue_white_cup_remember: "warm-wine-cup.svg",
-      relic_one_jar_echo: "fujian-aged-rice-wine.svg",
-      relic_old_tea_scoop: "old-tea-scoop.svg",
-      relic_qingming_bud: "qingming-bud.svg",
-      relic_palm_fire: "hand-fire-mark.svg",
-      relic_one_leaf_origin: "west-lake-longjing-tea.svg"
+      "act1-winter-brewing": "winter-brew-seal.png",
+      relic_dongniang_rare: "red-koji-trace.png",
+      relic_blue_white_cup_remember: "warm-wine-cup.png",
+      relic_one_jar_echo: "fujian-aged-rice-wine.png",
+      relic_old_tea_scoop: "old-tea-scoop.png",
+      relic_qingming_bud: "qingming-bud.png",
+      relic_palm_fire: "hand-fire-mark.png",
+      relic_one_leaf_origin: "west-lake-longjing-tea.png"
     };
 
     for (const [id, filename] of Object.entries(aliases)) {

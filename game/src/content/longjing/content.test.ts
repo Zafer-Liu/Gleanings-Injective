@@ -202,6 +202,46 @@ describe("Longjing chapter content", () => {
 });
 
 describe("Longjing map collision alignment", () => {
+  it("keeps visibly open market lanes and scene exits free of colliders", () => {
+    const openTiles = [
+      { map: LONGJING_MAPS.market, points: [
+        [16, 14],
+        [17, 14],
+        [18, 14],
+        [19, 14],
+        [16, 15],
+        [17, 15],
+        [18, 15],
+        [19, 15],
+        [18, 24],
+        [19, 24],
+        [20, 24]
+      ] },
+      { map: LONGJING_MAPS.terrace, points: [
+        [43, 24],
+        [43, 25]
+      ] },
+      { map: LONGJING_MAPS.workshop, points: [
+        [14, 26],
+        [15, 26],
+        [24, 26],
+        [25, 26]
+      ] },
+      { map: LONGJING_MAPS.truth, points: [
+        [9, 6],
+        [10, 6],
+        [24, 6],
+        [25, 6]
+      ] }
+    ] as const;
+
+    openTiles.forEach(({ map, points }) => {
+      points.forEach(([x, y]) => {
+        expect(isBlocked(map, x, y), `open floor ${x},${y}`).toBe(false);
+      });
+    });
+  });
+
   it("keeps every terrace collider on its visible seven-tile tea bed", () => {
     const teaRows = LONGJING_MAPS.terrace.collisions
       .filter((collision) => collision.id.startsWith("tea_row_"))
