@@ -1,7 +1,11 @@
 import type Phaser from "phaser";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEBUG_COLLECTIBLES_STORAGE_KEY } from "./debugCollectibles";
-import { installDebugTools } from "./DebugTools";
+import {
+  DEBUG_CONSOLE_COMMAND,
+  installDebugTools,
+  registerDebugConsoleCommand
+} from "./DebugTools";
 
 function press(
   code: string,
@@ -31,9 +35,37 @@ describe("debug tools", () => {
     document
       .querySelector("style[data-gleanings-debug-tools]")
       ?.remove();
+    Reflect.deleteProperty(window, DEBUG_CONSOLE_COMMAND);
   });
 
-  it("隐藏快捷键可打开面板、跳关并解锁两类收藏", () => {
+  it("游戏尚未挂载时也可以在 Console 输入 dev", () => {
+    const unregister = registerDebugConsoleCommand();
+
+    expect(DEBUG_CONSOLE_COMMAND in window).toBe(true);
+    expect(Reflect.get(window, DEBUG_CONSOLE_COMMAND)).toBe(
+      "Gleanings 调试模式已开启；进入游戏后自动显示"
+    );
+
+    const game = {
+      scene: {
+        getScenes: () => [{ scene: { key: "Apartment" } }],
+        start: vi.fn()
+      },
+      events: { once: vi.fn() }
+    } as unknown as Phaser.Game;
+    const cleanup = installDebugTools(game);
+    expect(
+      (document.getElementById(
+        "gleanings-debug-tools"
+      ) as HTMLElement).hidden
+    ).toBe(false);
+
+    cleanup();
+    unregister();
+    expect(DEBUG_CONSOLE_COMMAND in window).toBe(false);
+  });
+
+  it("控制台输入 dev 后才启用面板和隐藏快捷键", () => {
     const start = vi.fn();
     const once = vi.fn();
     const game = {
@@ -43,12 +75,18 @@ describe("debug tools", () => {
       },
       events: { once }
     } as unknown as Phaser.Game;
+    const unregister = registerDebugConsoleCommand();
     const cleanup = installDebugTools(game);
     const panel = document.getElementById("gleanings-debug-tools");
 
     expect(panel).not.toBeNull();
     expect((panel as HTMLElement).hidden).toBe(true);
-    press("KeyD", { ctrlKey: true, shiftKey: true });
+    press("KeyN", { altKey: true, shiftKey: true });
+    expect(start).not.toHaveBeenCalled();
+
+    expect(Reflect.get(window, DEBUG_CONSOLE_COMMAND)).toBe(
+      "Gleanings 调试工具已开启"
+    );
     expect((panel as HTMLElement).hidden).toBe(false);
 
     press("KeyN", { altKey: true, shiftKey: true });
@@ -69,6 +107,8 @@ describe("debug tools", () => {
 
     expect(once).toHaveBeenCalledWith("destroy", cleanup);
     cleanup();
+    unregister();
     expect(document.getElementById("gleanings-debug-tools")).toBeNull();
+    expect(DEBUG_CONSOLE_COMMAND in window).toBe(false);
   });
 });

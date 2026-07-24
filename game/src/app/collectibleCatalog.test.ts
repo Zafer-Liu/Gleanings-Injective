@@ -117,7 +117,7 @@ describe("collectible catalog", () => {
     ]);
   });
 
-  it("开发调试标记可以分别解锁全部徽章或道具", () => {
+  it("调试标记在任意构建中都能分别解锁全部徽章或道具", () => {
     const badges = loadCollectedItems(
       storageWith({
         [DEBUG_COLLECTIBLES_STORAGE_KEY]: ["badge"]

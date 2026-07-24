@@ -4,8 +4,6 @@ import { installDebugTools } from "./debug/DebugTools";
 
 export function startGame(parent: string): Phaser.Game {
   const game = new Phaser.Game(createGameConfig(parent));
-  if (import.meta.env.DEV) {
-    installDebugTools(game);
-  }
+  installDebugTools(game);
   return game;
 }

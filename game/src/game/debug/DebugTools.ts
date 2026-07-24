@@ -5,8 +5,13 @@ import {
   type DebugCollectibleKind
 } from "./debugCollectibles";
 
+export const DEBUG_CONSOLE_COMMAND = "dev";
+const DEBUG_ENABLED_SESSION_KEY = "gleanings.debug.enabled.v1";
+
+type DebugActivator = () => string;
+let activeDebugActivator: DebugActivator | null = null;
+
 export const DEBUG_SHORTCUTS = Object.freeze({
-  togglePanel: "Ctrl+Shift+D",
   nextStage: "Alt+Shift+N",
   allBadges: "Alt+Shift+B",
   allItems: "Alt+Shift+I"
@@ -90,6 +95,54 @@ function button(label: string, shortcut: string): HTMLButtonElement {
   return element;
 }
 
+function debugWasRequested(): boolean {
+  try {
+    return (
+      window.sessionStorage.getItem(DEBUG_ENABLED_SESSION_KEY) === "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function requestDebugMode(): string {
+  try {
+    window.sessionStorage.setItem(DEBUG_ENABLED_SESSION_KEY, "true");
+  } catch {
+    // The current game instance can still be enabled without persistence.
+  }
+  return activeDebugActivator?.() ??
+    "Gleanings 调试模式已开启；进入游戏后自动显示";
+}
+
+export function registerDebugConsoleCommand(): () => void {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(
+    window,
+    DEBUG_CONSOLE_COMMAND
+  );
+  Object.defineProperty(window, DEBUG_CONSOLE_COMMAND, {
+    configurable: true,
+    get: requestDebugMode
+  });
+
+  return () => {
+    const currentDescriptor = Object.getOwnPropertyDescriptor(
+      window,
+      DEBUG_CONSOLE_COMMAND
+    );
+    if (currentDescriptor?.get !== requestDebugMode) return;
+    if (previousDescriptor === undefined) {
+      Reflect.deleteProperty(window, DEBUG_CONSOLE_COMMAND);
+    } else {
+      Object.defineProperty(
+        window,
+        DEBUG_CONSOLE_COMMAND,
+        previousDescriptor
+      );
+    }
+  };
+}
+
 export function installDebugTools(game: Phaser.Game): () => void {
   const styles = document.createElement("style");
   styles.dataset.gleaningsDebugTools = "";
@@ -154,22 +207,12 @@ export function installDebugTools(game: Phaser.Game): () => void {
     );
   };
 
-  const toggle = () => {
-    panel.hidden = !panel.hidden;
-  };
-
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.repeat) return;
 
-    const togglePressed =
-      event.ctrlKey &&
-      event.shiftKey &&
-      !event.altKey &&
-      event.code === "KeyD";
     const hiddenAction =
       event.altKey && event.shiftKey && !event.ctrlKey;
     if (
-      !togglePressed &&
       !(
         hiddenAction &&
         ["KeyN", "KeyB", "KeyI"].includes(event.code)
@@ -180,9 +223,7 @@ export function installDebugTools(game: Phaser.Game): () => void {
 
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (togglePressed) {
-      toggle();
-    } else if (event.code === "KeyN") {
+    if (event.code === "KeyN") {
       advance();
     } else if (event.code === "KeyB") {
       grant("badge");
@@ -191,14 +232,34 @@ export function installDebugTools(game: Phaser.Game): () => void {
     }
   };
 
-  close.addEventListener("click", toggle);
+  let enabled = false;
+  const enable = () => {
+    if (!enabled) {
+      enabled = true;
+      window.addEventListener("keydown", onKeyDown, true);
+    }
+    panel.hidden = false;
+    report("调试工具已开启。关闭面板后可再次输入 dev 唤出。");
+    return "Gleanings 调试工具已开启";
+  };
+
+  activeDebugActivator = enable;
+  if (debugWasRequested()) {
+    enable();
+  }
+
+  close.addEventListener("click", () => {
+    panel.hidden = true;
+  });
   nextStage.addEventListener("click", advance);
   allBadges.addEventListener("click", () => grant("badge"));
   allItems.addEventListener("click", () => grant("item"));
-  window.addEventListener("keydown", onKeyDown, true);
 
   const cleanup = () => {
     window.removeEventListener("keydown", onKeyDown, true);
+    if (activeDebugActivator === enable) {
+      activeDebugActivator = null;
+    }
     panel.remove();
     styles.remove();
   };

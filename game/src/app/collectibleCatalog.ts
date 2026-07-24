@@ -333,22 +333,20 @@ export function loadCollectedItems(
   );
   stringArray(chapterTwo?.relics).forEach(unlock);
 
-  if (import.meta.env.DEV) {
-    const debugKinds = readValue(
-      storage,
-      DEBUG_COLLECTIBLES_STORAGE_KEY
+  const debugKinds = readValue(
+    storage,
+    DEBUG_COLLECTIBLES_STORAGE_KEY
+  );
+  if (Array.isArray(debugKinds)) {
+    const kinds = new Set(
+      debugKinds.filter(
+        (kind): kind is DebugCollectibleKind =>
+          kind === "badge" || kind === "item"
+      )
     );
-    if (Array.isArray(debugKinds)) {
-      const kinds = new Set(
-        debugKinds.filter(
-          (kind): kind is DebugCollectibleKind =>
-            kind === "badge" || kind === "item"
-        )
-      );
-      for (const definition of COLLECTIBLE_CATALOG) {
-        if (kinds.has(definition.kind)) {
-          unlocked.add(definition.id);
-        }
+    for (const definition of COLLECTIBLE_CATALOG) {
+      if (kinds.has(definition.kind)) {
+        unlocked.add(definition.id);
       }
     }
   }
