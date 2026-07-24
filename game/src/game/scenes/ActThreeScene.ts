@@ -364,6 +364,13 @@ export class ActThreeScene extends Phaser.Scene {
       this.dialogue.play(act3Dialogue(target.dialogueGroup));
       return;
     }
+    if (target.id === "cooked_noodles") {
+      this.dispatch({ type: "ACT3_PICK_UP_NOODLES" });
+      this.cookedBowl.setVisible(false);
+      this.hud.showToast("已经端起热面线");
+      this.dialogue.play(act3Dialogue(target.dialogueGroup));
+      return;
+    }
 
     this.dialogue.play(act3Dialogue(target.dialogueGroup), () => {
       if (target.material !== undefined) {
@@ -380,10 +387,6 @@ export class ActThreeScene extends Phaser.Scene {
       if (target.id === "stove") {
         this.cookedBowl.setVisible(true);
         this.hud.showToast("老酒面线煮好了");
-      }
-      if (target.id === "cooked_noodles") {
-        this.cookedBowl.setVisible(false);
-        this.hud.showToast("已经端起热面线");
       }
       if (target.id === "azhen") {
         this.cookedBowl.setVisible(false);

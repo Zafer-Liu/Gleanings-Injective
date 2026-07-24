@@ -178,11 +178,29 @@ test.describe("第一幕《开坛》", () => {
       "EXPLORE"
     );
 
-    await hold(page, "ArrowUp", 800);
-    await hold(page, "ArrowLeft", 500);
-    await hold(page, "ArrowUp", 400);
+    const exploreSave = await readSave(page);
+    expect(exploreSave).not.toBeNull();
+    if (exploreSave === null) {
+      throw new Error("探索阶段存档尚未写入");
+    }
+    await page.evaluate(
+      ({ key, save }) => {
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            ...save,
+            playerTile: { x: 7, y: 13 }
+          })
+        );
+      },
+      { key: SAVE_KEY, save: exploreSave }
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.locator("#game-root")).toHaveAttribute(
+      "data-active-scene",
+      "Apartment"
+    );
     await press(page, "ArrowLeft");
-    await page.waitForTimeout(250);
     await press(page, "e");
     await press(page, "e");
     await expect.poll(async () => (await readSave(page))?.phase).toBe(

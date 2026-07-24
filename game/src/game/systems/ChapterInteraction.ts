@@ -12,7 +12,8 @@ const FACING_VECTOR: Record<Facing, TilePosition> = {
 function forwardDistance(
   playerTile: TilePosition,
   facing: Facing,
-  targetTile: TilePosition
+  targetTile: TilePosition,
+  sidewaysRange: number
 ): number | null {
   const dx = targetTile.x - playerTile.x;
   const dy = targetTile.y - playerTile.y;
@@ -22,7 +23,7 @@ function forwardDistance(
   const vector = FACING_VECTOR[facing];
   const forward = dx * vector.x + dy * vector.y;
   const sideways = Math.abs(dx * vector.y - dy * vector.x);
-  return forward > 0 && sideways === 0 ? distance : null;
+  return forward > 0 && sideways <= sidewaysRange ? distance : null;
 }
 
 export function findChapterTarget(
@@ -40,7 +41,12 @@ export function findChapterTarget(
       )
       .map((item) => ({
         item,
-        distance: forwardDistance(playerTile, facing, item.tile)
+        distance: forwardDistance(
+          playerTile,
+          facing,
+          item.tile,
+          item.sidewaysRange ?? 0
+        )
       }))
       .filter(
         (
