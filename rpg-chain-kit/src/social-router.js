@@ -23,6 +23,12 @@ function visitMessage(value) {
   return message;
 }
 
+function tokenId(value) {
+  const id = String(value || '').trim();
+  if (!/^\d{1,78}$/.test(id)) throw new Error('展签藏品编号无效');
+  return id;
+}
+
 function mayWrite(req, owner, key) {
   const now = Date.now();
   const fingerprint = `${req.ip}:${owner.toLowerCase()}:${key}`;
@@ -49,6 +55,16 @@ export function createSocialRouter() {
     }
   });
 
+  router.get('/votes/:owner', async (req, res) => {
+    try {
+      const owner = ownerAddress(req.params.owner);
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({ votes: await store.listVotes(owner), persistent: store.persistent });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   router.post('/visits', async (req, res) => {
     try {
       const owner = ownerAddress(req.body?.owner_wallet);
@@ -60,6 +76,16 @@ export function createSocialRouter() {
       if (!seals.has(seal)) throw new Error('请选择有效的印记');
       const visit = await store.addVisit({ ownerWallet: owner, visitorKey: key, seal, message: visitMessage(req.body?.message) });
       res.status(201).json({ visit, persistent: store.persistent });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  router.post('/votes', async (req, res) => {
+    try {
+      const owner = ownerAddress(req.body?.owner_wallet);
+      const votes = await store.castVote({ ownerWallet: owner, visitorKey: visitorKey(req.body?.visitor_key), tokenId: tokenId(req.body?.token_id) });
+      res.json({ votes, persistent: store.persistent });
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
