@@ -53,6 +53,7 @@ const ACT3_PHASES: Act3Phase[] = [
   "COLLECT",
   "READY_TO_COOK",
   "COOKED",
+  "CARRYING",
   "INSCRIPTION",
   "COMPLETE"
 ];

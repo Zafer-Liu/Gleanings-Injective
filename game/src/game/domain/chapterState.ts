@@ -25,6 +25,7 @@ export type Act3Phase =
   | "COLLECT"
   | "READY_TO_COOK"
   | "COOKED"
+  | "CARRYING"
   | "INSCRIPTION"
   | "COMPLETE";
 

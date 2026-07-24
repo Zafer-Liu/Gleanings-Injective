@@ -21,6 +21,7 @@ export type ChapterEvent =
   | { type: "ACT3_TALK_FAMILY" }
   | { type: "ACT3_COLLECT_MATERIAL"; material: Act3Material }
   | { type: "ACT3_COOK" }
+  | { type: "ACT3_PICK_UP_NOODLES" }
   | { type: "ACT3_SERVE" }
   | {
       type: "ACT3_CHOOSE_INSCRIPTION";
@@ -201,12 +202,23 @@ export function reduceChapter(
             ...state,
             act3Phase: "COOKED",
             checkpoint: "act3_cooked",
+            inventory: without(state.inventory, [
+              "ingredient_bowl",
+              "ingredient_noodles",
+              "ingredient_laojiu"
+            ])
+          }
+        : state;
+
+    case "ACT3_PICK_UP_NOODLES":
+      return state.currentAct === 3 &&
+        state.act3Phase === "COOKED"
+        ? {
+            ...state,
+            act3Phase: "CARRYING",
+            checkpoint: "act3_carrying",
             inventory: appendUnique(
-              without(state.inventory, [
-                "ingredient_bowl",
-                "ingredient_noodles",
-                "ingredient_laojiu"
-              ]),
+              state.inventory,
               "item_cooked_noodles"
             )
           }
@@ -214,7 +226,7 @@ export function reduceChapter(
 
     case "ACT3_SERVE":
       return state.currentAct === 3 &&
-        state.act3Phase === "COOKED"
+        state.act3Phase === "CARRYING"
         ? {
             ...state,
             act3Phase: "INSCRIPTION",

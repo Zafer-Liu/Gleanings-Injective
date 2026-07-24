@@ -15,7 +15,8 @@ const QUEST_BY_PHASE: Record<Act3Phase, string> = {
   ARRIVE: "act3_talk_family",
   COLLECT: "act3_collect",
   READY_TO_COOK: "act3_cook",
-  COOKED: "act3_serve",
+  COOKED: "act3_pickup",
+  CARRYING: "act3_serve",
   INSCRIPTION: "act3_inscription",
   COMPLETE: "act3_complete"
 };
@@ -40,6 +41,8 @@ export function act3TargetId(
     case "READY_TO_COOK":
       return "stove";
     case "COOKED":
+      return "cooked_noodles";
+    case "CARRYING":
       return "azhen";
     case "INSCRIPTION":
     case "COMPLETE":

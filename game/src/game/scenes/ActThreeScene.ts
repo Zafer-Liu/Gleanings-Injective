@@ -236,11 +236,7 @@ export class ActThreeScene extends Phaser.Scene {
       .image(pixel.x + 12, pixel.y - 20, "obj-cooked-noodles")
       .setDisplaySize(30, 30)
       .setDepth(pixel.y)
-      .setVisible(
-        this.state.act3Phase === "COOKED" ||
-          this.state.act3Phase === "INSCRIPTION" ||
-          this.state.act3Phase === "COMPLETE"
-      );
+      .setVisible(this.state.act3Phase === "COOKED");
   }
 
   private configureInput(): void {
@@ -384,6 +380,10 @@ export class ActThreeScene extends Phaser.Scene {
         this.cookedBowl.setVisible(true);
         this.hud.showToast("老酒面线煮好了");
       }
+      if (target.id === "cooked_noodles") {
+        this.cookedBowl.setVisible(false);
+        this.hud.showToast("已经端起热面线");
+      }
       if (target.id === "azhen") {
         this.cookedBowl.setVisible(false);
         this.choices.open(
@@ -404,6 +404,8 @@ export class ActThreeScene extends Phaser.Scene {
         return { type: "ACT3_TALK_FAMILY" };
       case "stove":
         return { type: "ACT3_COOK" };
+      case "cooked_noodles":
+        return { type: "ACT3_PICK_UP_NOODLES" };
       case "azhen":
         return { type: "ACT3_SERVE" };
       default:
