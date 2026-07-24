@@ -1,4 +1,8 @@
 import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
+import {
+  DEBUG_COLLECTIBLES_STORAGE_KEY,
+  type DebugCollectibleKind
+} from "../game/debug/debugCollectibles";
 
 const badgeImage = (filename: string) =>
   `/collection/badges/${filename}`;
@@ -328,6 +332,26 @@ export function loadCollectedItems(
     "gleanings.chapter-two.save.v1"
   );
   stringArray(chapterTwo?.relics).forEach(unlock);
+
+  if (import.meta.env.DEV) {
+    const debugKinds = readValue(
+      storage,
+      DEBUG_COLLECTIBLES_STORAGE_KEY
+    );
+    if (Array.isArray(debugKinds)) {
+      const kinds = new Set(
+        debugKinds.filter(
+          (kind): kind is DebugCollectibleKind =>
+            kind === "badge" || kind === "item"
+        )
+      );
+      for (const definition of COLLECTIBLE_CATALOG) {
+        if (kinds.has(definition.kind)) {
+          unlocked.add(definition.id);
+        }
+      }
+    }
+  }
 
   return COLLECTIBLE_CATALOG
     .filter((definition) => unlocked.has(definition.id))
