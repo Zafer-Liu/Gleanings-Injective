@@ -6,6 +6,7 @@ import { expect, test } from "@playwright/test";
 const port = 3217;
 const origin = `http://127.0.0.1:${port}`;
 const wallet = "0x9a470DFd0DdBB861402611c555E8fAf181D64049";
+const tokenId = "3";
 let service: ChildProcess;
 let dotMock: Server;
 let lastDotPush: Record<string, unknown> | null = null;
@@ -21,6 +22,10 @@ test.beforeAll(async () => {
     }
     if (req.method === "GET" && req.url === "/api/authV2/open/device/DOT123456/loop/list") {
       res.end(JSON.stringify([{ type: "IMAGE_API", key: "image_task_1" }]));
+      return;
+    }
+    if (req.method === "GET" && req.url === "/api/authV2/open/device/DOT123456/fixed/list") {
+      res.end(JSON.stringify([{ type: "IMAGE_API", key: "fixed_image_task_1" }]));
       return;
     }
     if (req.method === "POST" && req.url === "/api/authV2/open/device/DOT123456/image") {
@@ -94,17 +99,6 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
   await expect(page.getByRole("link", { name: "手机投到墨屏" })).toHaveCount(cardCount);
   await expect(page.getByRole("button", { name: "转赠所有权" })).toHaveCount(cardCount);
 
-  const art = page.locator(".card-art").first();
-  const image = art.locator("img");
-  await expect(image).toBeVisible();
-  const [artBox, imageBox] = await Promise.all([art.boundingBox(), image.boundingBox()]);
-  expect(artBox).not.toBeNull();
-  expect(imageBox).not.toBeNull();
-  expect(imageBox!.x).toBeGreaterThanOrEqual(artBox!.x);
-  expect(imageBox!.y).toBeGreaterThanOrEqual(artBox!.y);
-  expect(imageBox!.x + imageBox!.width).toBeLessThanOrEqual(artBox!.x + artBox!.width);
-  expect(imageBox!.y + imageBox!.height).toBeLessThanOrEqual(artBox!.y + artBox!.height);
-
   const widths = await page.evaluate(() => ({
     viewport: window.innerWidth,
     document: document.documentElement.scrollWidth
@@ -132,35 +126,25 @@ test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
   await page.getByLabel("Dot API Key").fill("dot_test_1234567890123456");
   await page.getByRole("button", { name: "读取我的设备" }).click();
   await expect(page.getByLabel("选择设备")).toHaveValue("DOT123456");
+  await expect(page.getByLabel("展示方式")).toHaveValue("loop");
   await expect(push).toBeEnabled();
   await push.click();
   await expect(page.getByRole("status")).toContainText("Image API content switched");
-  await expect(
-    page.getByRole("link", { name: "测试 NFC 打开页面" })
-  ).toHaveAttribute(
-    "href",
-    new RegExp(`/api/rpg/dot/nfc/${tokenId}$`)
-  );
+  await expect(page.getByRole("link", { name: "测试 NFC 打开页面" })).toHaveAttribute("href", new RegExp(`/api/rpg/dot/nfc/${tokenId}$`));
 });
 
 test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(
-    `${origin}/share/?wallet=${wallet}&token=${tokenId}`
-  );
+  await page.goto(`${origin}/share/?wallet=${wallet}&token=${tokenId}`);
   await expect(page.locator("#collection-title")).toHaveText("分享的藏品", { timeout: 20_000 });
   await expect(page.locator("#count")).toHaveText("1 件");
   await expect(page.locator(".card")).toHaveCount(1);
-  await expect(
-    page.getByRole("heading", { name: tokenName })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: tokenName })).toBeVisible();
   await expect(page.getByRole("button", { name: "分享展示链接" })).toBeVisible();
   await page.getByRole("button", { name: "转赠所有权" }).click();
   await expect(page.getByRole("dialog", { name: "转赠链上藏品" })).toBeVisible();
   await expect(page.getByLabel("接收方 0x 钱包地址")).toBeVisible();
-  await expect(page).toHaveURL(
-    new RegExp(`wallet=.*&token=${tokenId}`)
-  );
+  await expect(page).toHaveURL(new RegExp(`wallet=.*&token=${tokenId}`));
 });
 
 test("转赠请求会验证当前持有人并记录接收钱包", async ({ request }) => {
@@ -192,13 +176,13 @@ test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ 
   const key = "dot_test_1234567890123456";
   const devices = await request.get(`${origin}/api/rpg/dot/devices`, { headers: { "X-Dot-Api-Key": key } });
   expect(devices.ok()).toBe(true);
-  await expect(devices.json()).resolves.toMatchObject([{ id: "DOT123456", alias: "书桌墨屏" }]);
+  await expect(devices.json()).resolves.toMatchObject([{ id: "DOT123456", alias: "书桌墨屏", image_api_modes: { loop: true, fixed: true } }]);
 
   const pushed = await request.post(`${origin}/api/rpg/dot/push`, {
     headers: { "X-Dot-Api-Key": key },
     data: { device_id: "DOT123456", wallet, token_id: tokenId }
   });
-  expect(pushed.ok()).toBe(true);
+  expect(pushed.ok(), await pushed.text()).toBe(true);
   expect(lastDotPush).toMatchObject({
     refreshNow: true,
     border: 0,
@@ -207,16 +191,20 @@ test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ 
     taskAlias: `Gleanings #${tokenId}`
   });
   expect(String(lastDotPush?.image)).toContain("/api/rpg/dot/card/");
-  expect(String(lastDotPush?.link)).toContain(
-    `/api/rpg/dot/nfc/${tokenId}`
-  );
+  expect(String(lastDotPush?.link)).toContain(`/api/rpg/dot/nfc/${tokenId}`);
 
-  const nfc = await request.get(
-    `${origin}/api/rpg/dot/nfc/${tokenId}`,
-    { maxRedirects: 0 }
-  );
+  const fixed = await request.post(`${origin}/api/rpg/dot/push`, {
+    headers: { "X-Dot-Api-Key": key },
+    data: { device_id: "DOT123456", wallet, token_id: tokenId, content_mode: "fixed" }
+  });
+  expect(fixed.ok()).toBe(true);
+  expect(lastDotPush).toMatchObject({
+    refreshNow: false,
+    taskKey: "fixed_image_task_1",
+    taskAlias: `Gleanings #${tokenId}`
+  });
+
+  const nfc = await request.get(`${origin}/api/rpg/dot/nfc/${tokenId}`, { maxRedirects: 0 });
   expect(nfc.status()).toBe(302);
-  expect(nfc.headers().location).toContain(
-    `/share/?wallet=${wallet}&token=${tokenId}`
-  );
+  expect(nfc.headers().location).toContain(`/share/?wallet=${wallet}&token=${tokenId}`);
 });

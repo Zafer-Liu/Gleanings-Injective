@@ -253,19 +253,21 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 - Image API 的 `link` 使用短地址 `/api/rpg/dot/nfc/<token>`；轻触后服务端实时查询 `ownerOf` 并跳转至当前持有人的单件藏品页，因此 Token 转赠后 NFC 不会停留在旧钱包；
 - Quote/0 的 NFC 会先进入 Dot App，访客需要由设备主人通过“添加共享”授予设备权限；展签同时内置公开藏品二维码，未共享设备权限的访客可直接扫码查看；
 - 推送前再次调用合约 `ownerOf`，已转赠的 Token 不会继续以旧持有人身份生成展签。
-- 读取设备时会同时查询 Loop 内容列表；只有包含 `IMAGE_API` 的设备才启用发送按钮，并自动把对应内容 `key` 作为 `taskKey` 推送，避免多内容设备更新错位。
+- 读取设备时会同时查询 Loop 与 Fixed 内容列表。页面会按可用任务显示两种展示方式：**循环展示**使用 Loop 的 `IMAGE_API`，推送后立即切换；**固定时段展示**使用 Fixed 的 `IMAGE_API`，推送后等待 Dot App 设定的时间段自动展示，不会打断正在轮播的内容；
+- 两种方式都使用官方 Image API 的同一图片推送端点，但根据所选任务自动填写对应 `taskKey`；固定时段模式使用 `refreshNow: false`，以保留 Dot App 的排期控制。
 
 玩家需要先在 Dot App：
 
-1. 在 Content Studio 的 Loop 任务中加入 **Image API** 内容；
-2. 在“更多 → API Key”创建个人 Key；
-3. 在 `/dot/` 页面输入 Key，读取设备并选择推送。
+1. 如需立即轮播，在 Content Studio 的 **Loop** 任务中加入 **Image API** 内容；
+2. 如需定时展示，在 Content Studio 的 **Fixed** 内容中加入 **Image API**，并在 Dot App 设置展示时段；
+3. 在“更多 → API Key”创建个人 Key；
+4. 在 `/dot/` 页面输入 Key，读取设备、选择展示方式并推送。
 
 API Key 不写入项目环境变量、数据库或日志，只保存在当前标签页的 `sessionStorage`，并通过 HTTPS 请求头临时发送给 Railway 后端，由后端转发至固定的 `https://dot.mindreset.tech` 官方域名。用户可随时点击“清除 Key”。
 
 推送完成后页面会显示“测试 NFC 打开页面”。该链接用于验证重定向是否正常；物理 NFC 需要安装 Dot App，并用支持 NFC 的手机轻触 Quote/0 右侧空白区域。
 
-官方资料：[Image API](https://dot.mindreset.tech/docs/service/open/image_api) ｜ [获取 API Key](https://dot.mindreset.tech/docs/service/open/get_api) ｜ [获取设备列表](https://dot.mindreset.tech/docs/service/open/list_devices_api)
+官方资料：[Image API](https://dot.mindreset.tech/docs/service/open/image_api) ｜ [固定内容](https://dot.mindreset.tech/docs/quote_0/start/content_mode/fixed) ｜ [获取 API Key](https://dot.mindreset.tech/docs/service/open/get_api) ｜ [获取设备列表](https://dot.mindreset.tech/docs/service/open/list_devices_api)
 
 ---
 
@@ -278,7 +280,7 @@ API Key 不写入项目环境变量、数据库或日志，只保存在当前标
 | metadata 图片暂用 Railway URL | 演示环境便于直接显示 | 正式发行迁移 IPFS，避免域名变化影响图片 |
 | 分享页读取公开资产 | 适合社交展示 | 增加昵称、封面、单张藏品 permalink 与 Open Graph 卡片 |
 | 铸造开放给连接钱包的玩家 | 演示期降低流程复杂度 | 接入游戏通关验证或后端签名 voucher 防滥铸 |
-| Dot. 推送需要玩家自己的设备和 API Key | 官方 API 的设备权限要求 | 演示时准备已联网设备，并预先把 Image API 加入 Loop 任务 |
+| Dot. 推送需要玩家自己的设备和 API Key | 官方 API 的设备权限要求 | 演示时准备已联网设备，并预先把 Image API 加入 Loop 或 Fixed 任务；Fixed 还需在 Dot App 配置时段 |
 
 ---
 
