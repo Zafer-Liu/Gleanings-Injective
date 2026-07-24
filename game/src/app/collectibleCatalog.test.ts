@@ -121,8 +121,9 @@ describe("collectible catalog", () => {
       expect(badge.name.en).toMatch(/[A-Za-z]/);
       expect(badge.i18nKey).toMatch(/^collectibles\.badges\./);
       expect(badge.image).toMatch(
-        /(?:\.svg(?:\?|$)|^data:image\/svg\+xml,)/
+        /^\/collection\/badges\/[a-z0-9-]+\.png$/
       );
+      expect(badge.image).not.toContain("/ink/");
     }
     expect(BADGE_CATALOG.at(3)?.name).toEqual({
       zh: "福建老酒",

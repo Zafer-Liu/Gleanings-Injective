@@ -1,7 +1,7 @@
 import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
 
-const inkBadgeImage = (filename: string) =>
-  `/collection/ink/${filename}`;
+const badgeImage = (filename: string) =>
+  `/collection/badges/${filename}`;
 
 export type CollectibleKind = "item" | "badge";
 export type CollectibleFilter = "all" | CollectibleKind;
@@ -90,7 +90,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第一章 / 开坛",
       en: "Gleanings · Chapter One / Opening the Jar"
     },
-    image: inkBadgeImage("winter-brew-seal.svg")
+    image: badgeImage("winter-brew-seal.png")
   },
   {
     id: "badge_ch1_red_koji_trace",
@@ -110,7 +110,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第一章 / 冬酿坊",
       en: "Gleanings · Chapter One / Winter Brewery"
     },
-    image: inkBadgeImage("red-koji-trace.svg")
+    image: badgeImage("red-koji-trace.png")
   },
   {
     id: "badge_ch1_warm_wine_cup",
@@ -130,7 +130,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第一章 / 家宴",
       en: "Gleanings · Chapter One / Family Banquet"
     },
-    image: inkBadgeImage("warm-wine-cup.svg")
+    image: badgeImage("warm-wine-cup.png")
   },
   {
     id: "badge_ch1_fujian_aged_rice_wine",
@@ -149,7 +149,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第一章 / 一坛回声",
       en: "Gleanings · Chapter One / Echoes of a Jar"
     },
-    image: inkBadgeImage("fujian-aged-rice-wine.svg")
+    image: badgeImage("fujian-aged-rice-wine.png")
   },
   {
     id: "badge_ch2_old_tea_scoop",
@@ -165,7 +165,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第二章 / 旧茶市场",
       en: "Gleanings · Chapter Two / Old Tea Market"
     },
-    image: inkBadgeImage("old-tea-scoop.svg")
+    image: badgeImage("old-tea-scoop.png")
   },
   {
     id: "badge_ch2_qingming_bud",
@@ -181,7 +181,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第二章 / 清明茶园",
       en: "Gleanings · Chapter Two / Qingming Tea Garden"
     },
-    image: inkBadgeImage("qingming-bud.svg")
+    image: badgeImage("qingming-bud.png")
   },
   {
     id: "badge_ch2_hand_fire_mark",
@@ -197,7 +197,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第二章 / 炒茶工坊",
       en: "Gleanings · Chapter Two / Tea Firing Workshop"
     },
-    image: inkBadgeImage("hand-fire-mark.svg")
+    image: badgeImage("hand-fire-mark.png")
   },
   {
     id: "badge_ch2_west_lake_longjing",
@@ -216,7 +216,7 @@ export const BADGE_CATALOG: readonly CollectibleDefinition[] = [
       zh: "《拾遗》· 第二章 / 名字的重量",
       en: "Gleanings · Chapter Two / The Weight of a Name"
     },
-    image: inkBadgeImage("west-lake-longjing-tea.svg")
+    image: badgeImage("west-lake-longjing-tea.png")
   }
 ];
 

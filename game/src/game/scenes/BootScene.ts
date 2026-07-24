@@ -5,6 +5,7 @@ import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { SaveService } from "../systems/SaveService";
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
+import { LONGJING_WORLD_ASSETS } from "../render/LongjingWorldRenderer";
 
 type FailedFile = {
   key?: string;
@@ -130,6 +131,9 @@ export class BootScene extends Phaser.Scene {
       "item-blue-white-cup",
       "/items/it_blue_white_cup_128x128.png"
     );
+    Object.values(LONGJING_WORLD_ASSETS).forEach((asset) => {
+      this.load.image(asset.key, asset.path);
+    });
   }
 
   create(): void {
