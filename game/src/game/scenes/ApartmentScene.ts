@@ -33,6 +33,7 @@ import { ChoicePanel } from "../ui/ChoicePanel";
 import { DialogueBox } from "../ui/DialogueBox";
 import { InventoryPanel } from "../ui/InventoryPanel";
 import { PixelHud } from "../ui/PixelHud";
+import { QuestMarker } from "../ui/QuestMarker";
 
 type CommandKeys = {
   interact: Phaser.Input.Keyboard.Key;
@@ -69,7 +70,7 @@ export class ApartmentScene extends Phaser.Scene {
   private dialogue!: DialogueBox;
   private inventoryPanel!: InventoryPanel;
   private choicePanel!: ChoicePanel;
-  private questMarker!: Phaser.GameObjects.Container;
+  private questMarker!: QuestMarker;
   private jarSprite?: Phaser.GameObjects.Image;
   private holdElapsed = 0;
   private lastProgressAt = 0;
@@ -235,34 +236,14 @@ export class ApartmentScene extends Phaser.Scene {
   }
 
   private createQuestMarker(): void {
-    const arrow = this.add
-      .text(0, 0, "▼", {
-        fontFamily: '"Cascadia Mono", Consolas, monospace',
-        fontSize: "18px",
-        color: "#F4C45E",
-        stroke: "#211A17",
-        strokeThickness: 4
-      })
-      .setOrigin(0.5, 1);
-    this.questMarker = this.add
-      .container(0, 0, [arrow])
-      .setDepth(9_500);
-
-    this.tweens.add({
-      targets: arrow,
-      y: "-=5",
-      duration: 420,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut"
-    });
+    this.questMarker = new QuestMarker(this);
     this.refreshQuestMarker();
   }
 
   private refreshQuestMarker(): void {
     const target = questMarkerTargetForPhase(this.state.phase);
     if (target === null) {
-      this.questMarker.setVisible(false);
+      this.questMarker.setTarget(null);
       return;
     }
 
@@ -270,9 +251,10 @@ export class ApartmentScene extends Phaser.Scene {
       target.tile,
       act1Content.map.tileSize
     );
-    this.questMarker
-      .setPosition(position.x, position.y + target.offsetY)
-      .setVisible(true);
+    this.questMarker.setTarget({
+      x: position.x,
+      y: position.y + target.offsetY
+    });
   }
 
   private createMiaIfNeeded(): void {

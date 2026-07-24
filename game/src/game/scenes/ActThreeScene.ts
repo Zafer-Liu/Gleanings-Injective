@@ -33,6 +33,7 @@ import { ChapterChoicePanel } from "../ui/ChapterChoicePanel";
 import { ChapterHud } from "../ui/ChapterHud";
 import { ChapterInventoryPanel } from "../ui/ChapterInventoryPanel";
 import { DialogueBox } from "../ui/DialogueBox";
+import { QuestMarker } from "../ui/QuestMarker";
 import { RelicPanel } from "../ui/RelicPanel";
 
 type CommandKeys = {
@@ -60,7 +61,7 @@ export class ActThreeScene extends Phaser.Scene {
   private choices!: ChapterChoicePanel<Act3Inscription>;
   private inventoryPanel!: ChapterInventoryPanel;
   private relic!: RelicPanel;
-  private questMarker!: Phaser.GameObjects.Container;
+  private questMarker!: QuestMarker;
   private cookedBowl!: Phaser.GameObjects.Image;
   private readonly materialSprites = new Map<
     Act3Material,
@@ -432,26 +433,7 @@ export class ActThreeScene extends Phaser.Scene {
   }
 
   private createQuestMarker(): void {
-    const arrow = this.add
-      .text(0, 0, "▼", {
-        fontFamily: '"Cascadia Mono", Consolas, monospace',
-        fontSize: "18px",
-        color: "#F4C45E",
-        stroke: "#211A17",
-        strokeThickness: 4
-      })
-      .setOrigin(0.5, 1);
-    this.questMarker = this.add
-      .container(0, 0, [arrow])
-      .setDepth(9_500);
-    this.tweens.add({
-      targets: arrow,
-      y: "-=5",
-      duration: 420,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut"
-    });
+    this.questMarker = new QuestMarker(this);
   }
 
   private refreshQuestMarker(): void {
@@ -463,16 +445,17 @@ export class ActThreeScene extends Phaser.Scene {
       (item) => item.id === targetId
     );
     if (target === undefined) {
-      this.questMarker.setVisible(false);
+      this.questMarker.setTarget(null);
       return;
     }
     const pixel = tileToPixelCenter(
       target.tile,
       act3Content.map.tileSize
     );
-    this.questMarker
-      .setPosition(pixel.x, pixel.y - 46)
-      .setVisible(true);
+    this.questMarker.setTarget({
+      x: pixel.x,
+      y: pixel.y - 46
+    });
   }
 
   private createForegroundOccluders(
