@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { ethers } from 'ethers';
 import opentype from 'opentype.js';
+import QRCode from 'qrcode';
 import sharp from 'sharp';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -95,9 +96,16 @@ function textPath(text, x, baseline, size, bold = false) {
   return `<path d="${pathData}" fill="#000"${bold ? ' stroke="#000" stroke-width=".25"' : ''}/>`;
 }
 
-async function renderCard(asset) {
+async function renderCard(asset, publicLink) {
   const [titleOne, titleTwo = ''] = displayLines(asset.item, asset.tokenId);
   const shortWallet = `${asset.wallet.slice(0, 6)}...${asset.wallet.slice(-4)}`;
+  const qrCode = await QRCode.toBuffer(publicLink, {
+    type: 'png',
+    errorCorrectionLevel: 'L',
+    margin: 1,
+    width: 62,
+    color: { dark: '#000000', light: '#ffffff' }
+  });
   const svg = Buffer.from(`<svg width="296" height="152" viewBox="0 0 296 152" xmlns="http://www.w3.org/2000/svg">
     <rect width="296" height="152" fill="#fff"/>
     <rect x="1" y="1" width="294" height="150" fill="none" stroke="#000" stroke-width="2"/>
@@ -110,9 +118,9 @@ async function renderCard(asset) {
     ${textPath(`链上编号 #${asset.tokenId}`, 158, 106, 9)}
     ${textPath(shortWallet, 158, 121, 8)}
     <rect x="158" y="130" width="8" height="8" fill="#000"/>
-    ${textPath('轻触查看', 172, 138, 9)}
+    ${textPath('扫码查看', 172, 138, 9)}
   </svg>`);
-  const composites = [{ input: svg, top: 0, left: 0 }];
+  const composites = [{ input: svg, top: 0, left: 0 }, { input: qrCode, top: 82, left: 226 }];
   const source = artPath(asset.item);
   if (source && fs.existsSync(source)) {
     const art = await sharp(source).resize(132, 132, { fit: 'contain', background: '#ffffff' }).grayscale().normalize().threshold(178).png().toBuffer();
@@ -148,7 +156,10 @@ export function createDotRouter() {
 
   router.get('/card/:wallet/:tokenId.png', async (req, res) => {
     try {
-      const card = await renderCard(await ownedAsset(req.params.wallet, req.params.tokenId));
+      const asset = await ownedAsset(req.params.wallet, req.params.tokenId);
+      const publicOrigin = (process.env.PUBLIC_SHARE_ORIGIN || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+      const publicLink = `${publicOrigin}/api/rpg/dot/nfc/${encodeURIComponent(asset.tokenId)}`;
+      const card = await renderCard(asset, publicLink);
       res.setHeader('Content-Type', 'image/png');
       res.setHeader('Cache-Control', 'no-store');
       res.send(card);

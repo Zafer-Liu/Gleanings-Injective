@@ -42,9 +42,33 @@ describe("ApartmentRenderer geometry", () => {
     );
 
     expect(geometry.interactables.find((item) => item.id === "obj_cardboard_box"))
-      .toMatchObject({ x: 208, y: 432 });
+      .toMatchObject({ x: 208, y: 400 });
     expect(geometry.interactables.find((item) => item.id === "obj_laojiu_jar"))
       .toMatchObject({ x: 848, y: 304 });
+  });
+
+  it("keeps box faces as depth-sorted foreground occluders", () => {
+    const geometry = buildApartmentGeometry(
+      act1Content.map,
+      act1Content.interactables
+    );
+
+    expect(geometry.occluders).toContainEqual({
+      id: "boxes_left_occluder",
+      x: 56,
+      y: 384,
+      width: 72,
+      height: 128,
+      depth: 512
+    });
+    expect(geometry.occluders).toContainEqual({
+      id: "parcel_occluder",
+      x: 208,
+      y: 448,
+      width: 56,
+      height: 88,
+      depth: 536
+    });
   });
 
   it("rounds camera and actor coordinates to whole pixels", () => {
@@ -56,9 +80,11 @@ describe("ApartmentRenderer geometry", () => {
 
   it.each([
     [620, 224],
-    [456, 368]
+    [456, 368],
+    [200, 340],
+    [212, 400]
   ])(
-    "keeps visible floor at pixel (%i, %i) walkable",
+    "keeps visible floor around the box pile walkable at pixel (%i, %i)",
     (x, y) => {
       expect(collisionAt(x, y)).toBeNull();
     }
@@ -67,7 +93,13 @@ describe("ApartmentRenderer geometry", () => {
   it.each([
     [144, 208, "desk_collision"],
     [276, 272, "sofa_collision"],
-    [212, 400, "boxes_collision"],
+    [88, 340, "boxes_upper_left_collision"],
+    [136, 352, "boxes_upper_center_collision"],
+    [160, 368, "boxes_upper_right_collision"],
+    [88, 448, "boxes_left_collision"],
+    [144, 400, "boxes_center_collision"],
+    [150, 460, "boxes_red_collision"],
+    [192, 420, "boxes_right_collision"],
     [240, 496, "parcel_collision"],
     [720, 272, "kitchen_island_collision"],
     [850, 304, "jar_collision"],

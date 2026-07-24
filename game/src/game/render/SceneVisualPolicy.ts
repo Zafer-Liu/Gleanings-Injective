@@ -46,7 +46,7 @@ export function questMarkerTargetForPhase(
   if (phase === "EXPLORE") {
     return {
       objectId: "obj_cardboard_box",
-      tile: { x: 6, y: 13 },
+      tile: { x: 4, y: 13 },
       offsetY: -44
     };
   }

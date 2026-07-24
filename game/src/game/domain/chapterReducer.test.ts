@@ -211,7 +211,7 @@ describe("chapter one v2 progression", () => {
       type: "ACT4_RETRY_LABEL"
     });
     state = reduceChapter(state, { type: "ACT4_ACCEPT_LABEL" });
-    state = reduceChapter(state, { type: "ACT4_DEMO_MINT" });
+    state = reduceChapter(state, { type: "ACT4_SAVE_LABEL" });
 
     expect(secondRetry).toBe(retried);
     expect(secondRetry.labelTemplate).toBe(1);

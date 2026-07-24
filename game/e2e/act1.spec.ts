@@ -67,6 +67,83 @@ test.describe("第一幕《开坛》", () => {
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(1280);
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(720);
     await expect(page.getByRole("button", { name: "关闭连接钱包" })).toBeVisible();
+  test("箱堆上方的通道不会被整块包围盒挡住", async ({ page }) => {
+    test.setTimeout(60_000);
+    const checkpoint: BrowserSave = {
+      version: 1,
+      phase: "ARRIVE",
+      questId: "act1_move",
+      inventory: [],
+      inspectedObjects: [],
+      senseChoice: null,
+      playerTile: { x: 6, y: 9 },
+      movementLocked: false,
+      act1Complete: false,
+      movedTiles: 2
+    };
+
+    await page.goto("/");
+    await page.evaluate(
+      ({ key, save }) => {
+        window.localStorage.clear();
+        window.localStorage.setItem(key, JSON.stringify(save));
+      },
+      { key: SAVE_KEY, save: checkpoint }
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.locator("canvas")).toBeVisible();
+    await expect(page.locator("#game-root")).toHaveAttribute(
+      "data-active-scene",
+      "Apartment"
+    );
+
+    await press(page, "e");
+    await press(page, "e");
+    await hold(page, "ArrowDown", 600);
+
+    await expect.poll(async () => (await readSave(page))?.phase).toBe(
+      "EXPLORE"
+    );
+    await expect
+      .poll(async () => (await readSave(page))?.playerTile.y)
+      .toBeGreaterThanOrEqual(10);
+  });
+
+  test("纸箱事件可以从扩大后的下方相邻区域触发", async ({ page }) => {
+    const checkpoint: BrowserSave = {
+      version: 1,
+      phase: "EXPLORE",
+      questId: "act1_find_box",
+      inventory: [],
+      inspectedObjects: [],
+      senseChoice: null,
+      playerTile: { x: 7, y: 13 },
+      movementLocked: false,
+      act1Complete: false,
+      movedTiles: 3
+    };
+
+    await page.goto("/");
+    await page.evaluate(
+      ({ key, save }) => {
+        window.localStorage.clear();
+        window.localStorage.setItem(key, JSON.stringify(save));
+      },
+      { key: SAVE_KEY, save: checkpoint }
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.locator("#game-root")).toHaveAttribute(
+      "data-active-scene",
+      "Apartment"
+    );
+
+    await press(page, "ArrowLeft");
+    await press(page, "e");
+    await press(page, "e");
+
+    await expect.poll(async () => (await readSave(page))?.phase).toBe(
+      "NOTE_ACQUIRED"
+    );
   });
 
   test("收藏馆可以打开物品闪卡并翻面阅读介绍", async ({ page }) => {
@@ -85,7 +162,10 @@ test.describe("第一幕《开坛》", () => {
 
     await page.goto("/");
     await page.evaluate(
-      ({ key, save }) => window.localStorage.setItem(key, JSON.stringify(save)),
+      ({ key, save }) => {
+        window.localStorage.clear();
+        window.localStorage.setItem(key, JSON.stringify(save));
+      },
       { key: SAVE_KEY, save: checkpoint }
     );
     await page.reload({ waitUntil: "networkidle" });
@@ -95,8 +175,14 @@ test.describe("第一幕《开坛》", () => {
     await expect(page.getByRole("img", { name: "太婆字条" })).toBeVisible();
     await page.getByRole("button", { name: "翻转太婆字条藏品卡" }).click();
     await page.waitForTimeout(300);
-    await expect(page.locator(".flashcard__back").getByText("太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。")).toBeVisible();
-    await expect(page.getByRole("button", { name: "分享展示链接" })).toBeVisible();
+    await expect(
+      page
+        .locator(".flashcard__back")
+        .getByText("太婆留在纸箱里的字条，是通往冬酿记忆的第一把钥匙。")
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "分享展示链接" })
+    ).toBeVisible();
   });
 
   test("从公寓醒来走完整个揭坛流程，并能刷新恢复与重新体验", async ({
@@ -110,13 +196,15 @@ test.describe("第一幕《开坛》", () => {
 
     await press(page, "e");
     await press(page, "e");
-    await hold(page, "ArrowLeft", 2_450);
+    await hold(page, "ArrowLeft", 2_000);
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
       "EXPLORE"
     );
 
     await hold(page, "ArrowUp", 800);
     await hold(page, "ArrowLeft", 500);
+    await hold(page, "ArrowUp", 400);
+    await press(page, "ArrowLeft");
     await press(page, "e");
     await press(page, "e");
     await expect.poll(async () => (await readSave(page))?.phase).toBe(

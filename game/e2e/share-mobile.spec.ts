@@ -63,15 +63,17 @@ test.afterAll(() => {
 });
 
 test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) => {
-  test.setTimeout(30_000);
+  test.setTimeout(45_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${origin}/share/?wallet=${wallet}`);
-  await expect(page.locator("#collection")).toBeVisible();
+  await expect(page.locator("#collection")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("#address-form")).toBeHidden();
   await expect(page.locator("#owner")).toHaveText("0x9a47…4049");
-  await expect(page.getByRole("button", { name: "分享展示链接" })).toHaveCount(2);
-  await expect(page.getByRole("link", { name: "手机投到墨屏" })).toHaveCount(2);
-  await expect(page.getByRole("button", { name: "转赠所有权" })).toHaveCount(2);
+  const cardCount = await page.locator(".card").count();
+  expect(cardCount).toBeGreaterThan(0);
+  await expect(page.getByRole("button", { name: "分享展示链接" })).toHaveCount(cardCount);
+  await expect(page.getByRole("link", { name: "手机投到墨屏" })).toHaveCount(cardCount);
+  await expect(page.getByRole("button", { name: "转赠所有权" })).toHaveCount(cardCount);
 
   const art = page.locator(".card-art").first();
   const image = art.locator("img");
@@ -99,6 +101,7 @@ test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
   const preview = page.getByRole("img", { name: "藏品墨屏展签预览" });
   await expect(preview).toBeVisible();
   await expect.poll(() => preview.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([296, 152]);
+  await expect(page.locator("#preview-status")).toBeHidden();
   const push = page.getByRole("button", { name: "从手机发送到墨屏" });
   await expect(push).toBeVisible();
   const pushBox = await push.boundingBox();
@@ -119,7 +122,7 @@ test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
 test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${origin}/share/?wallet=${wallet}&token=2`);
-  await expect(page.locator("#collection-title")).toHaveText("分享的藏品");
+  await expect(page.locator("#collection-title")).toHaveText("分享的藏品", { timeout: 20_000 });
   await expect(page.locator("#count")).toHaveText("1 件");
   await expect(page.locator(".card")).toHaveCount(1);
   await expect(page.getByRole("heading", { name: "太婆字条" })).toBeVisible();

@@ -22,7 +22,7 @@ describe("SceneVisualPolicy", () => {
   });
 
   it.each([
-    ["EXPLORE", "obj_cardboard_box", { x: 6, y: 13 }, -44],
+    ["EXPLORE", "obj_cardboard_box", { x: 4, y: 13 }, -44],
     ["NOTE_READ", "obj_laojiu_jar", { x: 26, y: 8 }, -56],
     ["MIA_ENTERED", "obj_laojiu_jar", { x: 26, y: 8 }, -56],
     ["SENSE_CHOSEN", "obj_laojiu_jar", { x: 26, y: 8 }, -56]
