@@ -21,15 +21,6 @@ export type QuestMarkerTarget = {
   offsetY: number;
 };
 
-export type MiaEntrancePolicy = {
-  spawnTile: TilePosition;
-  standTile: TilePosition;
-  cameraFocusTile: TilePosition;
-  cameraPanMs: number;
-  walkDelayMs: number;
-  walkDurationMs: number;
-};
-
 const BAKED_MAP_INTERACTABLES = new Set([
   "obj_cardboard_box",
   "obj_laojiu_jar"
@@ -49,27 +40,13 @@ export function apartmentBackgroundPolicy(): ApartmentBackgroundPolicy {
   };
 }
 
-export function miaEntrancePolicy(map: {
-  miaSpawn: TilePosition;
-  miaStand: TilePosition;
-}): MiaEntrancePolicy {
-  return {
-    spawnTile: { ...map.miaSpawn },
-    standTile: { ...map.miaStand },
-    cameraFocusTile: { x: 22, y: 11 },
-    cameraPanMs: 420,
-    walkDelayMs: 220,
-    walkDurationMs: 900
-  };
-}
-
 export function questMarkerTargetForPhase(
   phase: Act1Phase
 ): QuestMarkerTarget | null {
   if (phase === "EXPLORE") {
     return {
       objectId: "obj_cardboard_box",
-      tile: { x: 4, y: 13 },
+      tile: { x: 6, y: 13 },
       offsetY: -44
     };
   }

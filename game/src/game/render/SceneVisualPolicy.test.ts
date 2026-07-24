@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { act1Content } from "../../content/act1/content";
 import {
   apartmentBackgroundPolicy,
-  miaEntrancePolicy,
   questMarkerTargetForPhase,
   shouldRenderInteractableOverlay
 } from "./SceneVisualPolicy";
@@ -23,19 +21,8 @@ describe("SceneVisualPolicy", () => {
     });
   });
 
-  it("stages Mia entering from the door before she speaks inside the room", () => {
-    expect(miaEntrancePolicy(act1Content.map)).toEqual({
-      spawnTile: { x: 26, y: 16 },
-      standTile: { x: 20, y: 12 },
-      cameraFocusTile: { x: 22, y: 11 },
-      cameraPanMs: 420,
-      walkDelayMs: 220,
-      walkDurationMs: 900
-    });
-  });
-
   it.each([
-    ["EXPLORE", "obj_cardboard_box", { x: 4, y: 13 }, -44],
+    ["EXPLORE", "obj_cardboard_box", { x: 6, y: 13 }, -44],
     ["NOTE_READ", "obj_laojiu_jar", { x: 26, y: 8 }, -56],
     ["MIA_ENTERED", "obj_laojiu_jar", { x: 26, y: 8 }, -56],
     ["SENSE_CHOSEN", "obj_laojiu_jar", { x: 26, y: 8 }, -56]

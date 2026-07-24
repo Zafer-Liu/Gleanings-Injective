@@ -1,0 +1,32 @@
+[
+  {
+    "id": "act3_talk_family",
+    "title": "问清今天要做的事",
+    "hint": "家人在灶间左侧"
+  },
+  {
+    "id": "act3_collect",
+    "title": "备齐碗、面线和老酒",
+    "hint": "三件材料可按任意顺序拿取"
+  },
+  {
+    "id": "act3_cook",
+    "title": "煮一碗老酒面线",
+    "hint": "灶台在房间左下方"
+  },
+  {
+    "id": "act3_serve",
+    "title": "把热面线端给阿珍",
+    "hint": "阿珍在右侧休息"
+  },
+  {
+    "id": "act3_inscription",
+    "title": "记住这份人情",
+    "hint": "选择你从这双手里看见的东西"
+  },
+  {
+    "id": "act3_complete",
+    "title": "青花酒盏已收下",
+    "hint": "记忆正在回到现在"
+  }
+]

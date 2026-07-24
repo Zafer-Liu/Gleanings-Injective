@@ -1,0 +1,61 @@
+[
+  {
+    "id": "family",
+    "tile": { "x": 11, "y": 11 },
+    "range": 1,
+    "prompt": "E / 空格 · 问问要做什么",
+    "dialogueGroup": "family",
+    "enabledPhases": ["ARRIVE"]
+  },
+  {
+    "id": "bowl",
+    "tile": { "x": 5, "y": 7 },
+    "range": 1,
+    "prompt": "E / 空格 · 取一只碗",
+    "dialogueGroup": "bowl",
+    "enabledPhases": ["COLLECT"],
+    "material": "bowl"
+  },
+  {
+    "id": "noodles",
+    "tile": { "x": 18, "y": 8 },
+    "range": 1,
+    "prompt": "E / 空格 · 取面线",
+    "dialogueGroup": "noodles",
+    "enabledPhases": ["COLLECT"],
+    "material": "noodles"
+  },
+  {
+    "id": "laojiu",
+    "tile": { "x": 30, "y": 7 },
+    "range": 1,
+    "prompt": "E / 空格 · 舀一勺老酒",
+    "dialogueGroup": "laojiu",
+    "enabledPhases": ["COLLECT"],
+    "material": "laojiu"
+  },
+  {
+    "id": "stove",
+    "tile": { "x": 6, "y": 15 },
+    "range": 1,
+    "prompt": "E / 空格 · 煮老酒面线",
+    "dialogueGroup": "cook",
+    "enabledPhases": ["READY_TO_COOK"]
+  },
+  {
+    "id": "azhen",
+    "tile": { "x": 29, "y": 18 },
+    "range": 1,
+    "prompt": "E / 空格 · 把面线端给阿珍",
+    "dialogueGroup": "serve",
+    "enabledPhases": ["COOKED"]
+  },
+  {
+    "id": "hearth",
+    "tile": { "x": 4, "y": 15 },
+    "range": 1,
+    "prompt": "E / 空格 · 看看灶火",
+    "dialogueGroup": "hearth",
+    "optional": true
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "groups": {
+    "opening": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "酒坊的霜和灶间的热气一同退去，公寓里的夜重新合拢。"
+      },
+      {
+        "speakerId": "yi",
+        "speakerName": "林怡",
+        "text": "米娅……我好像看完了太婆的一生。"
+      }
+    ],
+    "miaBridge": [
+      {
+        "speakerId": "mia",
+        "speakerName": "米娅",
+        "text": "这是你们家的酒，还是福建人都会酿的酒？"
+      },
+      {
+        "speakerId": "yi",
+        "speakerName": "林怡",
+        "text": "它从我们家出发，但背后是一条更长的黄酒传统。"
+      },
+      {
+        "speakerId": "mia",
+        "speakerName": "米娅",
+        "text": "那你会怎么把它介绍给一个从没喝过的人？"
+      }
+    ],
+    "labelReady": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "四次选择被排成一张本地生成的双语酒签。文化事实与创意表达被清楚分开。"
+      }
+    ],
+    "mintIntro": [
+      {
+        "speakerId": "mia",
+        "speakerName": "米娅",
+        "text": "先把它留在这里吧。不是证明所有权，只是别再让故事散掉。"
+      }
+    ]
+  },
+  "choices": [
+    {
+      "value": "letter",
+      "label": "把它说成一封家书",
+      "feedback": "你从太婆的字条讲起，让酒先成为人与人之间的消息。"
+    },
+    {
+      "value": "three_generations",
+      "label": "讲三代人的一坛酒",
+      "feedback": "你把酿造、照料与远行放在同一条时间线上。"
+    },
+    {
+      "value": "fujian_hongqu",
+      "label": "从福建红曲讲起",
+      "feedback": "你先解释地方工艺，再把它放回家族记忆。"
+    }
+  ]
+}

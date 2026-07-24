@@ -1,0 +1,102 @@
+{
+  "groups": {
+    "opening": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "许多年后，同一双手已经学会在忙乱里稳稳端住一只碗。"
+      },
+      {
+        "speakerId": "taipo_middle",
+        "speakerName": "太婆",
+        "text": "灶火别灭。阿珍这会儿该饿了。"
+      }
+    ],
+    "family": [
+      {
+        "speakerId": "family",
+        "speakerName": "阿兰",
+        "text": "碗在左边，面线在中间，老酒坛在右边。先拿哪样都行。"
+      },
+      {
+        "speakerId": "taipo_middle",
+        "speakerName": "太婆",
+        "text": "好。东西齐了再开火，别让面线煮烂。"
+      }
+    ],
+    "bowl": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "青边白瓷碗，碗底还留着温水。"
+      }
+    ],
+    "noodles": [
+      {
+        "speakerId": "taipo_middle",
+        "speakerName": "太婆",
+        "text": "面线细，入锅以后要快。"
+      }
+    ],
+    "laojiu": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "酒勺探进坛里，带出红褐色的清亮酒液。"
+      }
+    ],
+    "cook": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "姜先下锅，老酒沿着锅边落下，最后才放面线。"
+      },
+      {
+        "speakerId": "taipo_middle",
+        "speakerName": "太婆",
+        "text": "火候到了。端过去，趁热。"
+      }
+    ],
+    "serve": [
+      {
+        "speakerId": "azhen",
+        "speakerName": "阿珍",
+        "text": "你守了半天灶，还没坐下歇过。"
+      },
+      {
+        "speakerId": "taipo_middle",
+        "speakerName": "太婆",
+        "text": "先吃。人有了力气，日子才接得下去。"
+      },
+      {
+        "speakerId": "azhen",
+        "speakerName": "阿珍",
+        "text": "这碗面线，我会记一辈子。"
+      }
+    ],
+    "hearth": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "灶火压得很低，却足够把整间屋子慢慢暖起来。"
+      }
+    ]
+  },
+  "choices": [
+    {
+      "value": "warm",
+      "label": "接住这份暖",
+      "feedback": "碗沿的热气遮住了眼睛，也把这一刻留得格外清楚。"
+    },
+    {
+      "value": "inherit",
+      "label": "问这双手承担了什么",
+      "feedback": "照料不是轻飘飘的美德，它有重量，也有人把它接了下来。"
+    },
+    {
+      "value": "remember",
+      "label": "只看着她们的手",
+      "feedback": "有些话没有说出口，却在递碗和接碗之间被记住。"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "groups": {
+    "opening": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "风从木窗缝里钻进来，酒坊地面结着一层薄霜。"
+      },
+      {
+        "speakerId": "taipo_young",
+        "speakerName": "少女太婆",
+        "text": "这是……我年轻的时候？"
+      }
+    ],
+    "masterIntro": [
+      {
+        "speakerId": "master",
+        "speakerName": "阿凤师",
+        "text": "站着发什么愣？霜降一过，红曲就不等人了。"
+      },
+      {
+        "speakerId": "taipo_young",
+        "speakerName": "少女太婆",
+        "text": "师父，为什么一定要用这盘红曲？"
+      },
+      {
+        "speakerId": "master",
+        "speakerName": "阿凤师",
+        "text": "黄酒各地都有自己的脾气。我们福建这坛酒，认的是红曲。"
+      },
+      {
+        "speakerId": "master",
+        "speakerName": "阿凤师",
+        "text": "先去看颜色，再闻陶坛。手比嘴记得牢。"
+      }
+    ],
+    "tray": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "红曲不是鲜红，而是深朱、赭褐与一点稻米的白。"
+      },
+      {
+        "speakerId": "taipo_young",
+        "speakerName": "少女太婆",
+        "text": "像冬天里没有灭掉的火。"
+      }
+    ],
+    "jar": [
+      {
+        "speakerId": "master",
+        "speakerName": "阿凤师",
+        "text": "陶坛先醒，米才肯在里面慢慢变。敲一敲，听回声是不是闷的。"
+      },
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "坛壁很凉，回声短而沉。"
+      }
+    ],
+    "sample": [
+      {
+        "speakerId": "taipo_young",
+        "speakerName": "少女太婆",
+        "text": "取一小包就够。多了，酒也会失去自己的分寸。"
+      }
+    ],
+    "mix": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "霜降",
+        "text": "温热的米与红曲拌在一起，手掌被染成暗红。"
+      },
+      {
+        "speakerId": "master",
+        "speakerName": "阿凤师",
+        "text": "拌匀，但别把米捏碎。让它还能呼吸。"
+      }
+    ],
+    "vat": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "立冬",
+        "text": "米、曲与水落进缸里，最初只发出很轻的一声。"
+      },
+      {
+        "speakerId": "master",
+        "speakerName": "阿凤师",
+        "text": "往后每天都要听。酒在说话，只是慢。"
+      }
+    ],
+    "seal": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "冬至",
+        "text": "封泥合上坛口，最后一道寒气被关在里面。"
+      },
+      {
+        "speakerId": "taipo_young",
+        "speakerName": "少女太婆",
+        "text": "要等多久，它才算是一坛酒？"
+      }
+    ],
+    "question": [
+      {
+        "speakerId": "master",
+        "speakerName": "阿凤师",
+        "text": "坛封好了。现在，问你真正想问的。"
+      }
+    ],
+    "window": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "山色被霜洗成冷灰，酒坊里却有米蒸熟后的暖气。"
+      }
+    ]
+  },
+  "choices": [
+    {
+      "value": "ask_hongqu",
+      "label": "红曲为什么会把酒染红？",
+      "feedback": "阿凤师讲起曲种、米和这里的水。你记住的是地方的味道。"
+    },
+    {
+      "value": "ask_winter",
+      "label": "为什么非要等到冬天？",
+      "feedback": "她指着窗上的霜。慢下来的温度，也让酒有时间长成。"
+    },
+    {
+      "value": "ask_future",
+      "label": "以后，还会有人这样酿吗？",
+      "feedback": "阿凤师没有立刻回答，只把一枚旧曲印放进你的手心。"
+    }
+  ]
+}

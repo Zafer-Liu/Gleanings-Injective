@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { playerAnimationSpec } from "./PlayerVisualPolicy";
+import {
+  playerAnimationKey,
+  playerAnimationSpec
+} from "./PlayerVisualPolicy";
 
 describe("PlayerVisualPolicy", () => {
   it("mirrors the full-size left frames when 林怡 faces right", () => {
@@ -30,5 +33,14 @@ describe("PlayerVisualPolicy", () => {
       idleFrame: 10,
       flipX: false
     });
+  });
+
+  it("names animations by texture so multiple generations can coexist", () => {
+    expect(playerAnimationKey("actor-yi", "down")).toBe(
+      "actor-yi-down"
+    );
+    expect(playerAnimationKey("actor-taipo-middle", "up")).toBe(
+      "actor-taipo-middle-up"
+    );
   });
 });

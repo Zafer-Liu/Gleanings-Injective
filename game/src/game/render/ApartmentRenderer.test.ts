@@ -35,30 +35,6 @@ describe("ApartmentRenderer geometry", () => {
     }
   });
 
-  it("keeps the full box faces as depth-sorted foreground occluders", () => {
-    const geometry = buildApartmentGeometry(
-      act1Content.map,
-      act1Content.interactables
-    );
-
-    expect(geometry.occluders).toContainEqual({
-      id: "boxes_left_occluder",
-      x: 56,
-      y: 384,
-      width: 72,
-      height: 128,
-      depth: 512
-    });
-    expect(geometry.occluders).toContainEqual({
-      id: "parcel_occluder",
-      x: 208,
-      y: 448,
-      width: 56,
-      height: 88,
-      depth: 536
-    });
-  });
-
   it("converts interactable tiles to centered integer pixels", () => {
     const geometry = buildApartmentGeometry(
       act1Content.map,
@@ -66,7 +42,7 @@ describe("ApartmentRenderer geometry", () => {
     );
 
     expect(geometry.interactables.find((item) => item.id === "obj_cardboard_box"))
-      .toMatchObject({ x: 144, y: 432 });
+      .toMatchObject({ x: 208, y: 432 });
     expect(geometry.interactables.find((item) => item.id === "obj_laojiu_jar"))
       .toMatchObject({ x: 848, y: 304 });
   });
@@ -80,16 +56,9 @@ describe("ApartmentRenderer geometry", () => {
 
   it.each([
     [620, 224],
-    [456, 368],
-    [200, 340],
-    [212, 400],
-    [88, 448],
-    [144, 400],
-    [150, 460],
-    [192, 420],
-    [240, 496]
+    [456, 368]
   ])(
-    "keeps space above each box footprint walkable at pixel (%i, %i)",
+    "keeps visible floor at pixel (%i, %i) walkable",
     (x, y) => {
       expect(collisionAt(x, y)).toBeNull();
     }
@@ -98,14 +67,8 @@ describe("ApartmentRenderer geometry", () => {
   it.each([
     [144, 208, "desk_collision"],
     [276, 272, "sofa_collision"],
-    [88, 376, "boxes_upper_left_base_collision"],
-    [136, 376, "boxes_upper_center_base_collision"],
-    [160, 392, "boxes_upper_right_base_collision"],
-    [88, 504, "boxes_left_base_collision"],
-    [144, 416, "boxes_center_base_collision"],
-    [150, 504, "boxes_red_base_collision"],
-    [192, 504, "boxes_right_base_collision"],
-    [240, 528, "parcel_base_collision"],
+    [212, 400, "boxes_collision"],
+    [240, 496, "parcel_collision"],
     [720, 272, "kitchen_island_collision"],
     [850, 304, "jar_collision"],
     [708, 432, "entry_console_collision"]

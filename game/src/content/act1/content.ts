@@ -45,10 +45,8 @@ export type ApartmentMapContent = {
   tileSize: number;
   playerSpawn: TilePosition;
   miaSpawn: TilePosition;
-  miaStand: TilePosition;
   furniture: TileRectangle[];
   collisions: TileRectangle[];
-  occluders: TileRectangle[];
 };
 
 export const act1Content = {
