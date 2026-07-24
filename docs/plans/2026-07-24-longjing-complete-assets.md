@@ -32,7 +32,7 @@
 - Create: `assets/rpg_v2/sprites/spr_master_he_walk_96x192.png`
 - Create: `assets/rpg_v2/sprites/spr_market_vendor_walk_96x192.png`
 - Create: `assets/rpg_v2/sprites/spr_tea_merchant_walk_96x192.png`
-- Create: `assets/rpg_v2/objects/obj_longjing_gameplay_256x128.png`
+- Create: `assets/rpg_v2/objects/obj_longjing_gameplay_384x32.png`
 - Create: `assets/rpg_v2/items/it_longjing_leaf_states_160x32.png`
 - Create: `assets/rpg_v2/fx/fx_longjing_firing_states_192x64.png`
 - Create: `assets/rpg_v2/scripts/build_longjing_gameplay_assets.py`
@@ -121,4 +121,3 @@
 3. Run `pnpm build`.
 4. Start a preview server on an unused port and inspect market, terrace, workshop, truth, and completion screens.
 5. Fix only verified regressions, rerun all checks, and commit the finished feature.
-
