@@ -42,6 +42,12 @@ async function finishTransition(page: Page): Promise<void> {
   await page.waitForTimeout(1_700);
 }
 
+async function startGameFromHome(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "开始第一章" }).click();
+  await expect(page.locator("canvas")).toBeVisible();
+  await page.waitForTimeout(750);
+}
+
 test.describe("第一幕《开坛》", () => {
   test("从公寓醒来走完整个揭坛流程，并能刷新恢复与重新体验", async ({
     page
@@ -50,7 +56,7 @@ test.describe("第一幕《开坛》", () => {
     await page.goto("/");
     await page.evaluate(() => window.localStorage.clear());
     await page.reload({ waitUntil: "networkidle" });
-    await expect(page.locator("canvas")).toBeVisible();
+    await startGameFromHome(page);
 
     await press(page, "e");
     await press(page, "e");
@@ -91,6 +97,7 @@ test.describe("第一幕《开坛》", () => {
       window.localStorage.setItem(key, JSON.stringify(save));
     }, SAVE_KEY);
     await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
     await hold(page, "ArrowRight", 500);
     await press(page, "e");
     await press(page, "e");
@@ -113,7 +120,7 @@ test.describe("第一幕《开坛》", () => {
     ).toBe(true);
 
     await page.reload({ waitUntil: "networkidle" });
-    await expect(page.locator("canvas")).toBeVisible();
+    await startGameFromHome(page);
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
       "COMPLETE"
     );
@@ -149,6 +156,7 @@ test.describe("第一幕《开坛》", () => {
       { key: SAVE_KEY, save: checkpoint }
     );
     await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
 
     await hold(page, "ArrowRight", 500);
     await press(page, "e");
