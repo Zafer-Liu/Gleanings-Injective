@@ -4,6 +4,10 @@ import { MedalService } from "../game/systems/MedalService";
 import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
 import winterBrewingImage from "../../../assets/rpg_v2/collection/winter-brewing.png";
 import { resolveChainOrigin } from "./chainConfig";
+import {
+  chapterMetaForScene,
+  type ChapterMeta
+} from "./chapterMeta";
 
 const CHAIN_ORIGIN = resolveChainOrigin(
   import.meta.env.VITE_CHAIN_BRIDGE_URL,
@@ -34,6 +38,44 @@ function loadCollectedItems(): Collectible[] {
       const medal = new MedalService(window.localStorage).unlockActOne()[0];
       if (medal) items.push({ id: medal.id, name: medal.name, description: medal.description, source: "《拾遗》· 第一幕 / 开坛", kind: "勋章", image: winterBrewingImage });
     }
+    const longjing = JSON.parse(
+      localStorage.getItem("gleanings.chapter-two.save.v1") ?? "{}"
+    ) as { relics?: string[]; chapterComplete?: boolean };
+    const longjingRelics: Record<
+      string,
+      Omit<Collectible, "id">
+    > = {
+      relic_old_tea_scoop: {
+        name: "旧茶斗",
+        description: "陈守一封锅后留下的旧茶斗，也是林念安进入茶园记忆的触点。",
+        source: "《拾遗》· 第二章 / 同号茶罐",
+        kind: "道具"
+      },
+      relic_qingming_bud: {
+        name: "清明芽签",
+        description: "记录十二次芽叶判断：节气不是催促，先问这一片叶是否适合今天这一锅。",
+        source: "《拾遗》· 第二章 / 清明之前",
+        kind: "道具"
+      },
+      relic_palm_fire: {
+        name: "掌火纹",
+        description: "看叶、听叶、感受温度后留下的掌火记忆；手法不是固定连招。",
+        source: "《拾遗》· 第二章 / 一掌春火",
+        kind: "道具"
+      },
+      relic_one_leaf_origin: {
+        name: "一叶来处",
+        description: "数字剧情纪念品，只记录玩家完成本章，不构成对现实茶叶产地、品质、地理标志或真伪的证明。",
+        source: "《拾遗》· 第二章 / 名字的重量",
+        kind: "勋章"
+      }
+    };
+    (longjing.relics ?? []).forEach((id) => {
+      const collectible = longjingRelics[id];
+      if (collectible !== undefined) {
+        items.push({ id, ...collectible });
+      }
+    });
     return items;
   } catch { return []; }
 }
@@ -118,7 +160,14 @@ function ChainArchive() {
     };
     syncWallet();
     window.addEventListener("focus", syncWallet);
-    return () => { window.removeEventListener("focus", syncWallet); };
+    window.addEventListener("gleanings:scenechange", syncWallet);
+    return () => {
+      window.removeEventListener("focus", syncWallet);
+      window.removeEventListener(
+        "gleanings:scenechange",
+        syncWallet
+      );
+    };
   }, [syncVersion]);
 
   useEffect(() => {
@@ -397,7 +446,7 @@ function ChainArchive() {
       <div className="collection-tools"><button className="chain-button collection-refresh" onClick={refreshChainCollection}>读取链上收藏</button><button className="museum-button" onClick={() => void shareCollection()}>{wallet ? "手机分享" : "连接后分享"}</button></div>
       {shareLink && <div className="share-panel"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareLink)}`} alt="手机打开收藏馆的二维码" /><div><strong>扫码查看我的收藏</strong><p>可扫描二维码打开公开藏品册。</p><code>{shareLink}</code><button className="chain-button" onClick={() => void copyShareLink()}>复制分享链接</button></div></div>}
       {displayedCollectibles.length ? displayedCollectibles.map((collectible) => <article className="medal" key={collectible.id}>{collectible.image ? <img className="medal__image" src={collectible.image} alt="" /> : <div className="medal__seal" aria-hidden="true">{collectible.kind === "勋章" ? "章" : "藏"}</div>}<div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectible.kind} · 可选择上链展示`}</small></div><button className="card-open" onClick={() => openCollectibleCard(collectible)}>查看藏品卡</button>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。</p>}
-      <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；只有你选择展示的收藏才会铸造成 Injective EVM NFT。</p>
+      <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；链上记录只证明数字剧情藏品的获得与展示，不证明任何现实酒或茶的产地、品质和真伪。</p>
     </section>}
     {selectedCollectible && <section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}>
       <div className="flashcard-modal__head"><p>GLEANINGS / STORY CARD</p><button onClick={() => setSelectedCollectible(null)} aria-label="关闭藏品卡">关闭 ×</button></div>
@@ -439,27 +488,43 @@ function ChainArchive() {
 }
 
 export function App() {
+  const [chapterMeta, setChapterMeta] = useState<ChapterMeta>(
+    chapterMetaForScene("Boot")
+  );
+
   useEffect(() => {
+    const onSceneChange = (event: Event) => {
+      const sceneKey = (event as CustomEvent<{ sceneKey: string }>)
+        .detail.sceneKey;
+      setChapterMeta(chapterMetaForScene(sceneKey));
+    };
+    window.addEventListener("gleanings:scenechange", onSceneChange);
     const game = startGame("game-root");
     return () => {
+      window.removeEventListener(
+        "gleanings:scenechange",
+        onSceneChange
+      );
       game.destroy(true);
     };
   }, []);
 
   return (
-    <main className="app-shell">
+    <main
+      className={`app-shell${chapterMeta.title === "一叶来处" ? " app-shell--chapter-two" : ""}`}
+    >
       <header className="game-masthead" aria-label="游戏标题">
-        <p className="eyebrow">GLEANINGS / CHAPTER 01</p>
+        <p className="eyebrow">{chapterMeta.eyebrow}</p>
         <h1>
-          拾遗 <span>· 一坛回声</span>
+          拾遗 <span>· {chapterMeta.title}</span>
         </h1>
         <p className="chapter-note">
-          福建老酒 · 四幕家族记忆与一支黄酒后记
+          {chapterMeta.note}
         </p>
         <ChainArchive />
       </header>
 
-      <section className="stage-wrap" aria-label="拾遗第一章游戏画面">
+      <section className="stage-wrap" aria-label={chapterMeta.stageLabel}>
         <div className="corner-mark corner-mark--top" aria-hidden="true" />
         <div id="game-root" className="game-frame" data-testid="game-root" />
         <div className="corner-mark corner-mark--bottom" aria-hidden="true" />
@@ -468,7 +533,7 @@ export function App() {
       <footer className="controls-note">
         <span>移动 WASD / 方向键</span>
         <span>交互 E / 空格</span>
-        <span>背包 I · 影片暂停 Space · 字幕 S</span>
+        <span>背包 I · 面板方向键 · 影片暂停 Space · 字幕 S · 音量 ↑↓</span>
       </footer>
     </main>
   );

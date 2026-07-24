@@ -9,6 +9,13 @@ export type PlayerAnimationSpec = {
   flipX: boolean;
 };
 
+export const PLAYER_FOOTBOX = Object.freeze({
+  width: 18,
+  height: 12,
+  offsetX: 7,
+  offsetY: 33
+});
+
 const SPECS: Record<Facing, PlayerAnimationSpec> = {
   down: {
     frameStart: 0,

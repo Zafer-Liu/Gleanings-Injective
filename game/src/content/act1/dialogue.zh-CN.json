@@ -8,14 +8,14 @@
       },
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "太婆寄来的最后一箱东西……我拖了三个月还没整理。"
       }
     ],
     "box": [
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "旧衣服、药袋，还有……一张字条。"
       }
     ],
@@ -23,11 +23,11 @@
       {
         "speakerId": "taipo_note",
         "speakerName": "太婆的字条",
-        "text": "小怡，等你想家了，就开。——太婆"
+        "text": "念安，等你想家了，就开。——太婆"
       },
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "她知道我一定会把它带到这里。"
       }
     ],
@@ -39,7 +39,7 @@
       },
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "在整理太婆留下的东西。"
       },
       {
@@ -49,7 +49,7 @@
       },
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "嗯。她让我“等想家了再开”。"
       },
       {
@@ -59,14 +59,14 @@
       },
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "……我不知道。"
       }
     ],
     "jarEarly": [
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "像是在等我想起什么。"
       }
     ],
@@ -80,13 +80,13 @@
     "transition": [
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "太婆，我开了。"
       },
       {
         "speakerId": "actor_mia",
         "speakerName": "米娅",
-        "text": "林怡……你看见了吗？"
+        "text": "念安……你看见了吗？"
       },
       {
         "speakerId": "narrator",
@@ -97,7 +97,7 @@
     "inspectDesk": [
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "英文账单压着三通未接来电。国内那边，已经是早晨了。"
       }
     ],
@@ -111,21 +111,21 @@
     "inspectPhoto": [
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "照片里的太婆还很年轻，手指却已经被红曲染红。"
       }
     ],
     "inspectTakeout": [
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "凉掉的外卖。又忘了吃晚饭。"
       }
     ],
     "inspectPhone": [
       {
         "speakerId": "actor_yi",
-        "speakerName": "林怡",
+        "speakerName": "林念安",
         "text": "阿妈发来的语音还没点开。"
       }
     ],

@@ -8,6 +8,12 @@ import { ActThreeScene } from "./scenes/ActThreeScene";
 import { ActFourScene } from "./scenes/ActFourScene";
 import { HuangjiuFilmScene } from "./scenes/HuangjiuFilmScene";
 import { ChapterCompleteScene } from "./scenes/ChapterCompleteScene";
+import { LongjingMarketScene } from "./scenes/LongjingMarketScene";
+import { LongjingTerraceScene } from "./scenes/LongjingTerraceScene";
+import { LongjingWorkshopScene } from "./scenes/LongjingWorkshopScene";
+import { LongjingTruthScene } from "./scenes/LongjingTruthScene";
+import { LongjingFilmScene } from "./scenes/LongjingFilmScene";
+import { LongjingCompleteScene } from "./scenes/LongjingCompleteScene";
 
 export const GAME_WIDTH = 640;
 export const GAME_HEIGHT = 360;
@@ -51,7 +57,13 @@ export function createGameConfig(
       ActThreeScene,
       ActFourScene,
       HuangjiuFilmScene,
-      ChapterCompleteScene
+      ChapterCompleteScene,
+      LongjingMarketScene,
+      LongjingTerraceScene,
+      LongjingWorkshopScene,
+      LongjingTruthScene,
+      LongjingFilmScene,
+      LongjingCompleteScene
     ]
   };
 }
