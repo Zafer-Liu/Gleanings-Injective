@@ -45,19 +45,19 @@ describe("ChapterInteraction", () => {
       findChapterTarget(
         { x: 8, y: 10 },
         "right",
-        objects,
+        objects.filter((item) => item.id !== "master"),
         "ARRIVE"
       )?.id
     ).toBe("decoration");
   });
 
-  it("does not select a sideways or behind object", () => {
+  it("does not select a phase-free optional object behind the player", () => {
     expect(
       findChapterTarget(
-        { x: 8, y: 10 },
-        "down",
+        { x: 11, y: 10 },
+        "right",
         objects,
-        "INSPECT_TRAY"
+        "ANY_PHASE"
       )
     ).toBeNull();
   });
@@ -73,24 +73,69 @@ describe("ChapterInteraction", () => {
     ).toBe("decoration");
   });
 
-  it("allows an explicitly widened target to be reached one tile sideways", () => {
-    const cookedNoodles = {
-      id: "cooked_noodles",
+  it("does not widen phase-free optional object interaction areas", () => {
+    expect(
+      findChapterTarget(
+        { x: 9, y: 11 },
+        "up",
+        objects,
+        "ANY_PHASE"
+      )
+    ).toBeNull();
+  });
+
+  it("allows an explicitly widened optional object one tile sideways", () => {
+    const sideCounter = {
+      id: "side_counter",
       tile: { x: 6, y: 15 },
       range: 2,
       sidewaysRange: 1,
-      prompt: "端起热面线",
-      dialogueGroup: "pickup",
-      enabledPhases: ["COOKED"]
+      prompt: "查看侧边柜台",
+      dialogueGroup: "sideCounter",
+      optional: true
     } as ChapterInteractable & { sidewaysRange: number };
 
     expect(
       findChapterTarget(
         { x: 5, y: 16 },
         "up",
-        [cookedNoodles],
-        "COOKED"
+        [sideCounter],
+        "ANY_PHASE"
       )?.id
-    ).toBe("cooked_noodles");
+    ).toBe("side_counter");
+  });
+
+  it.each(["up", "down", "left", "right"] as const)(
+    "finds the nearby active task objective while facing %s",
+    (facing) => {
+      expect(
+        findChapterTarget(
+          { x: 8, y: 11 },
+          facing,
+          objects,
+          "INSPECT_TRAY"
+        )?.id
+      ).toBe("hongqu_tray");
+    }
+  );
+
+  it("keeps an active task objective to an exact 3x3 area", () => {
+    const wideObjective: ChapterInteractable = {
+      id: "wide_objective",
+      tile: { x: 6, y: 15 },
+      range: 2,
+      prompt: "查看任务物件",
+      dialogueGroup: "wideObjective",
+      enabledPhases: ["ACTIVE"]
+    };
+
+    expect(
+      findChapterTarget(
+        { x: 4, y: 15 },
+        "right",
+        [wideObjective],
+        "ACTIVE"
+      )
+    ).toBeNull();
   });
 });

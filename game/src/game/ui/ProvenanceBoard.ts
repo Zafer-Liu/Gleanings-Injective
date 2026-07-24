@@ -4,6 +4,7 @@ import {
   validateEvidencePlacement,
   type ProvenanceCard
 } from "../domain/provenanceBoard";
+import { advancedWrap } from "./textWrap";
 
 export class ProvenanceBoard {
   private readonly container: Phaser.GameObjects.Container;
@@ -30,7 +31,8 @@ export class ProvenanceBoard {
     this.header = scene.add.text(38, 34, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "16px",
-      color: "#F0E4CA"
+      color: "#F0E4CA",
+      ...advancedWrap(340)
     });
     const instruction = scene.add.text(
       602,
@@ -53,7 +55,7 @@ export class ProvenanceBoard {
         fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
         fontSize: "9px",
         color: "#DED0B3",
-        wordWrap: { width: 116 }
+        ...advancedWrap(116)
       });
       const count = scene.add.text(x + 66, 139, "0", {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
@@ -72,19 +74,22 @@ export class ProvenanceBoard {
     this.cardTitle = scene.add.text(56, 202, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "13px",
-      color: "#F0E4CA"
+      color: "#F0E4CA",
+      ...advancedWrap(524)
     });
     this.cardDetail = scene.add.text(56, 228, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "10px",
       color: "#D6E1D5",
-      wordWrap: { width: 524 }
+      lineSpacing: 2,
+      ...advancedWrap(524)
     });
     this.feedback = scene.add.text(38, 296, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "10px",
       color: "#B2C58A",
-      wordWrap: { width: 560 }
+      lineSpacing: 2,
+      ...advancedWrap(560)
     });
     this.container = scene.add
       .container(0, 0, [

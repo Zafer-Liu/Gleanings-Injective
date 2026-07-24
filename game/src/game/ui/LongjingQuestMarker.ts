@@ -1,10 +1,10 @@
 import Phaser from "phaser";
-import { tileToPixelCenter } from "../render/ApartmentRenderer";
 import {
   longjingMarkerStyle,
   type LongjingMarkerTarget
 } from "../render/LongjingScenePolicy";
 import { QuestMarker } from "./QuestMarker";
+import { questMarkerPointForTile } from "./QuestMarkerPolicy";
 
 export class LongjingQuestMarker {
   private readonly marker: QuestMarker;
@@ -29,12 +29,9 @@ export class LongjingQuestMarker {
       this.marker.setTarget(null);
       return;
     }
-    const style = longjingMarkerStyle();
-    const pixel = tileToPixelCenter(target.tile, this.tileSize);
-    this.marker.setTarget({
-      x: pixel.x,
-      y: pixel.y - 40 - style.objectGap
-    });
+    this.marker.setTarget(
+      questMarkerPointForTile(target.tile, this.tileSize)
+    );
   }
 
   setSuppressed(suppressed: boolean): void {

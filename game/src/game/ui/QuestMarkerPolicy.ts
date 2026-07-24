@@ -22,6 +22,16 @@ const EDGE_INSET = Object.freeze({
   bottom: 36
 });
 
+export function questMarkerPointForTile(
+  tile: QuestMarkerPoint,
+  tileSize: number
+): QuestMarkerPoint {
+  return {
+    x: Math.round((tile.x + 0.5) * tileSize),
+    y: Math.round((tile.y - 0.5) * tileSize)
+  };
+}
+
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { ACT1_NOTE_ID, type Act1State } from "../domain/act1State";
+import { advancedWrap } from "./textWrap";
 
 export type InventoryAction = "read-note" | null;
 
@@ -34,13 +35,15 @@ export class InventoryPanel {
     this.itemTitle = scene.add.text(132, 211, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "13px",
-      color: "#D4B46A"
+      color: "#D4B46A",
+      ...advancedWrap(376)
     });
     this.itemDescription = scene.add.text(132, 234, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "10px",
       color: "#B7C2C0",
-      wordWrap: { width: 360 }
+      lineSpacing: 2,
+      ...advancedWrap(376)
     });
     const controls = scene.add
       .text(508, 272, "E / 回车 查看    I 关闭", {
@@ -81,6 +84,9 @@ export class InventoryPanel {
           ? "一张折得很小的旧纸条。墨迹已经淡了。"
           : "太婆留下的那句话，已经读过了。"
         : "先在房间里找找还有什么没整理。"
+    );
+    this.itemDescription.setY(
+      this.itemTitle.y + this.itemTitle.height + 6
     );
     this.container.setVisible(true);
   }

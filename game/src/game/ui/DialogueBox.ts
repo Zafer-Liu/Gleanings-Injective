@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { DialogueLine } from "../../content/act1/content";
 import { DialogueSystem } from "../systems/DialogueSystem";
+import { advancedWrap } from "./textWrap";
 
 export class DialogueBox {
   private readonly container: Phaser.GameObjects.Container;
@@ -11,29 +12,30 @@ export class DialogueBox {
 
   constructor(scene: Phaser.Scene) {
     const panel = scene.add
-      .rectangle(20, 238, 600, 106, 0x211a17, 0.97)
+      .rectangle(20, 222, 600, 122, 0x211a17, 0.97)
       .setOrigin(0)
       .setStrokeStyle(2, 0xc9873f);
     const innerRule = scene.add
-      .rectangle(29, 247, 582, 88)
+      .rectangle(29, 231, 582, 104)
       .setOrigin(0)
       .setStrokeStyle(1, 0x6e4932);
-    const accent = scene.add.rectangle(30, 248, 5, 86, 0xa83b32).setOrigin(0);
-    this.speakerText = scene.add.text(46, 251, "", {
+    const accent = scene.add.rectangle(30, 232, 5, 102, 0xa83b32).setOrigin(0);
+    this.speakerText = scene.add.text(46, 235, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "12px",
       fontStyle: "bold",
-      color: "#D4B46A"
+      color: "#D4B46A",
+      ...advancedWrap(530)
     });
-    this.bodyText = scene.add.text(46, 276, "", {
+    this.bodyText = scene.add.text(46, 260, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "13px",
       color: "#F4EBDD",
       lineSpacing: 6,
-      wordWrap: { width: 530 }
+      ...advancedWrap(530)
     });
     const advance = scene.add
-      .text(594, 320, "E 继续 ▾", {
+      .text(594, 329, "E 继续 ▾", {
         fontFamily: '"Cascadia Mono", Consolas, monospace',
         fontSize: "9px",
         color: "#B7C2C0"

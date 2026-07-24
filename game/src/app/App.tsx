@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
@@ -489,16 +489,34 @@ function ChainArchive() {
 }
 
 const chapters = [
-  { number: "02", name: "茶", subtitle: "一叶渡海", mark: "茶" },
   { number: "03", name: "瓷", subtitle: "火与白土", mark: "瓷" },
   { number: "04", name: "丝", subtitle: "万里经纬", mark: "丝" }
 ];
 
 function GameView({ onExit, chapterMeta }: { onExit: () => void; chapterMeta: ChapterMeta }) {
+  const stageRef = useRef<HTMLElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   useEffect(() => {
     const game = startGame("game-root");
     return () => game.destroy(true);
   }, []);
+
+  useEffect(() => {
+    const syncFullscreen = () => {
+      setIsFullscreen(document.fullscreenElement === stageRef.current);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    if (document.fullscreenElement === stageRef.current) {
+      await document.exitFullscreen();
+      return;
+    }
+    await stageRef.current?.requestFullscreen();
+  };
 
   return (
     <main className={`game-shell${chapterMeta.title === "一叶来处" ? " app-shell--chapter-two" : ""}`}>
@@ -513,13 +531,21 @@ function GameView({ onExit, chapterMeta }: { onExit: () => void; chapterMeta: Ch
           <p className="chapter-note">{chapterMeta.note}</p>
           <ChainArchive />
           <button className="text-button" type="button" onClick={onExit}>
-            ← 返回收藏馆
+            ← 返回主页
           </button>
         </div>
       </header>
 
-      <section className="stage-wrap" aria-label={chapterMeta.stageLabel}>
+      <section ref={stageRef} className="stage-wrap" aria-label={chapterMeta.stageLabel}>
         <div className="corner-mark corner-mark--top" aria-hidden="true" />
+        <button
+          className="fullscreen-button"
+          type="button"
+          onClick={() => void toggleFullscreen()}
+          aria-pressed={isFullscreen}
+        >
+          {isFullscreen ? "恢复窗口" : "全屏游戏"}
+        </button>
         <div id="game-root" className="game-frame" data-testid="game-root" />
         <div className="corner-mark corner-mark--bottom" aria-hidden="true" />
       </section>
@@ -533,7 +559,13 @@ function GameView({ onExit, chapterMeta }: { onExit: () => void; chapterMeta: Ch
   );
 }
 
-function HomeView({ onStart }: { onStart: () => void }) {
+function HomeView({
+  onStartChapterOne,
+  onStartChapterTwo
+}: {
+  onStartChapterOne: () => void;
+  onStartChapterTwo: () => void;
+}) {
   return (
     <main className="home">
       <div className="home-grain" aria-hidden="true" />
@@ -546,10 +578,10 @@ function HomeView({ onStart }: { onStart: () => void }) {
           </span>
         </a>
         <div className="nav-links">
-          <a href="#collection">藏馆</a>
+          <a href="#collection">章节</a>
           <a href="#story">缘起</a>
           <ChainArchive />
-          <button className="nav-start" type="button" onClick={onStart}>
+          <button className="nav-start" type="button" onClick={onStartChapterOne}>
             进入第一章
           </button>
         </div>
@@ -568,12 +600,12 @@ function HomeView({ onStart }: { onStart: () => void }) {
             每一次读懂，都将凝成一枚属于你的文化藏品。
           </p>
           <div className="hero-actions">
-            <button className="primary-action" type="button" onClick={onStart}>
-              <span>开始第一章</span>
+            <button className="primary-action" type="button" onClick={onStartChapterOne}>
+              <span>开启故事</span>
               <b aria-hidden="true">→</b>
             </button>
             <a className="secondary-action" href="#collection">
-              探索收藏馆
+              探索章节
             </a>
           </div>
           <div className="hero-meta" aria-label="游戏特性">
@@ -611,14 +643,14 @@ function HomeView({ onStart }: { onStart: () => void }) {
       <section id="collection" className="collection-section">
         <header className="section-heading">
           <div>
-            <p className="eyebrow">THE COLLECTION / 藏馆</p>
+            <p className="eyebrow">THE CHAPTER / 章节</p>
             <h2>一物一章，一章一世界</h2>
           </div>
           <p>从福建老酒出发，拾起散落在时间里的中国传统事物。</p>
         </header>
 
         <div className="chapter-grid">
-          <button className="chapter-card chapter-card--active" type="button" onClick={onStart}>
+          <button className="chapter-card chapter-card--active" type="button" onClick={onStartChapterOne}>
             <div className="chapter-card__image">
               <img src="/previews/preview_brewery_gameplay_640x360.png" alt="冬日福建酒坊像素场景" />
               <span>可游玩</span>
@@ -627,7 +659,22 @@ function HomeView({ onStart }: { onStart: () => void }) {
               <small>CHAPTER 01</small>
               <h3>福建老酒 <em>· 冬酿</em></h3>
               <p>一坛越过重洋的家书，揭开红曲与冬日的记忆。</p>
-              <b>进入故事 →</b>
+              <b>进入第一章 →</b>
+            </div>
+          </button>
+
+          <button
+            className="chapter-card chapter-card--active chapter-card--tea"
+            type="button"
+            onClick={onStartChapterTwo}
+            aria-label="进入第二章：龙井茶"
+          >
+            <div className="locked-mark">茶</div>
+            <div className="chapter-card__body">
+              <small>CHAPTER 02</small>
+              <h3>龙井茶 <em>· 一叶来处</em></h3>
+              <p>从同号茶罐出发，追索一片茶叶的名字、手艺与来处。</p>
+              <b>进入第二章 →</b>
             </div>
           </button>
 
@@ -648,7 +695,7 @@ function HomeView({ onStart }: { onStart: () => void }) {
       <section id="story" className="manifesto">
         <p>一件旧物不是过去。</p>
         <h2>当你走进它的故事，<br />传统便有了新的时间。</h2>
-        <button type="button" onClick={onStart}>开启第一段记忆 <span>→</span></button>
+        <button type="button" onClick={onStartChapterOne}>开启第一段记忆 <span>→</span></button>
       </section>
 
       <footer className="home-footer">
@@ -683,7 +730,17 @@ export function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [isPlaying]);
 
+  const startChapter = (chapter: "one" | "two") => {
+    window.sessionStorage.setItem("gleanings.active-chapter.v1", chapter);
+    setIsPlaying(true);
+  };
+
   return isPlaying
     ? <GameView onExit={() => setIsPlaying(false)} chapterMeta={chapterMeta} />
-    : <HomeView onStart={() => setIsPlaying(true)} />;
+    : (
+      <HomeView
+        onStartChapterOne={() => startChapter("one")}
+        onStartChapterTwo={() => startChapter("two")}
+      />
+    );
 }

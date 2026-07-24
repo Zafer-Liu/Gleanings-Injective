@@ -33,6 +33,18 @@ const FACING_VECTOR: Record<Facing, TilePosition> = {
   right: { x: 1, y: 0 }
 };
 
+const OBJECTIVE_TRIGGER_RADIUS = 1;
+
+function squareDistance(
+  playerTile: TilePosition,
+  targetTile: TilePosition
+): number {
+  return Math.max(
+    Math.abs(targetTile.x - playerTile.x),
+    Math.abs(targetTile.y - playerTile.y)
+  );
+}
+
 function directionalDistance(
   playerTile: TilePosition,
   facing: Facing,
@@ -63,24 +75,33 @@ export function findInteractionTarget(
         interactable.enabledPhases === undefined ||
         interactable.enabledPhases.includes(phase)
     )
-    .map((interactable) => ({
-      interactable,
-      distance: directionalDistance(
-        playerTile,
-        facing,
-        interactable.tile,
-        interactable.sidewaysRange ?? 0
-      )
-    }))
+    .map((interactable) => {
+      const isObjective = interactable.kind === "main";
+      return {
+        interactable,
+        distance: isObjective
+          ? squareDistance(playerTile, interactable.tile)
+          : directionalDistance(
+              playerTile,
+              facing,
+              interactable.tile,
+              interactable.sidewaysRange ?? 0
+            ),
+        range: isObjective
+          ? OBJECTIVE_TRIGGER_RADIUS
+          : interactable.range
+      };
+    })
     .filter(
       (
         candidate
       ): candidate is {
         interactable: InteractableContent;
         distance: number;
+        range: number;
       } =>
         candidate.distance !== null &&
-        candidate.distance <= candidate.interactable.range
+        candidate.distance <= candidate.range
     )
     .sort(
       (a, b) =>

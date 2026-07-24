@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { advancedWrap } from "./textWrap";
 
 export type RelicView = {
   eyebrow: string;
@@ -32,24 +33,28 @@ export class RelicPanel {
     this.eyebrow = scene.add.text(270, 84, "", {
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "9px",
-      color: "#A83B32"
+      color: "#A83B32",
+      ...advancedWrap(246)
     });
     this.title = scene.add.text(270, 110, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "22px",
-      color: "#F4EBDD"
+      color: "#F4EBDD",
+      lineSpacing: 2,
+      ...advancedWrap(246)
     });
     this.rarity = scene.add.text(270, 146, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "11px",
-      color: "#D4B46A"
+      color: "#D4B46A",
+      ...advancedWrap(246)
     });
     this.description = scene.add.text(270, 178, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
       fontSize: "11px",
       color: "#B7C2C0",
       lineSpacing: 5,
-      wordWrap: { width: 246 }
+      ...advancedWrap(246)
     });
     const controls = scene.add
       .text(520, 278, "E / 回车 · 收下", {
@@ -83,6 +88,9 @@ export class RelicPanel {
     this.title.setText(view.name);
     this.rarity.setText(view.rarity);
     this.description.setText(view.description);
+    this.title.setY(this.eyebrow.y + this.eyebrow.height + 10);
+    this.rarity.setY(this.title.y + this.title.height + 8);
+    this.description.setY(this.rarity.y + this.rarity.height + 14);
     this.icon?.destroy();
     this.icon = undefined;
     if (view.texture && this.scene.textures.exists(view.texture)) {

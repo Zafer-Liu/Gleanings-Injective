@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { advancedWrap } from "./textWrap";
 
 type ChapterInventoryEntry = {
   id: string;
@@ -84,16 +85,18 @@ export class ChapterInventoryPanel {
           fontFamily:
             '"Microsoft YaHei", "PingFang SC", sans-serif',
           fontSize: "10px",
-          color: "#D4B46A"
+          color: "#D4B46A",
+          lineSpacing: 1,
+          ...advancedWrap(64)
         })
         .setOrigin(0.5, 0)
     );
     this.description = scene.add.text(110, 226, "", {
       fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
-      fontSize: "11px",
+      fontSize: "10px",
       color: "#B7C2C0",
-      lineSpacing: 5,
-      wordWrap: { width: 420 }
+      lineSpacing: 2,
+      ...advancedWrap(420)
     });
     const controls = scene.add
       .text(530, 284, "I 关闭", {

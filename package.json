@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "description": "Railway entrypoint for the Gleanings collection sharing service",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13.0"
   },
   "scripts": {
-    "build": "npm --prefix rpg-chain-kit ci && npx --yes pnpm@10.26.0 --dir game install --frozen-lockfile && npx --yes pnpm@10.26.0 --dir game build",
+    "build": "npm --prefix rpg-chain-kit ci && npx --yes pnpm@11.16.0 --dir game install --frozen-lockfile && npx --yes pnpm@11.16.0 --dir game build",
     "start": "npm --prefix rpg-chain-kit start"
   }
 }

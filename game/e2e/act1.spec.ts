@@ -44,12 +44,32 @@ async function finishTransition(page: Page): Promise<void> {
 }
 
 async function startGameFromHome(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "开始第一章" }).click();
+  await page
+    .getByRole("button", { name: "进入第一章", exact: true })
+    .click();
   await expect(page.locator("canvas")).toBeVisible();
   await page.waitForTimeout(750);
 }
 
 test.describe("第一幕《开坛》", () => {
+  test("玩家可以切换游戏画面的全屏与窗口模式", async ({ page }) => {
+    await page.goto("/");
+    await startGameFromHome(page);
+
+    await page.getByRole("button", { name: "全屏游戏" }).click();
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          document.fullscreenElement?.classList.contains("stage-wrap")
+        )
+      )
+      .toBe(true);
+    await page.getByRole("button", { name: "恢复窗口" }).click();
+    await expect
+      .poll(() => page.evaluate(() => document.fullscreenElement === null))
+      .toBe(true);
+  });
+
   test("首页钱包弹窗完整显示在视口内", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/");
@@ -111,7 +131,7 @@ test.describe("第一幕《开坛》", () => {
       .toBeGreaterThanOrEqual(10);
   });
 
-  test("纸箱事件可以从扩大后的下方相邻区域触发", async ({ page }) => {
+  test("纸箱事件可以从3x3方形的对角格触发", async ({ page }) => {
     const checkpoint: BrowserSave = {
       version: 1,
       phase: "EXPLORE",
@@ -142,6 +162,40 @@ test.describe("第一幕《开坛》", () => {
 
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
       "NOTE_ACQUIRED"
+    );
+  });
+
+  test("酒坛任务可以从3x3方形内背对目标触发", async ({ page }) => {
+    const checkpoint: BrowserSave = {
+      version: 1,
+      phase: "MIA_ENTERED",
+      questId: "act1_find_jar",
+      inventory: ["item_taipo_note"],
+      inspectedObjects: [],
+      senseChoice: null,
+      playerTile: { x: 25, y: 10 },
+      movementLocked: false,
+      act1Complete: false,
+      movedTiles: 9
+    };
+
+    await page.goto("/");
+    await page.evaluate(
+      ({ key, save }) => {
+        window.localStorage.clear();
+        window.localStorage.setItem(key, JSON.stringify(save));
+      },
+      { key: SAVE_KEY, save: checkpoint }
+    );
+    await page.reload({ waitUntil: "networkidle" });
+    await startGameFromHome(page);
+
+    await press(page, "ArrowLeft");
+    await press(page, "e");
+    await press(page, "e");
+
+    await expect.poll(async () => (await readSave(page))?.phase).toBe(
+      "JAR_INSPECTED"
     );
   });
 

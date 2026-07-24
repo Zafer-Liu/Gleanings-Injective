@@ -9,6 +9,18 @@ const FACING_VECTOR: Record<Facing, TilePosition> = {
   right: { x: 1, y: 0 }
 };
 
+const OBJECTIVE_TRIGGER_RADIUS = 1;
+
+function squareDistance(
+  playerTile: TilePosition,
+  targetTile: TilePosition
+): number {
+  return Math.max(
+    Math.abs(targetTile.x - playerTile.x),
+    Math.abs(targetTile.y - playerTile.y)
+  );
+}
+
 function forwardDistance(
   playerTile: TilePosition,
   facing: Facing,
@@ -39,24 +51,35 @@ export function findChapterTarget(
           item.enabledPhases === undefined ||
           item.enabledPhases.includes(phase)
       )
-      .map((item) => ({
-        item,
-        distance: forwardDistance(
-          playerTile,
-          facing,
-          item.tile,
-          item.sidewaysRange ?? 0
-        )
-      }))
+      .map((item) => {
+        const isActiveObjective =
+          item.optional !== true &&
+          item.enabledPhases?.includes(phase) === true;
+        return {
+          item,
+          distance: isActiveObjective
+            ? squareDistance(playerTile, item.tile)
+            : forwardDistance(
+                playerTile,
+                facing,
+                item.tile,
+                item.sidewaysRange ?? 0
+              ),
+          range: isActiveObjective
+            ? OBJECTIVE_TRIGGER_RADIUS
+            : item.range
+        };
+      })
       .filter(
         (
           candidate
         ): candidate is {
           item: ChapterInteractable;
           distance: number;
+          range: number;
         } =>
           candidate.distance !== null &&
-          candidate.distance <= candidate.item.range
+          candidate.distance <= candidate.range
       )
       .sort(
         (a, b) =>

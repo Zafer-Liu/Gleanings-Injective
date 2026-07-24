@@ -11,11 +11,10 @@ import { createInitialAct1State } from "../domain/act1State";
 describe("InteractionSystem", () => {
   it.each([
     [{ x: 7, y: 12 }, "left"],
-    [{ x: 8, y: 12 }, "left"],
     [{ x: 7, y: 11 }, "left"],
     [{ x: 7, y: 13 }, "left"]
   ] as const)(
-    "selects the box inside its widened interaction area at %o",
+    "selects the box inside its 3x3 interaction area at %o",
     (playerTile, facing) => {
       const target = findInteractionTarget(
         playerTile,
@@ -28,19 +27,40 @@ describe("InteractionSystem", () => {
     }
   );
 
-  it("does not select an object behind the player or outside its range", () => {
+  it.each(["up", "down", "left", "right"] as const)(
+    "selects the active box objective while facing %s",
+    (facing) => {
+      expect(
+        findInteractionTarget(
+          { x: 7, y: 12 },
+          facing,
+          act1Content.interactables,
+          "EXPLORE"
+        )?.id
+      ).toBe("obj_cardboard_box");
+    }
+  );
+
+  it.each([
+    { x: 8, y: 12 },
+    { x: 6, y: 10 },
+    { x: 6, y: 14 }
+  ])("does not select an objective outside its 3x3 area at %o", (playerTile) => {
     expect(
       findInteractionTarget(
-        { x: 7, y: 12 },
-        "right",
+        playerTile,
+        "left",
         act1Content.interactables,
         "EXPLORE"
       )
     ).toBeNull();
+  });
+
+  it("does not widen optional object interaction areas", () => {
     expect(
       findInteractionTarget(
-        { x: 9, y: 12 },
-        "left",
+        { x: 6, y: 6 },
+        "up",
         act1Content.interactables,
         "EXPLORE"
       )
@@ -57,6 +77,20 @@ describe("InteractionSystem", () => {
 
     expect(target?.id).toBe("obj_laojiu_jar");
   });
+
+  it.each(["up", "down", "left", "right"] as const)(
+    "selects the nearby diagonal jar objective while facing %s",
+    (facing) => {
+      const target = findInteractionTarget(
+        { x: 25, y: 10 },
+        facing,
+        act1Content.interactables,
+        "MIA_ENTERED"
+      );
+
+      expect(target?.id).toBe("obj_laojiu_jar");
+    }
+  );
 
   it("does not select the box after its note has been acquired", () => {
     const target = findInteractionTarget(

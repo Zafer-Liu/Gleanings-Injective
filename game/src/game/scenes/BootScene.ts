@@ -5,6 +5,7 @@ import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { SaveService } from "../systems/SaveService";
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
+import { advancedWrap } from "../ui/textWrap";
 
 type FailedFile = {
   key?: string;
@@ -137,10 +138,17 @@ export class BootScene extends Phaser.Scene {
       this.showLoadError([...this.failedAssets]);
       return;
     }
-    const longjing = new LongjingSaveService(
-      window.localStorage
-    ).load();
-    if (longjing !== null) {
+    const activeChapter = window.sessionStorage.getItem(
+      "gleanings.active-chapter.v1"
+    );
+    const longjingService = new LongjingSaveService(window.localStorage);
+    const longjing = longjingService.load();
+    if (activeChapter === "two") {
+      const selectedLongjing = longjing ?? longjingService.create();
+      this.scene.start(sceneForLongjingAct(selectedLongjing.currentAct));
+      return;
+    }
+    if (activeChapter !== "one" && longjing !== null) {
       this.scene.start(sceneForLongjingAct(longjing.currentAct));
       return;
     }
@@ -182,7 +190,7 @@ export class BootScene extends Phaser.Scene {
         fontFamily: "monospace",
         fontSize: "11px",
         color: "#D4B46A",
-        wordWrap: { width: 450 }
+        ...advancedWrap(450)
       })
       .setOrigin(0.5);
     this.add

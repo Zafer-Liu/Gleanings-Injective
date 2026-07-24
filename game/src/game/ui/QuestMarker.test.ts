@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { questMarkerPlacement } from "./QuestMarkerPolicy";
+import {
+  questMarkerPlacement,
+  questMarkerPointForTile
+} from "./QuestMarkerPolicy";
 
 const viewport = {
   x: 100,
@@ -9,6 +12,23 @@ const viewport = {
 };
 
 describe("questMarkerPlacement", () => {
+  it("places the world arrow inside the objective's 3x3 tile area", () => {
+    const targetTile = { x: 10, y: 10 };
+    const point = questMarkerPointForTile(targetTile, 32);
+    const arrowTile = {
+      x: Math.floor(point.x / 32),
+      y: Math.floor(point.y / 32)
+    };
+
+    expect(point).toEqual({ x: 336, y: 304 });
+    expect(
+      Math.max(
+        Math.abs(arrowTile.x - targetTile.x),
+        Math.abs(arrowTile.y - targetTile.y)
+      )
+    ).toBeLessThanOrEqual(1);
+  });
+
   it("keeps an onscreen target at its world position", () => {
     expect(
       questMarkerPlacement({ x: 420, y: 340 }, viewport)
