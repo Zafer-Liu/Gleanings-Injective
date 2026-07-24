@@ -41,3 +41,8 @@
 [`assets/rpg_v2/prompts/style-anchors-v2.md`](assets/rpg_v2/prompts/style-anchors-v2.md)，
 资产规格与状态见
 [`assets/rpg_v2/manifest/assets.manifest.json`](assets/rpg_v2/manifest/assets.manifest.json)。
+
+## 墨屏展签字体
+
+- 墨屏 PNG 使用 Noto Sans SC（SIL Open Font License 1.1）内嵌渲染，
+  来源为 `@fontsource/noto-sans-sc`，用于保证 Railway 环境中的中文字符完整显示。

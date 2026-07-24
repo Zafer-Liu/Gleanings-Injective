@@ -1,40 +1,49 @@
 <!doctype html>
 <html lang="zh-CN">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>连接拾遗钱包</title>
-<script src="/vendor/ethers.umd.min.js"></script>
-<style>
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #211a17; color: #f4ebdd; font: 16px system-ui, sans-serif; }
-  main { width: min(420px, calc(100% - 40px)); padding: 28px; border: 1px solid #c9873f; background: #342922; box-shadow: 10px 10px 0 #17110f; }
-  p { color: #d4b46a; line-height: 1.7; } code { color: #c7cecb; overflow-wrap: anywhere; }
-</style>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>连接拾遗钱包</title>
+  <script src="/vendor/walletconnect/index.umd.js"></script>
+  <style>
+    :root { color-scheme: dark; --night:#17110f; --ink:#211a17; --wood:#342922; --wood-hi:#49362d; --line:#745238; --gold:#d4b46a; --paper:#f4ebdd; --mist:#c7cecb; --red:#a83b32; }
+    *{box-sizing:border-box} body{min-width:320px;min-height:100vh;margin:0;background:radial-gradient(circle at 80% 0,#49362d 0,transparent 38%),var(--night);color:var(--paper);font:ui-sans-serif,system-ui,"Microsoft YaHei",sans-serif}
+    main{width:min(620px,calc(100% - 32px));margin:clamp(26px,8vh,70px) auto;padding:clamp(22px,4vw,38px);border:1px solid var(--line);background:linear-gradient(145deg,#342922,#211a17 72%);box-shadow:12px 12px 0 #0e0a09}
+    .mark{display:flex;align-items:center;gap:10px;color:var(--gold);font:600 11px ui-monospace,monospace;letter-spacing:.14em}.mark::before{content:"";width:28px;height:28px;border:1px solid var(--gold);background:var(--red);box-shadow:inset 0 0 0 5px #342922}
+    h1{margin:18px 0 8px;font:500 clamp(28px,6vw,42px) "Noto Serif SC","Songti SC",serif;letter-spacing:.04em}.intro{max-width:50ch;margin:0;color:var(--mist);font-size:14px;line-height:1.75}.methods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:30px 0 22px}
+    .method{min-height:174px;padding:18px;border:1px solid var(--line);background:#211a17;text-align:left;color:var(--paper);cursor:pointer;transition:transform 180ms ease,background 180ms ease,border-color 180ms ease}.method:hover{transform:translateY(-2px);border-color:var(--gold);background:var(--wood-hi)}.method:focus-visible,.wallet-choice:focus-visible{outline:3px solid var(--paper);outline-offset:3px}.method__glyph{display:grid;place-items:center;width:36px;height:36px;margin-bottom:18px;border:1px solid var(--gold);color:var(--gold);font:20px "Songti SC",serif}.method h2{margin:0 0 7px;font-size:16px;font-weight:600}.method p{margin:0;color:var(--mist);font-size:12px;line-height:1.6}.hint{margin:0;padding-top:16px;border-top:1px solid #5a4032;color:#b9ab99;font-size:12px;line-height:1.65}
+    #wallets{display:grid;gap:8px;margin-top:12px}.wallet-choice{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border:1px solid #6e4932;background:#211a17;color:var(--paper);font:inherit;text-align:left;cursor:pointer}.wallet-choice:hover{border-color:var(--gold);background:var(--wood-hi)}.wallet-choice small{color:var(--gold);font:11px ui-monospace,monospace}.status{min-height:72px;margin:24px 0 0;padding:14px 0 0;border-top:1px solid #5a4032;color:var(--mist);font-size:13px;line-height:1.7}.status--error{color:#f3c0b8}.status--success{color:var(--gold)} code{color:var(--gold);font:12px ui-monospace,monospace;overflow-wrap:anywhere}.back{display:none;margin-top:18px;border:0;background:transparent;color:var(--gold);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+    @media(max-width:500px){main{width:calc(100% - 22px);margin:11px auto;padding:24px 20px;box-shadow:6px 6px 0 #0e0a09}.methods{grid-template-columns:1fr}.method{min-height:130px}.method__glyph{margin-bottom:12px}} @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
 <body>
   <main>
-    <h1>连接拾遗钱包</h1>
-    <p id="status" role="status">正在请求 MetaMask 授权…</p>
+    <div class="mark">GLEANINGS / WALLET</div>
+    <h1>连接你的收藏</h1>
+    <p class="intro">钱包只用于读取、展示或上链你的藏品。剧情进度仍保留在本机，连接不是游玩的前提。</p>
+    <div class="methods" id="methods">
+      <button class="method" id="extension" type="button"><span class="method__glyph">⌘</span><h2>浏览器钱包</h2><p>自动识别 MetaMask、OKX Wallet 等已安装扩展。</p></button>
+      <button class="method" id="mobile" type="button"><span class="method__glyph">□</span><h2>手机扫码连接</h2><p>用手机钱包扫描二维码，在手机上授权同一收藏地址。</p></button>
+    </div>
+    <div id="wallets" aria-live="polite"></div>
+    <p class="hint">不提交私钥，也不托管资产。签名和交易确认始终发生在你选择的钱包内。</p>
+    <p class="status" id="status" role="status">请选择一种连接方式。</p>
+    <button class="back" id="back" type="button">返回连接方式</button>
   </main>
   <script>
-    (async () => {
-      const statusElement = document.getElementById('status');
-      try {
-        const providerApi = window.ethereum;
-        if (!providerApi) throw new Error('未检测到 MetaMask，请安装扩展后重试');
-        const accounts = await providerApi.request({ method: 'eth_requestAccounts' });
-        const address = accounts && accounts[0];
-        if (!address) throw new Error('MetaMask 没有返回钱包地址');
-        const response = await fetch('/api/rpg/wallet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address })
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || '无法保存钱包会话');
-        statusElement.innerHTML = `已连接钱包：<br><code>${result.address}</code><br><br>可以关闭此窗口并返回《拾遗》。`;
-      } catch (error) {
-        statusElement.textContent = `连接失败：${error instanceof Error ? error.message : String(error)}`;
-      }
-    })();
+    const statusEl=document.querySelector('#status'), walletsEl=document.querySelector('#wallets'), methodsEl=document.querySelector('#methods'), back=document.querySelector('#back');
+    const announced=[];
+    const describe=(provider,index)=>provider.info?.name||(provider.isOkxWallet?'OKX Wallet':provider.isMetaMask?'MetaMask':`浏览器钱包 ${index+1}`);
+    const showStatus=(message,type='')=>{statusEl.className=`status ${type?`status--${type}`:''}`;statusEl.innerHTML=message};
+    const saveAddress=async(address)=>{const response=await fetch('/api/rpg/wallet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address})});const result=await response.json();if(!response.ok)throw Error(result.error||'无法保存钱包会话');showStatus(`已连接钱包：<br><code>${result.address}</code><br>可以关闭此窗口并返回《拾遗》。`,'success');back.style.display='inline'};
+    const reset=()=>{walletsEl.replaceChildren();methodsEl.hidden=false;back.style.display='none';showStatus('请选择一种连接方式。')};
+    const providers=()=>{const legacy=window.ethereum?.providers||[window.ethereum];return [...announced.map((item)=>item.provider),...legacy].filter(Boolean).filter((provider,index,list)=>list.indexOf(provider)===index)};
+    const connectExtension=async(provider)=>{try{showStatus('正在请求钱包授权…');const accounts=await provider.request({method:'eth_requestAccounts'});if(!accounts?.[0])throw Error('钱包没有返回地址');await saveAddress(accounts[0])}catch(error){showStatus(`连接失败：${error.message||String(error)}`,'error')}};
+    const listExtensions=()=>{methodsEl.hidden=true;walletsEl.replaceChildren();const list=providers();if(!list.length){showStatus('没有发现浏览器钱包。请安装 MetaMask 或 OKX Wallet，或使用右侧手机扫码连接。','error');back.style.display='inline';return}showStatus('选择要用于《拾遗》的浏览器钱包。');list.forEach((provider,index)=>{const button=document.createElement('button');button.className='wallet-choice';button.type='button';button.innerHTML=`<span>${describe(provider,index)}</span><small>连接 →</small>`;button.onclick=()=>connectExtension(provider);walletsEl.append(button)});back.style.display='inline'};
+    const getConfig=async()=>{const response=await fetch('/api/rpg/config');const config=await response.json();if(!response.ok)throw Error(config.error||'无法读取网络配置');return config};
+    const connectMobile=async()=>{try{const config=await getConfig();if(!config.walletconnect_project_id)throw Error('此服务尚未配置 WalletConnect Project ID。请让部署者在 Railway Variables 设置 WALLETCONNECT_PROJECT_ID 后重试。');const EthereumProvider=globalThis['@walletconnect/ethereum-provider']?.EthereumProvider;if(!EthereumProvider)throw Error('二维码组件加载失败，请刷新页面后重试。');showStatus('正在打开二维码…请用手机钱包的 WalletConnect 扫码功能连接。');const provider=await EthereumProvider.init({projectId:config.walletconnect_project_id,optionalChains:[Number(config.chain_id)||1439],showQrModal:true,rpcMap:{[Number(config.chain_id)||1439]:config.rpc_url},metadata:{name:'拾遗收藏馆',description:'Gleanings Injective collection',url:location.origin,icons:[]}});await provider.connect();const accounts=await provider.request({method:'eth_requestAccounts'});if(!accounts?.[0])throw Error('手机钱包没有返回地址');await saveAddress(accounts[0])}catch(error){showStatus(`扫码连接失败：${error.message||String(error)}`,'error')}};
+    window.addEventListener('eip6963:announceProvider',(event)=>{const detail=event.detail;if(detail?.provider&&!announced.some((item)=>item.provider===detail.provider))announced.push(detail)});window.dispatchEvent(new Event('eip6963:requestProvider'));
+    document.querySelector('#extension').onclick=listExtensions;document.querySelector('#mobile').onclick=connectMobile;back.onclick=reset;
   </script>
 </body>
 </html>
