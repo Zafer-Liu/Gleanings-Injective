@@ -50,6 +50,25 @@ async function startGameFromHome(page: Page): Promise<void> {
 }
 
 test.describe("第一幕《开坛》", () => {
+  test("首页钱包弹窗完整显示在视口内", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "连接钱包" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "连接钱包" });
+    const panel = dialog.locator(".wallet-modal__panel");
+    await expect(dialog).toBeVisible();
+    await expect(panel).toBeVisible();
+
+    const bounds = await panel.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.y).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(1280);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(720);
+    await expect(page.getByRole("button", { name: "关闭连接钱包" })).toBeVisible();
+  });
+
   test("收藏馆可以打开物品闪卡并翻面阅读介绍", async ({ page }) => {
     const checkpoint: BrowserSave = {
       version: 1,

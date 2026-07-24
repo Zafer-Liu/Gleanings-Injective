@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { startGame } from "../game/startGame";
 import { MedalService } from "../game/systems/MedalService";
 import taipoNoteImage from "../../../assets/rpg_v2/collection/taipo-note.png";
@@ -381,7 +382,7 @@ function ChainArchive() {
       <button className="chain-button" onClick={connect}>{wallet ? `已连接 · ${wallet.slice(-4)}` : "连接钱包"}</button>
       <button className="museum-button" onClick={() => setOpen(true)}>收藏馆</button>
     </div>
-    {walletModalOpen && <section className="wallet-modal" role="dialog" aria-modal="true" aria-label="连接钱包">
+    {walletModalOpen && createPortal(<section className="wallet-modal" role="dialog" aria-modal="true" aria-label="连接钱包">
       <div className="wallet-modal__panel">
         <div className="wallet-modal__head"><div><p>GLEANINGS / WALLET</p><h2>连接你的收藏</h2></div><button onClick={() => setWalletModalOpen(false)} aria-label="关闭连接钱包">关闭 ×</button></div>
         <p className="wallet-modal__intro">钱包只用于读取、展示或上链藏品。剧情进度始终保留在这台设备，连接不是游玩的前提。</p>
@@ -390,16 +391,16 @@ function ChainArchive() {
         {wallet && <button className="wallet-disconnect" onClick={disconnect}>断开此设备的钱包</button>}
         <p className="wallet-modal__status" role="status">{walletModalStatus}</p>
       </div>
-    </section>}
-    {open && <section className="museum" role="dialog" aria-modal="true" aria-label="收藏馆">
+    </section>, document.body)}
+    {open && createPortal(<section className="museum" role="dialog" aria-modal="true" aria-label="收藏馆">
       <div className="museum__head"><div><p>GLEANINGS / COLLECTION</p><h2>拾遗收藏馆</h2></div><button onClick={() => setOpen(false)}>关闭 ×</button></div>
       <p className="museum__status">{status}</p>
       <div className="collection-tools"><button className="chain-button collection-refresh" onClick={refreshChainCollection}>读取链上收藏</button><button className="museum-button" onClick={() => void shareCollection()}>{wallet ? "手机分享" : "连接后分享"}</button></div>
       {shareLink && <div className="share-panel"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareLink)}`} alt="手机打开收藏馆的二维码" /><div><strong>扫码查看我的收藏</strong><p>可扫描二维码打开公开藏品册。</p><code>{shareLink}</code><button className="chain-button" onClick={() => void copyShareLink()}>复制分享链接</button></div></div>}
       {displayedCollectibles.length ? displayedCollectibles.map((collectible) => <article className="medal" key={collectible.id}>{collectible.image ? <img className="medal__image" src={collectible.image} alt="" /> : <div className="medal__seal" aria-hidden="true">{collectible.kind === "勋章" ? "章" : "藏"}</div>}<div className="medal__copy"><h3>{collectible.name}</h3><p>{collectible.description}</p><small>{onChainTokens[collectible.id] ? `Injective EVM 链上编号 #${onChainTokens[collectible.id]}` : `已拾取${collectible.kind} · 可选择上链展示`}</small></div><button className="card-open" onClick={() => openCollectibleCard(collectible)}>查看藏品卡</button>{onChainTokens[collectible.id] ? <span className="onchain">已上链</span> : <button className="mint-button" disabled={minting === collectible.id} onClick={() => void mint(collectible)}>{minting === collectible.id ? "准备中…" : "上链展示"}</button>}</article>) : <p className="museum__empty">尚未拾取收藏。探索场景、调查纸箱并取得太婆字条后，它会立即出现在这里。</p>}
       <p className="museum__note">收藏馆始终可打开，不必连接钱包。上链完全可选；只有你选择展示的收藏才会铸造成 Injective EVM NFT。</p>
-    </section>}
-    {selectedCollectible && <section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}>
+    </section>, document.body)}
+    {selectedCollectible && createPortal(<section className="flashcard-modal" role="dialog" aria-modal="true" aria-label={`${selectedCollectible.name} 藏品卡`}>
       <div className="flashcard-modal__head"><p>GLEANINGS / STORY CARD</p><button onClick={() => setSelectedCollectible(null)} aria-label="关闭藏品卡">关闭 ×</button></div>
       <button className={`flashcard ${cardFlipped ? "flashcard--flipped" : ""}`} onClick={() => setCardFlipped((flipped) => !flipped)} aria-label={`翻转${selectedCollectible.name}藏品卡`}>
         <span className="flashcard__inner">
@@ -434,7 +435,7 @@ function ChainArchive() {
           <small role="status">{transferNotice}</small>
         </form>}
       </div>
-    </section>}
+    </section>, document.body)}
   </>;
 }
 
