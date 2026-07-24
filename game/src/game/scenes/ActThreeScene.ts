@@ -31,6 +31,7 @@ import { ChapterSaveService } from "../systems/ChapterSaveService";
 import { publishActiveScene } from "../systems/SceneStatus";
 import { ChapterChoicePanel } from "../ui/ChapterChoicePanel";
 import { ChapterHud } from "../ui/ChapterHud";
+import { ChapterInventoryPanel } from "../ui/ChapterInventoryPanel";
 import { DialogueBox } from "../ui/DialogueBox";
 import { RelicPanel } from "../ui/RelicPanel";
 
@@ -38,6 +39,7 @@ type CommandKeys = {
   interact: Phaser.Input.Keyboard.Key;
   alternate: Phaser.Input.Keyboard.Key;
   confirm: Phaser.Input.Keyboard.Key;
+  inventory: Phaser.Input.Keyboard.Key;
   up: Phaser.Input.Keyboard.Key;
   down: Phaser.Input.Keyboard.Key;
 };
@@ -56,6 +58,7 @@ export class ActThreeScene extends Phaser.Scene {
   private hud!: ChapterHud;
   private dialogue!: DialogueBox;
   private choices!: ChapterChoicePanel<Act3Inscription>;
+  private inventoryPanel!: ChapterInventoryPanel;
   private relic!: RelicPanel;
   private questMarker!: Phaser.GameObjects.Container;
   private cookedBowl!: Phaser.GameObjects.Image;
@@ -139,6 +142,7 @@ export class ActThreeScene extends Phaser.Scene {
     this.hud = new ChapterHud(this);
     this.dialogue = new DialogueBox(this);
     this.choices = new ChapterChoicePanel<Act3Inscription>(this);
+    this.inventoryPanel = new ChapterInventoryPanel(this);
     this.relic = new RelicPanel(this);
     this.createQuestMarker();
     this.refreshAll();
@@ -155,8 +159,15 @@ export class ActThreeScene extends Phaser.Scene {
   update(): void {
     if (!this.player) return;
     if (this.handleDialogueInput()) return;
+    if (this.handleInventoryInput()) return;
     if (this.handleChoiceInput()) return;
     if (this.handleRelicInput()) return;
+    if (Phaser.Input.Keyboard.JustDown(this.commandKeys.inventory)) {
+      this.player.updateMovement(this.movementKeys, true);
+      this.inventoryPanel.open(this.state.inventory);
+      this.hud.setPrompt(null);
+      return;
+    }
 
     const moved = this.player.updateMovement(
       this.movementKeys,
@@ -225,11 +236,7 @@ export class ActThreeScene extends Phaser.Scene {
       .image(pixel.x + 12, pixel.y - 20, "obj-cooked-noodles")
       .setDisplaySize(30, 30)
       .setDepth(pixel.y)
-      .setVisible(
-        this.state.act3Phase === "COOKED" ||
-          this.state.act3Phase === "INSCRIPTION" ||
-          this.state.act3Phase === "COMPLETE"
-      );
+      .setVisible(this.state.act3Phase === "COOKED");
   }
 
   private configureInput(): void {
@@ -268,6 +275,7 @@ export class ActThreeScene extends Phaser.Scene {
       interact: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
       alternate: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
       confirm: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
+      inventory: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I),
       up: cursors.up,
       down: cursors.down
     };
@@ -278,6 +286,15 @@ export class ActThreeScene extends Phaser.Scene {
     this.player.updateMovement(this.movementKeys, true);
     this.hud.setPrompt(null);
     if (this.actionJustDown()) this.dialogue.advance();
+    return true;
+  }
+
+  private handleInventoryInput(): boolean {
+    if (!this.inventoryPanel.isOpen) return false;
+    this.player.updateMovement(this.movementKeys, true);
+    if (Phaser.Input.Keyboard.JustDown(this.commandKeys.inventory)) {
+      this.inventoryPanel.close();
+    }
     return true;
   }
 
@@ -363,6 +380,10 @@ export class ActThreeScene extends Phaser.Scene {
         this.cookedBowl.setVisible(true);
         this.hud.showToast("老酒面线煮好了");
       }
+      if (target.id === "cooked_noodles") {
+        this.cookedBowl.setVisible(false);
+        this.hud.showToast("已经端起热面线");
+      }
       if (target.id === "azhen") {
         this.cookedBowl.setVisible(false);
         this.choices.open(
@@ -383,6 +404,8 @@ export class ActThreeScene extends Phaser.Scene {
         return { type: "ACT3_TALK_FAMILY" };
       case "stove":
         return { type: "ACT3_COOK" };
+      case "cooked_noodles":
+        return { type: "ACT3_PICK_UP_NOODLES" };
       case "azhen":
         return { type: "ACT3_SERVE" };
       default:

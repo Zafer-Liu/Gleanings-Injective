@@ -210,6 +210,7 @@ test.describe("第一幕《开坛》", () => {
     await page.reload({ waitUntil: "networkidle" });
     await startGameFromHome(page);
     await press(page, "ArrowLeft");
+    await page.waitForTimeout(250);
     await press(page, "e");
     await press(page, "e");
     await expect.poll(async () => (await readSave(page))?.phase).toBe(
