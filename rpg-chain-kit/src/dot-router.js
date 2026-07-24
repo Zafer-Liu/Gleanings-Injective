@@ -91,6 +91,15 @@ function escapeXml(value) {
   return String(value).replace(/[<>&'"]/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[character]));
 }
 
+function contentMode(value) {
+  return value === 'fixed' ? 'fixed' : 'loop';
+}
+
+async function imageApiTask(id, key, mode) {
+  const tasks = await dotRequest(`/api/authV2/open/device/${encodeURIComponent(id)}/${mode}/list`, key);
+  return (Array.isArray(tasks) ? tasks : []).find((task) => task.type === 'IMAGE_API') || null;
+}
+
 function textPath(text, x, baseline, size, bold = false) {
   const pathData = exhibitFont.getPath(String(text), x, baseline, size).toPathData(2);
   return `<path d="${pathData}" fill="#000"${bold ? ' stroke="#000" stroke-width=".25"' : ''}/>`;
@@ -140,13 +149,15 @@ export function createDotRouter() {
       const key = apiKey(req);
       const devices = await dotRequest('/api/authV2/open/devices', key);
       const checked = await Promise.all((Array.isArray(devices) ? devices : []).map(async (device) => {
-        try {
-          const tasks = await dotRequest(`/api/authV2/open/device/${encodeURIComponent(device.id)}/loop/list`, key);
-          const imageTask = (Array.isArray(tasks) ? tasks : []).find((task) => task.type === 'IMAGE_API');
-          return { ...device, image_api_ready: Boolean(imageTask), image_task_key: imageTask?.key || null };
-        } catch {
-          return { ...device, image_api_ready: null, image_task_key: null };
-        }
+        const [loopTask, fixedTask] = await Promise.all([
+          imageApiTask(device.id, key, 'loop').catch(() => null),
+          imageApiTask(device.id, key, 'fixed').catch(() => null)
+        ]);
+        return {
+          ...device,
+          image_api_ready: Boolean(loopTask || fixedTask),
+          image_api_modes: { loop: Boolean(loopTask), fixed: Boolean(fixedTask) }
+        };
       }));
       res.json(checked);
     } catch (error) {
@@ -183,11 +194,12 @@ export function createDotRouter() {
     try {
       const key = apiKey(req);
       const id = deviceId(req.body?.device_id);
+      const mode = contentMode(req.body?.content_mode);
       const asset = await ownedAsset(req.body?.wallet, req.body?.token_id);
-      const tasks = await dotRequest(`/api/authV2/open/device/${encodeURIComponent(id)}/loop/list`, key);
-      const imageTask = (Array.isArray(tasks) ? tasks : []).find((task) => task.type === 'IMAGE_API');
+      const imageTask = await imageApiTask(id, key, mode);
       if (!imageTask) {
-        const error = new Error('设备尚未配置 Image API。请在 Dot App 打开 Content Studio，把“Image API”加入该设备的 Loop 任务后重试。');
+        const place = mode === 'fixed' ? '固定时段任务' : 'Loop 任务';
+        const error = new Error(`设备尚未配置 ${place}的 Image API。请在 Dot App 中添加后重试。`);
         error.status = 409;
         throw error;
       }
@@ -197,7 +209,7 @@ export function createDotRouter() {
       const result = await dotRequest(`/api/authV2/open/device/${encodeURIComponent(id)}/image`, key, {
         method: 'POST',
         body: JSON.stringify({
-          refreshNow: true,
+          refreshNow: mode === 'loop',
           image: cardUrl,
           link,
           border: 0,
@@ -206,7 +218,7 @@ export function createDotRouter() {
           taskAlias: `Gleanings #${asset.tokenId}`
         })
       });
-      res.json({ message: result.message || '藏品已发送到墨屏', card_url: cardUrl, link });
+      res.json({ message: result.message || '藏品已发送到墨屏', card_url: cardUrl, link, content_mode: mode });
     } catch (error) {
       res.status(error.status || 400).json({ error: error.message });
     }
