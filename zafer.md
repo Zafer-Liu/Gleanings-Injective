@@ -233,12 +233,6 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 接口为 `GET /api/rpg/social/visits/:owner` 与 `POST /api/rpg/social/visits`。生产环境配置 Railway Postgres 的 `DATABASE_URL` 后，服务会自动创建 `gleanings_visits` 表并持久保存内容；未配置时仅启用演示内存模式，服务重启会清空来访笺。每个访客标识对同一收藏馆 30 秒内只能提交一次，用于减轻刷屏。
 
-### 展签轮换投票
-
-公开收藏馆中每件藏品都可“票选下次展签”。同一访客在一个收藏馆中只能保留一票，再次选择别的藏品会改投，因此票数代表不同访客的当前选择，而不是点击次数。投票只影响水墨屏的建议展示排序，不改变 NFT 所有权，也不强制收藏主投放票数最高的藏品。
-
-接口为 `GET /api/rpg/social/votes/:owner` 与 `POST /api/rpg/social/votes`。持久化环境会自动创建 `gleanings_exhibit_votes` 表，并以 `(owner_wallet, visitor_key)` 保证每位访客只能有一个有效投票。
-
 当前可复用素材：
 
 | 藏品 ID | 本地素材 |

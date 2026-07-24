@@ -97,13 +97,14 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
   await expect(page.getByRole("button", { name: "分享展示链接" })).toHaveCount(cardCount);
   await expect(page.getByRole("link", { name: "手机投到墨屏" })).toHaveCount(cardCount);
   await expect(page.getByRole("button", { name: "转赠所有权" })).toHaveCount(cardCount);
-  const vote = page.getByRole("button", { name: /票选下次展签/ }).first();
-  await vote.click();
-  await expect(vote).toContainText("1 票");
   await expect(page.getByRole("heading", { name: "来访笺" })).toBeVisible();
   await page.getByLabel("来访笺内容").fill("从手机留下的一页回响。 ");
   await page.getByRole("button", { name: "留下印记" }).click();
   await expect(page.locator("#visit-list")).toContainText("从手机留下的一页回响。");
+  await expect(page.getByRole("button", { name: "切换玩家" })).toBeVisible();
+  await page.getByRole("button", { name: "切换玩家" }).click();
+  await expect(page.locator("#address-form")).toBeVisible();
+  await expect(page.getByRole("button", { name: "查看玩家收藏" })).toBeVisible();
 
   const widths = await page.evaluate(() => ({
     viewport: window.innerWidth,
@@ -229,20 +230,6 @@ test("访客可在公开收藏馆留下来访笺", async ({ request }) => {
   expect(visits.ok()).toBe(true);
   const payload = await visits.json() as { visits: Array<{ seal: string; message: string }> };
   expect(payload.visits).toEqual(expect.arrayContaining([expect.objectContaining({ seal: "暖", message: "这段冬酿记忆很温暖。" })]));
-});
-
-test("每位访客可为下一张墨屏展签投票并改投", async ({ request }) => {
-  const visitorKey = "share-mobile-vote-key-001";
-  const response = await request.post(`${origin}/api/rpg/social/votes`, {
-    data: { owner_wallet: wallet, visitor_key: visitorKey, token_id: tokenId }
-  });
-  expect(response.ok()).toBe(true);
-  const created = await response.json() as { votes: Record<string, number> };
-  expect(created.votes[tokenId]).toBeGreaterThanOrEqual(1);
-  const votes = await request.get(`${origin}/api/rpg/social/votes/${wallet}`);
-  expect(votes.ok()).toBe(true);
-  const payload = await votes.json() as { votes: Record<string, number> };
-  expect(payload.votes[tokenId]).toBeGreaterThanOrEqual(1);
 });
 
 test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ request }) => {
