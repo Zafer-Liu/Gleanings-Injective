@@ -227,6 +227,10 @@ h1 span {
 .flashcard-share { justify-self:start; border:1px solid #d9a052; color:#f4ebdd; background:var(--hongqu); padding:9px 12px; cursor:pointer; font:12px inherit; }
 .flashcard-share:hover { filter:brightness(1.15); }
 .flashcard-actions { display:grid; gap:10px; width:min(430px,calc(100vw - 44px)); }
+.flashcard-social-actions { display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; }
+.flashcard-dot { border:1px solid var(--straw); color:var(--paper); background:#17110f; padding:9px 12px; cursor:pointer; font:12px inherit; }
+.flashcard-dot:hover { background:#49362d; }
+.flashcard-dot:focus-visible { outline:3px solid #f4ebdd; outline-offset:3px; }
 .transfer-form { display:grid; gap:7px; padding:12px; border:1px solid #765035; background:#211a17; }
 .transfer-form label { color:#f4ebdd; font-size:13px; }
 .transfer-form > div { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; }

@@ -182,6 +182,20 @@ function ChainArchive() {
     }
   };
 
+  const openDotExhibit = (collectible: Collectible) => {
+    if (!wallet) return connect();
+    const tokenId = onChainTokens[collectible.id];
+    if (!tokenId) {
+      setStatus("请先把藏品上链，再生成可验证的墨屏展签。");
+      return;
+    }
+    const url = new URL("/dot/", CHAIN_ORIGIN);
+    url.searchParams.set("wallet", wallet);
+    url.searchParams.set("token", tokenId);
+    if (window.matchMedia("(max-width: 680px)").matches) window.location.href = url.toString();
+    else window.open(url.toString(), "gleanings-dot-exhibit");
+  };
+
   const availableExtensions = (): AnnouncedWallet[] => {
     const injected = (window as typeof window & { ethereum?: Eip1193Provider }).ethereum;
     const legacy = injected?.providers ?? (injected ? [injected] : []);
@@ -404,7 +418,10 @@ function ChainArchive() {
         </span>
       </button>
       <div className="flashcard-actions">
-        <button className="flashcard-share" onClick={() => void shareCollectible(selectedCollectible)}>分享展示链接</button>
+        <div className="flashcard-social-actions">
+          <button className="flashcard-share" onClick={() => void shareCollectible(selectedCollectible)}>分享展示链接</button>
+          {onChainTokens[selectedCollectible.id] && <button className="flashcard-dot" onClick={() => openDotExhibit(selectedCollectible)}>手机投到墨屏</button>}
+        </div>
         {onChainTokens[selectedCollectible.id] && <form className="transfer-form" onSubmit={(event) => { event.preventDefault(); void transferCollectible(selectedCollectible); }}>
           <label htmlFor="transfer-recipient">转赠链上所有权</label>
           <div>

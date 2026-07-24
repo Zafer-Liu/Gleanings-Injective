@@ -28,6 +28,8 @@ flowchart LR
   E --> F[任意浏览器连接同一钱包]
   E --> G[手机分享页 /share]
   E -->|持有人签名转赠| H[接收方钱包]
+  E --> I[Dot. 墨屏展签 /dot]
+  I -->|NFC 轻触| G
 ```
 
 ---
@@ -42,6 +44,7 @@ flowchart LR
 6. 玩家换浏览器后，只要连接同一钱包并点击“读取链上收藏”，已铸造 NFT 会重新出现在收藏馆。
 7. 玩家点击“手机分享”，生成公开链接和二维码；手机打开 `/share/?wallet=0x...` 后可只读浏览藏品。
 8. 已上链藏品可在游戏闪卡或公开藏品页选择“转赠所有权”，填写接收方 `0x...` 地址并由当前持有人签名；交易确认后 Token 从原钱包转移到接收方钱包。
+9. 玩家可选择“投到墨屏”，把藏品生成 `296 × 152` 黑白展签并发送到 Dot. Quote/0；访客轻触设备 NFC 可打开该 Token 的公开页面。
 
 ---
 
@@ -116,11 +119,13 @@ flowchart LR
 |---|---|
 | `rpg-chain-kit/src/index.js` | Express 服务、CORS、健康检查、Vite 游戏静态资源、手机分享页与分享链接 API |
 | `rpg-chain-kit/src/rpg-item-router.js` | 钱包会话、铸造/转让请求、交易确认、NFT 资产与历史读取 |
+| `rpg-chain-kit/src/dot-router.js` | Dot. 设备读取、链上持有人校验、296×152 PNG 展签生成与 Image API 推送 |
 | `rpg-chain-kit/contracts/RpgItem.sol` | 通用 ERC-721 道具合约源码 |
 | `rpg-chain-kit/artifacts/RpgItem.json` | 前端签名页调用合约所需 ABI 与字节码 |
 | `rpg-chain-kit/public/connect.html` | 钱包连接页：自动识别 MetaMask、OKX Wallet 等浏览器扩展，也可用 WalletConnect 二维码让手机钱包连接 |
 | `rpg-chain-kit/public/wallet.html` | 上链/转让确认页：浏览器扩展和手机扫码钱包均可在此签名 |
 | `rpg-chain-kit/public/share/index.html` | 手机优先的公开藏品展示页；支持单件链接分享和链上所有权转赠 |
+| `rpg-chain-kit/public/dot/index.html` | 网页与手机通用的墨屏预览、设备选择和推送页面 |
 | `rpg-chain-kit/.env.example` | 本地链上网络配置模板 |
 
 ### 4.3 Railway 部署文件
@@ -148,6 +153,9 @@ flowchart LR
 | `GET` | `/api/rpg/assets/:wallet` | 读取某钱包当前持有的 NFT 和 metadata |
 | `GET` | `/api/rpg/history/:tokenId` | 查询某 NFT 的 Transfer 历史 |
 | `GET` | `/api/rpg/share-link/:wallet` | 生成手机分享页 URL |
+| `GET` | `/api/rpg/dot/devices` | 使用当前会话提交的 Dot API Key 读取个人设备 |
+| `GET` | `/api/rpg/dot/card/:wallet/:token.png` | 验证当前链上持有人并生成 296×152 PNG 展签 |
+| `POST` | `/api/rpg/dot/push` | 将展签和 NFC 公开链接推送到指定 Dot. 设备 |
 
 静态路由：
 
@@ -156,6 +164,7 @@ flowchart LR
 | `/` | 《拾遗》游戏主页 |
 | `/share/?wallet=0x...` | 公开藏品册；查看无需钱包，转赠需要持有人签名 |
 | `/share/?wallet=0x...&token=<id>` | 单件藏品公开链接；网页与手机均可继续发链接或发起所有权转赠 |
+| `/dot/?wallet=0x...&token=<id>` | 墨屏展签预览、设备绑定与推送 |
 | `/connect.html` | MetaMask 连接窗口 |
 | `/wallet.html?request=<id>` | MetaMask 铸造/转让确认窗口 |
 
@@ -234,18 +243,41 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 ---
 
-## 8. 当前限制与后续优化
+## 8. Dot. 墨屏展签与现实社交
+
+墨屏功能以手机端为主入口，并使用 MindReset Dot. 的新版 Image API。手机公开藏品页可直接进入 `/dot/`，底部固定“从手机发送到墨屏”按钮，电脑端作为辅助管理入口：
+
+- 输出固定为设备原生 `296 × 152` PNG；
+- 服务端先将藏品图转为黑白高对比展签，再以 `ditherType: NONE` 推送，保证文字和 Token ID 清晰；
+- 展签包含藏品图、Injective EVM Token ID、持有人缩写和 `TAP TO OPEN`；
+- Image API 的 `link` 指向 `/share/?wallet=...&token=...`，设备 NFC 轻触即可查看链上藏品；
+- 推送前再次调用合约 `ownerOf`，已转赠的 Token 不会继续以旧持有人身份生成展签。
+
+玩家需要先在 Dot App：
+
+1. 在 Content Studio 的 Loop 任务中加入 **Image API** 内容；
+2. 在“更多 → API Key”创建个人 Key；
+3. 在 `/dot/` 页面输入 Key，读取设备并选择推送。
+
+API Key 不写入项目环境变量、数据库或日志，只保存在当前标签页的 `sessionStorage`，并通过 HTTPS 请求头临时发送给 Railway 后端，由后端转发至固定的 `https://dot.mindreset.tech` 官方域名。用户可随时点击“清除 Key”。
+
+官方资料：[Image API](https://dot.mindreset.tech/docs/service/open/image_api) ｜ [获取 API Key](https://dot.mindreset.tech/docs/service/open/get_api) ｜ [获取设备列表](https://dot.mindreset.tech/docs/service/open/list_devices_api)
+
+---
+
+## 9. 当前限制与后续优化
 
 | 当前状态 | 原因 | 后续方案 |
 |---|---|---|
-| 钱包会话存于服务内存 | MVP 实现简单 | 改为前端 localStorage / cookie 会话或数据库，避免多用户互相覆盖 |
+| 钱包地址仅存当前标签页会话 | 防止不同访客继承他人钱包显示 | 后续可使用钱包签名会话支持跨标签页登录 |
 | 手机扫码需要 WalletConnect Project ID | WalletConnect 要求项目身份与允许域名 | Railway 添加 `WALLETCONNECT_PROJECT_ID`，并在 Dashboard 配置 Railway 域名 |
 | metadata 图片暂用 Railway URL | 演示环境便于直接显示 | 正式发行迁移 IPFS，避免域名变化影响图片 |
 | 分享页读取公开资产 | 适合社交展示 | 增加昵称、封面、单张藏品 permalink 与 Open Graph 卡片 |
 | 铸造开放给连接钱包的玩家 | 演示期降低流程复杂度 | 接入游戏通关验证或后端签名 voucher 防滥铸 |
+| Dot. 推送需要玩家自己的设备和 API Key | 官方 API 的设备权限要求 | 演示时准备已联网设备，并预先把 Image API 加入 Loop 任务 |
 
 ---
 
-## 9. 比赛演示话术
+## 10. 比赛演示话术
 
-> 玩家先在《拾遗》中获得文化道具，收藏馆不强制钱包；只有想把某段文化记忆带出游戏、分享给朋友时，才选择上链。NFT 记录的是玩家真正拥有的一件叙事藏品。换浏览器、换设备、手机扫码，仍然可以通过 Injective EVM 验证并展示这段旅程。
+> 玩家先在《拾遗》中获得文化道具，收藏馆不强制钱包；只有想把某段文化记忆带出游戏、分享给朋友时，才选择上链。NFT 记录的是玩家真正拥有的一件叙事藏品。它既能在网页和手机公开分享、转赠给另一个钱包，也能被投到现实中的水墨屏：访客碰一碰设备，就能打开 Injective EVM 上可验证的文化记忆。

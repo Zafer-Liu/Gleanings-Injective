@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { createServer, type Server } from "node:http";
 import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
 
@@ -6,8 +7,30 @@ const port = 3217;
 const origin = `http://127.0.0.1:${port}`;
 const wallet = "0x9a470DFd0DdBB861402611c555E8fAf181D64049";
 let service: ChildProcess;
+let dotMock: Server;
+let lastDotPush: Record<string, unknown> | null = null;
 
 test.beforeAll(async () => {
+  dotMock = createServer((req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    if (req.method === "GET" && req.url === "/api/authV2/open/devices") {
+      res.end(JSON.stringify([{ id: "DOT123456", alias: "书桌墨屏", location: "工作室", series: "quote", model: "quote_0", edition: 2 }]));
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/authV2/open/device/DOT123456/image") {
+      const chunks: Buffer[] = [];
+      req.on("data", (chunk) => chunks.push(chunk));
+      req.on("end", () => {
+        lastDotPush = JSON.parse(Buffer.concat(chunks).toString()) as Record<string, unknown>;
+        res.end(JSON.stringify({ message: "Device DOT123456 Image API content switched." }));
+      });
+      return;
+    }
+    res.statusCode = 404;
+    res.end(JSON.stringify({ message: "Not found" }));
+  });
+  await new Promise<void>((resolveListen) => dotMock.listen(3218, "127.0.0.1", resolveListen));
+
   service = spawn(process.execPath, [resolve(process.cwd(), "../rpg-chain-kit/src/index.js")], {
     cwd: resolve(process.cwd(), "../rpg-chain-kit"),
     env: {
@@ -15,7 +38,8 @@ test.beforeAll(async () => {
       PORT: String(port),
       EVM_RPC_URL: "https://testnet.evm.archival.chain.virtual.json-rpc.injective.network/",
       RPG_ITEM_CONTRACT_ADDRESS: "0xc8167b100bc7Ad611299d634D09b853C6310619e",
-      CHAIN_ID: "1439"
+      CHAIN_ID: "1439",
+      DOT_API_ORIGIN: "http://127.0.0.1:3218"
     },
     stdio: "ignore"
   });
@@ -31,6 +55,7 @@ test.beforeAll(async () => {
 
 test.afterAll(() => {
   service?.kill();
+  dotMock?.close();
 });
 
 test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) => {
@@ -41,6 +66,7 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
   await expect(page.locator("#address-form")).toBeHidden();
   await expect(page.locator("#owner")).toHaveText("0x9a47…4049");
   await expect(page.getByRole("button", { name: "分享展示链接" })).toHaveCount(2);
+  await expect(page.getByRole("link", { name: "手机投到墨屏" })).toHaveCount(2);
   await expect(page.getByRole("button", { name: "转赠所有权" })).toHaveCount(2);
 
   const art = page.locator(".card-art").first();
@@ -59,6 +85,30 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
     document: document.documentElement.scrollWidth
   }));
   expect(widths.document).toBeLessThanOrEqual(widths.viewport);
+});
+
+test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${origin}/dot/?wallet=${wallet}&token=2`);
+  await expect(page.getByRole("heading", { name: "拾遗 · 墨屏展签" })).toBeVisible();
+  await expect(page.getByLabel("Dot API Key")).toBeVisible();
+  const preview = page.getByRole("img", { name: "藏品墨屏展签预览" });
+  await expect(preview).toBeVisible();
+  await expect.poll(() => preview.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([296, 152]);
+  const push = page.getByRole("button", { name: "从手机发送到墨屏" });
+  await expect(push).toBeVisible();
+  const pushBox = await push.boundingBox();
+  expect(pushBox).not.toBeNull();
+  expect(pushBox!.y + pushBox!.height).toBeLessThanOrEqual(844);
+  expect(pushBox!.y).toBeGreaterThan(760);
+  const widths = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
+  expect(widths.document).toBeLessThanOrEqual(widths.viewport);
+  await page.getByLabel("Dot API Key").fill("dot_test_1234567890123456");
+  await page.getByRole("button", { name: "读取我的设备" }).click();
+  await expect(page.getByLabel("选择设备")).toHaveValue("DOT123456");
+  await expect(push).toBeEnabled();
+  await push.click();
+  await expect(page.getByRole("status")).toContainText("Image API content switched");
 });
 
 test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ page }) => {
@@ -88,4 +138,25 @@ test("转赠请求会验证当前持有人并记录接收钱包", async ({ reque
     status: "awaiting_signature",
     action: { kind: "transfer", wallet, token_id: "2", to_wallet: recipient }
   });
+});
+
+test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ request }) => {
+  const key = "dot_test_1234567890123456";
+  const devices = await request.get(`${origin}/api/rpg/dot/devices`, { headers: { "X-Dot-Api-Key": key } });
+  expect(devices.ok()).toBe(true);
+  await expect(devices.json()).resolves.toMatchObject([{ id: "DOT123456", alias: "书桌墨屏" }]);
+
+  const pushed = await request.post(`${origin}/api/rpg/dot/push`, {
+    headers: { "X-Dot-Api-Key": key },
+    data: { device_id: "DOT123456", wallet, token_id: "2" }
+  });
+  expect(pushed.ok()).toBe(true);
+  expect(lastDotPush).toMatchObject({
+    refreshNow: true,
+    border: 0,
+    ditherType: "NONE",
+    taskAlias: "Gleanings #2"
+  });
+  expect(String(lastDotPush?.image)).toContain("/api/rpg/dot/card/");
+  expect(String(lastDotPush?.link)).toContain(`/share/?wallet=${wallet}&token=2`);
 });
