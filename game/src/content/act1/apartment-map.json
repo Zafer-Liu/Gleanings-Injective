@@ -32,8 +32,8 @@
     { "id": "boxes_right_collision", "x": 5.25, "y": 12.25, "width": 1.25, "height": 3.75 },
     { "id": "parcel_collision", "x": 6.5, "y": 14, "width": 1.75, "height": 2.75 },
     { "id": "jar_collision", "x": 25.5, "y": 7, "width": 2.25, "height": 3.25 },
-    { "id": "entry_console_collision", "x": 21.25, "y": 11, "width": 1.75, "height": 4.5 },
-    { "id": "entry_collision", "x": 23, "y": 11, "width": 4, "height": 6 }
+    { "id": "entry_console_collision", "x": 21.25, "y": 12.75, "width": 1.25, "height": 4.25 },
+    { "id": "entry_collision", "x": 22.5, "y": 11, "width": 4.5, "height": 6 }
   ],
   "occluders": [
     { "id": "boxes_upper_left_occluder", "x": 1.75, "y": 9.75, "width": 2, "height": 2.25 },

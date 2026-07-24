@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { startGame } from "../game/startGame";
 import { resolveChainOrigin } from "./chainConfig";
+import { CharacterPage } from "./CharacterPage";
 import {
   collectibleFromChainItem,
   collectibleKindLabel,
@@ -512,6 +513,7 @@ function HomeView({
         </a>
         <div className="nav-links">
           <a href="#collection">章节</a>
+          <a href="/characters">人物志</a>
           <a href="#story">缘起</a>
           <ChainArchive />
           <button className="nav-start" type="button" onClick={onStartChapterOne}>
@@ -665,6 +667,10 @@ export function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [isPlaying]);
+
+  if (window.location.pathname === "/characters") {
+    return <CharacterPage />;
+  }
 
   const startChapter = (chapter: "one" | "two") => {
     window.sessionStorage.setItem("gleanings.active-chapter.v1", chapter);

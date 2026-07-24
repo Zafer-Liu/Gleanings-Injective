@@ -82,9 +82,11 @@ describe("ApartmentRenderer geometry", () => {
     [620, 224],
     [456, 368],
     [200, 340],
-    [212, 400]
+    [212, 400],
+    [700, 376],
+    [712, 400]
   ])(
-    "keeps visible floor around the box pile walkable at pixel (%i, %i)",
+    "keeps visible apartment floor walkable at pixel (%i, %i)",
     (x, y) => {
       expect(collisionAt(x, y)).toBeNull();
     }
@@ -103,7 +105,9 @@ describe("ApartmentRenderer geometry", () => {
     [240, 496, "parcel_collision"],
     [720, 272, "kitchen_island_collision"],
     [850, 304, "jar_collision"],
-    [708, 432, "entry_console_collision"]
+    [708, 432, "entry_console_collision"],
+    [700, 520, "entry_console_collision"],
+    [724, 376, "entry_collision"]
   ])(
     "keeps the furniture solid at pixel (%i, %i)",
     (x, y, collisionId) => {
