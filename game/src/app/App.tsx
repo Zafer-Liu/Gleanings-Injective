@@ -526,8 +526,7 @@ function HomeView({
         <div className="hero-copy">
           <p className="hero-kicker"><span /> 中国传统事物叙事收藏游戏</p>
           <h1 className="hero-title">
-            拾起被遗忘的，
-            <br />
+            <span>拾起被遗忘的，</span>
             <em>让故事再次发生。</em>
           </h1>
           <p className="hero-intro">
