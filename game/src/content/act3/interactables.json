@@ -45,7 +45,8 @@
   {
     "id": "cooked_noodles",
     "tile": { "x": 6, "y": 15 },
-    "range": 1,
+    "range": 2,
+    "sidewaysRange": 1,
     "prompt": "E / 空格 · 端起热面线",
     "dialogueGroup": "pickup",
     "enabledPhases": ["COOKED"]

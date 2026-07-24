@@ -72,4 +72,25 @@ describe("ChapterInteraction", () => {
       )?.id
     ).toBe("decoration");
   });
+
+  it("allows an explicitly widened target to be reached one tile sideways", () => {
+    const cookedNoodles = {
+      id: "cooked_noodles",
+      tile: { x: 6, y: 15 },
+      range: 2,
+      sidewaysRange: 1,
+      prompt: "端起热面线",
+      dialogueGroup: "pickup",
+      enabledPhases: ["COOKED"]
+    } as ChapterInteractable & { sidewaysRange: number };
+
+    expect(
+      findChapterTarget(
+        { x: 5, y: 16 },
+        "up",
+        [cookedNoodles],
+        "COOKED"
+      )?.id
+    ).toBe("cooked_noodles");
+  });
 });

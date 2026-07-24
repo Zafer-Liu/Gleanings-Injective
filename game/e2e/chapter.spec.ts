@@ -266,6 +266,34 @@ test.describe("第一章后续幕", () => {
     expect(closedAgain.equals(closed)).toBe(true);
   });
 
+  test("热面线可以从灶台侧下方一次交互端起", async ({ page }) => {
+    await seed(
+      page,
+      chapterSave({
+        currentAct: 3,
+        checkpoint: "act3_cooked",
+        act2Phase: "COMPLETE",
+        act2Question: "ask_hongqu",
+        act3Phase: "COOKED",
+        act3Materials: ["bowl", "noodles", "laojiu"],
+        inventory: ["item_cooked_noodles"],
+        playerTile: { x: 5, y: 16 }
+      })
+    );
+
+    await press(page, "ArrowUp");
+    await press(page, "e");
+
+    await expect
+      .poll(async () => (await readChapter(page))?.act3Phase)
+      .toBe("CARRYING");
+    expect(
+      (await readChapter(page))?.inventory.filter(
+        (item) => item === "item_cooked_noodles"
+      )
+    ).toHaveLength(1);
+  });
+
   test("本地铸造后衔接黄酒后记，并可跳到总完成页", async ({
     page
   }) => {

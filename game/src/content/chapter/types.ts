@@ -23,6 +23,7 @@ export type ChapterInteractable = {
   id: string;
   tile: TilePosition;
   range: number;
+  sidewaysRange?: number;
   prompt: string;
   dialogueGroup: string;
   enabledPhases?: string[];
