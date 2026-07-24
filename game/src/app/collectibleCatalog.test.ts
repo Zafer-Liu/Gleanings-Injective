@@ -7,6 +7,9 @@ import {
   mergeCollectibles,
   mintItemForCollectible
 } from "./collectibleCatalog";
+import {
+  DEBUG_COLLECTIBLES_STORAGE_KEY
+} from "../game/debug/debugCollectibles";
 
 function storageWith(
   values: Record<string, unknown>
@@ -111,6 +114,25 @@ describe("collectible catalog", () => {
         name: "冬酿印",
         kind: "badge"
       }
+    ]);
+  });
+
+  it("开发调试标记可以分别解锁全部徽章或道具", () => {
+    const badges = loadCollectedItems(
+      storageWith({
+        [DEBUG_COLLECTIBLES_STORAGE_KEY]: ["badge"]
+      })
+    );
+    const items = loadCollectedItems(
+      storageWith({
+        [DEBUG_COLLECTIBLES_STORAGE_KEY]: ["item"]
+      })
+    );
+
+    expect(badges).toHaveLength(BADGE_CATALOG.length);
+    expect(badges.every((item) => item.kind === "badge")).toBe(true);
+    expect(items).toMatchObject([
+      { id: "item_taipo_note", kind: "item" }
     ]);
   });
 

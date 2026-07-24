@@ -125,10 +125,15 @@ function ChainArchive({ showWallet = true }: { showWallet?: boolean } = {}) {
     syncWallet();
     window.addEventListener("focus", syncWallet);
     window.addEventListener("gleanings:scenechange", syncWallet);
+    window.addEventListener("gleanings:collectionchange", syncWallet);
     return () => {
       window.removeEventListener("focus", syncWallet);
       window.removeEventListener(
         "gleanings:scenechange",
+        syncWallet
+      );
+      window.removeEventListener(
+        "gleanings:collectionchange",
         syncWallet
       );
     };

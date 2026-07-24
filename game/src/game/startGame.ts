@@ -1,6 +1,11 @@
 import Phaser from "phaser";
 import { createGameConfig } from "./config";
+import { installDebugTools } from "./debug/DebugTools";
 
 export function startGame(parent: string): Phaser.Game {
-  return new Phaser.Game(createGameConfig(parent));
+  const game = new Phaser.Game(createGameConfig(parent));
+  if (import.meta.env.DEV) {
+    installDebugTools(game);
+  }
+  return game;
 }
