@@ -35,6 +35,58 @@ button { color: inherit; }
   align-items: center;
 }
 
+.game-shell--immersive {
+  --game-side-gap: clamp(8px, 1.5vw, 24px);
+  --game-bottom-gap: clamp(18px, 3vh, 40px);
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: start center;
+  overflow: hidden;
+  background: #000;
+}
+
+.game-shell--immersive .stage-wrap {
+  width: min(
+    calc(100vw - 2 * var(--game-side-gap)),
+    calc((100vh - var(--game-bottom-gap)) * 16 / 9)
+  );
+  margin: 0;
+  padding: 0;
+  transform: translateX(-6px);
+  border: 0;
+  box-shadow: none;
+}
+
+.game-shell--immersive.app-shell--chapter-two {
+  background: #000;
+}
+
+.game-shell--immersive .game-frame {
+  box-shadow: none;
+}
+
+.game-overlay-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 8;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.game-overlay-actions .chain-actions {
+  margin: 0;
+}
+
+.game-overlay-actions .text-button {
+  grid-column: auto;
+}
+
 .game-masthead {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -166,54 +218,6 @@ h1 span {
   box-shadow: 12px 12px 0 #251b17;
 }
 
-.fullscreen-button {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  z-index: 8;
-  min-height: 36px;
-  padding: 7px 12px;
-  border: 1px solid var(--straw);
-  color: #f4ebdd;
-  background: rgba(33, 26, 23, .9);
-  cursor: pointer;
-  font: 11px "Cascadia Mono", monospace;
-  letter-spacing: .08em;
-  backdrop-filter: blur(6px);
-}
-
-.fullscreen-button:hover {
-  background: var(--hongqu);
-}
-
-.fullscreen-button:focus-visible {
-  outline: 3px solid #f4ebdd;
-  outline-offset: 3px;
-}
-
-.stage-wrap:fullscreen {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: clamp(8px, 2vw, 28px);
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: #0e0a08;
-  box-shadow: none;
-}
-
-.stage-wrap:fullscreen .game-frame {
-  width: min(100%, calc((100vh - 32px) * 16 / 9));
-  max-height: 100%;
-}
-
-.stage-wrap:fullscreen .fullscreen-button {
-  position: fixed;
-  top: 18px;
-  right: 18px;
-}
-
 .game-frame {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -272,10 +276,19 @@ h1 span {
 .collection-refresh { margin:0; }
 .collection-tools { display:flex; align-items:stretch; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
 .collection-tools > button { display:inline-flex; align-items:center; justify-content:center; min-height:46px; }
+.collection-filter-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:12px 0 4px; }
+.collection-filter-row > small { color:#b9ab99; font:10px "Cascadia Mono",monospace; white-space:nowrap; }
+.collection-filters { display:flex; gap:6px; padding:4px; background:#17110f; border:1px solid #5a4032; }
+.collection-filters button { min-width:58px; border:1px solid transparent; color:#b9ab99; background:transparent; padding:7px 10px; cursor:pointer; font:12px inherit; }
+.collection-filters button:hover { color:#f4ebdd; border-color:#6e4932; }
+.collection-filters button[aria-pressed="true"] { color:#17110f; background:var(--straw); border-color:var(--straw); }
+.collection-filters button:focus-visible { outline:3px solid #f4ebdd; outline-offset:3px; }
 .share-panel { display:grid; grid-template-columns:112px 1fr; gap:14px; align-items:center; margin:12px 0; padding:12px; background:#17110f; border:1px solid #6e4932; }.share-panel img { width:112px; height:112px; background:#fff; }.share-panel strong { color:#f4ebdd; font-size:15px; font-weight:500; }.share-panel p { margin:5px 0; color:var(--frost); font-size:12px; line-height:1.5; }.share-panel code { display:block; margin-bottom:8px; color:var(--straw); font:10px "Cascadia Mono",monospace; overflow-wrap:anywhere; }
 .medal { display: flex; align-items: center; gap: 14px; margin: 18px 0; padding: 14px 0; border-block: 1px solid #5a4032; }
 .medal__seal { display: grid; place-items: center; flex: 0 0 58px; height: 58px; color: #f4ebdd; background: var(--hongqu); border: 2px solid var(--amber); border-radius: 50%; font-size: 24px; }
 .medal__image { flex:0 0 58px; width:58px; height:58px; padding:7px; object-fit:contain; image-rendering:pixelated; background:#17110f; border:1px solid #6e4932; }
+.medal__image--badge { padding:3px; image-rendering:pixelated; background:#0f0d0c; }
+.flashcard__art--badge img { image-rendering:pixelated; background:transparent; }
 .medal__copy { flex: 1; min-width:0; }.medal__copy p { margin: 5px 0; color: #c7cecb; font-size: 12px; line-height: 1.55; }.medal__copy small { color: var(--straw); }
 .museum__note { margin: 0; padding-top: 14px; border-top: 1px solid #5a4032; }
 .onchain { color: var(--straw); font: 11px "Cascadia Mono", monospace; white-space: nowrap; }

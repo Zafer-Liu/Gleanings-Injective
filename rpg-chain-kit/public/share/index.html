@@ -40,7 +40,8 @@
     <p class="transfer-status" id="transfer-status" role="status">此操作需要当前持有人在钱包中签名。</p>
   </form>
 </section>
-<script>
+<script type="module">
+  import { collectionType } from './collectible-kind.js';
   const form=document.querySelector('#address-form'), input=document.querySelector('#wallet'), hint=document.querySelector('#hint'), profile=document.querySelector('#profile'), collection=document.querySelector('#collection'), collectionTitle=document.querySelector('#collection-title'), grid=document.querySelector('#grid'), owner=document.querySelector('#owner'), count=document.querySelector('#count'), shareSheet=document.querySelector('#share-sheet'), qr=document.querySelector('#qr'), shareUrl=document.querySelector('#share-url'), transferModal=document.querySelector('#transfer-modal'), transferForm=document.querySelector('#transfer-form'), transferName=document.querySelector('#transfer-name'), transferWallet=document.querySelector('#transfer-wallet'), transferStatus=document.querySelector('#transfer-status'), transferSubmit=document.querySelector('#transfer-submit'),visitPanel=document.querySelector('#visit-panel'),visitList=document.querySelector('#visit-list'),visitEmpty=document.querySelector('#visit-empty'),visitForm=document.querySelector('#visit-form'),visitSeal=document.querySelector('#visit-seal'),visitMessage=document.querySelector('#visit-message'),visitStatus=document.querySelector('#visit-status');
   const pageParams=new URLSearchParams(location.search); let selectedToken=pageParams.get('token')||'';
   let transferToken='',transferItemName='',voteCounts={};

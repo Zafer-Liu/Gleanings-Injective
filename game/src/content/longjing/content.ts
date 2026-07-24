@@ -42,7 +42,7 @@ export const LONGJING_OBJECT_LAYOUT = {
     dryingRack: { x: 27, y: 5, width: 8, height: 3 },
     stove: { x: 17, y: 12, width: 7, height: 4 },
     ledgerTable: { x: 28, y: 11, width: 6, height: 3 },
-    basketStack: { x: 5, y: 17, width: 5, height: 3 }
+    basketStack: { x: 4, y: 20, width: 6, height: 3 }
   },
   truth: {
     oldCabinet: { x: 4, y: 5, width: 7, height: 3 },
@@ -83,18 +83,18 @@ export const LONGJING_MAPS = {
     },
     collisions: [
       ...boundaryCollisions(48, 32),
-      { id: "tea_row_a1", x: 4, y: 5, width: 8, height: 2 },
-      { id: "tea_row_a2", x: 15, y: 5, width: 8, height: 2 },
-      { id: "tea_row_a3", x: 26, y: 5, width: 8, height: 2 },
-      { id: "tea_row_a4", x: 37, y: 5, width: 7, height: 2 },
-      { id: "tea_row_b1", x: 4, y: 11, width: 8, height: 2 },
-      { id: "tea_row_b2", x: 15, y: 11, width: 8, height: 2 },
-      { id: "tea_row_b3", x: 26, y: 11, width: 8, height: 2 },
-      { id: "tea_row_b4", x: 37, y: 11, width: 7, height: 2 },
-      { id: "tea_row_c1", x: 4, y: 17, width: 8, height: 2 },
-      { id: "tea_row_c2", x: 15, y: 17, width: 8, height: 2 },
-      { id: "tea_row_c3", x: 26, y: 17, width: 8, height: 2 },
-      { id: "tea_row_c4", x: 37, y: 17, width: 7, height: 2 },
+      { id: "tea_row_a1", x: 6, y: 5, width: 7, height: 2 },
+      { id: "tea_row_a2", x: 16, y: 5, width: 7, height: 2 },
+      { id: "tea_row_a3", x: 25, y: 5, width: 7, height: 2 },
+      { id: "tea_row_a4", x: 35, y: 5, width: 7, height: 2 },
+      { id: "tea_row_b1", x: 6, y: 11, width: 7, height: 2 },
+      { id: "tea_row_b2", x: 16, y: 11, width: 7, height: 2 },
+      { id: "tea_row_b3", x: 25, y: 11, width: 7, height: 2 },
+      { id: "tea_row_b4", x: 35, y: 11, width: 7, height: 2 },
+      { id: "tea_row_c1", x: 6, y: 17, width: 7, height: 2 },
+      { id: "tea_row_c2", x: 16, y: 17, width: 7, height: 2 },
+      { id: "tea_row_c3", x: 25, y: 17, width: 7, height: 2 },
+      { id: "tea_row_c4", x: 35, y: 17, width: 7, height: 2 },
       { id: "pavilion", x: 39, y: 23, width: 5, height: 4 }
     ],
     occluders: []

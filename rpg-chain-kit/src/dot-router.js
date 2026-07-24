@@ -17,6 +17,30 @@ const contractAddress = process.env.RPG_ITEM_CONTRACT_ADDRESS || '';
 const chainId = Number(process.env.CHAIN_ID || 1439);
 const dotOrigin = (process.env.DOT_API_ORIGIN || 'https://dot.mindreset.tech').replace(/\/$/, '');
 const provider = new ethers.JsonRpcProvider(rpcUrl, { chainId, name: process.env.CHAIN_NAME || 'Injective EVM Testnet' });
+const inkArtRoot = path.join(projectRoot, 'assets', 'rpg_v2', 'collection', 'ink');
+
+const badgeArtById = new Map([
+  ['badge_ch1_winter_brew_seal', 'winter-brew-seal.svg'],
+  ['act1-winter-brewing', 'winter-brew-seal.svg'],
+  ['badge_ch1_red_koji_trace', 'red-koji-trace.svg'],
+  ['relic_dongniang_common', 'red-koji-trace.svg'],
+  ['relic_dongniang_rare', 'red-koji-trace.svg'],
+  ['relic_liubai_legendary', 'red-koji-trace.svg'],
+  ['badge_ch1_warm_wine_cup', 'warm-wine-cup.svg'],
+  ['relic_blue_white_cup_warm', 'warm-wine-cup.svg'],
+  ['relic_blue_white_cup_inherit', 'warm-wine-cup.svg'],
+  ['relic_blue_white_cup_remember', 'warm-wine-cup.svg'],
+  ['badge_ch1_fujian_aged_rice_wine', 'fujian-aged-rice-wine.svg'],
+  ['relic_one_jar_echo', 'fujian-aged-rice-wine.svg'],
+  ['badge_ch2_old_tea_scoop', 'old-tea-scoop.svg'],
+  ['relic_old_tea_scoop', 'old-tea-scoop.svg'],
+  ['badge_ch2_qingming_bud', 'qingming-bud.svg'],
+  ['relic_qingming_bud', 'qingming-bud.svg'],
+  ['badge_ch2_hand_fire_mark', 'hand-fire-mark.svg'],
+  ['relic_palm_fire', 'hand-fire-mark.svg'],
+  ['badge_ch2_west_lake_longjing', 'west-lake-longjing-tea.svg'],
+  ['relic_one_leaf_origin', 'west-lake-longjing-tea.svg']
+]);
 
 function contract() {
   if (!ethers.isAddress(contractAddress)) throw new Error('RPG_ITEM_CONTRACT_ADDRESS is not configured');
@@ -75,10 +99,11 @@ async function dotRequest(route, key, options = {}) {
   return body;
 }
 
-function artPath(item) {
-  const id = item.collectible_id || item.medal_id;
+export function artPath(item) {
+  const id = item.collectible_id || item.badge_id || item.medal_id;
+  const badgeFilename = badgeArtById.get(id);
+  if (badgeFilename) return path.join(inkArtRoot, badgeFilename);
   if (id === 'item_taipo_note') return path.join(projectRoot, 'assets', 'rpg_v2', 'collection', 'taipo-note.png');
-  if (id === 'act1-winter-brewing') return path.join(projectRoot, 'assets', 'rpg_v2', 'collection', 'winter-brewing.png');
   return '';
 }
 
@@ -105,7 +130,25 @@ function textPath(text, x, baseline, size, bold = false) {
   return `<path d="${pathData}" fill="#000"${bold ? ' stroke="#000" stroke-width=".25"' : ''}/>`;
 }
 
-async function renderCard(asset, collectionLink) {
+async function renderArt(source) {
+  const base = sharp(source)
+    .resize(132, 132, {
+      fit: 'contain',
+      background: '#ffffff'
+    })
+    .flatten({ background: '#ffffff' });
+  if (path.extname(source).toLowerCase() === '.svg') {
+    return base.png().toBuffer();
+  }
+  return base
+    .grayscale()
+    .normalize()
+    .threshold(178)
+    .png()
+    .toBuffer();
+}
+
+export async function renderCard(asset, collectionLink) {
   const [titleOne, titleTwo = ''] = displayLines(asset.item, asset.tokenId);
   const shortWallet = `${asset.wallet.slice(0, 6)}...${asset.wallet.slice(-4)}`;
   const qrCode = await QRCode.toBuffer(collectionLink, {
@@ -132,7 +175,7 @@ async function renderCard(asset, collectionLink) {
   const composites = [{ input: svg, top: 0, left: 0 }, { input: qrCode, top: 82, left: 226 }];
   const source = artPath(asset.item);
   if (source && fs.existsSync(source)) {
-    const art = await sharp(source).resize(132, 132, { fit: 'contain', background: '#ffffff' }).grayscale().normalize().threshold(178).png().toBuffer();
+    const art = await renderArt(source);
     composites.push({ input: art, top: 10, left: 9 });
   } else {
     const seal = Buffer.from('<svg width="132" height="132" xmlns="http://www.w3.org/2000/svg"><rect width="132" height="132" fill="#fff"/><circle cx="66" cy="66" r="45" fill="none" stroke="#000" stroke-width="4"/><text x="66" y="76" text-anchor="middle" font-family="sans-serif" font-size="28" font-weight="700">NFT</text></svg>');

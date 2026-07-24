@@ -200,3 +200,36 @@ describe("Longjing chapter content", () => {
     });
   });
 });
+
+describe("Longjing map collision alignment", () => {
+  it("keeps every terrace collider on its visible seven-tile tea bed", () => {
+    const teaRows = LONGJING_MAPS.terrace.collisions
+      .filter((collision) => collision.id.startsWith("tea_row_"))
+      .map(({ x, y, width, height }) => ({
+        x,
+        y,
+        width,
+        height
+      }));
+
+    expect(teaRows).toEqual(
+      [5, 11, 17].flatMap((y) =>
+        [6, 16, 25, 35].map((x) => ({
+          x,
+          y,
+          width: 7,
+          height: 2
+        }))
+      )
+    );
+  });
+
+  it("keeps the workshop basket collider over the visible stack", () => {
+    expect(LONGJING_OBJECT_LAYOUT.workshop.basketStack).toEqual({
+      x: 4,
+      y: 20,
+      width: 6,
+      height: 3
+    });
+  });
+});

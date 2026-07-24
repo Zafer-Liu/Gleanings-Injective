@@ -52,22 +52,30 @@ async function startGameFromHome(page: Page): Promise<void> {
 }
 
 test.describe("第一幕《开坛》", () => {
-  test("玩家可以切换游戏画面的全屏与窗口模式", async ({ page }) => {
+  test("进入游戏后使用沉浸式舞台并只保留收藏馆与返回主页", async ({
+    page
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
     await startGameFromHome(page);
 
-    await page.getByRole("button", { name: "全屏游戏" }).click();
-    await expect
-      .poll(() =>
-        page.evaluate(() =>
-          document.fullscreenElement?.classList.contains("stage-wrap")
-        )
-      )
-      .toBe(true);
-    await page.getByRole("button", { name: "恢复窗口" }).click();
-    await expect
-      .poll(() => page.evaluate(() => document.fullscreenElement === null))
-      .toBe(true);
+    await expect(page.locator(".game-masthead")).toHaveCount(0);
+    await expect(page.locator(".controls-note")).toHaveCount(0);
+    const actions = page.locator(".game-overlay-actions");
+    await expect(actions.getByRole("button")).toHaveCount(2);
+    await expect(actions.getByRole("button", { name: "收藏馆" })).toBeVisible();
+    await expect(
+      actions.getByRole("button", { name: "← 返回主页" })
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "连接钱包" })).toHaveCount(0);
+
+    const stage = await page.locator(".stage-wrap").boundingBox();
+    expect(stage).not.toBeNull();
+    expect(stage!.x).toBeGreaterThan(0);
+    expect(stage!.y).toBe(0);
+    expect(stage!.x + stage!.width).toBeLessThan(1280);
+    expect(stage!.y + stage!.height).toBeLessThan(800);
+    expect(stage!.width / stage!.height).toBeCloseTo(16 / 9, 2);
   });
 
   test("首页钱包弹窗完整显示在视口内", async ({ page }) => {
@@ -235,6 +243,87 @@ test.describe("第一幕《开坛》", () => {
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "分享展示链接" })
+    ).toBeVisible();
+  });
+
+  test("收藏馆区分八枚章节徽章和永久道具", async ({ page }) => {
+    await page.goto("/");
+    await page.evaluate(
+      ({ actOneKey, chapterOneKey }) => {
+        window.localStorage.clear();
+        window.localStorage.setItem(
+          actOneKey,
+          JSON.stringify({
+            inventory: ["item_taipo_note"],
+            act1Complete: true
+          })
+        );
+        window.localStorage.setItem(
+          chapterOneKey,
+          JSON.stringify({
+            version: 2,
+            relics: [
+              "relic_dongniang_rare",
+              "relic_blue_white_cup_remember",
+              "relic_one_jar_echo"
+            ]
+          })
+        );
+        window.localStorage.setItem(
+          "gleanings.chapter-two.save.v1",
+          JSON.stringify({
+            version: 1,
+            relics: [
+              "relic_old_tea_scoop",
+              "relic_qingming_bud",
+              "relic_palm_fire",
+              "relic_one_leaf_origin"
+            ]
+          })
+        );
+      },
+      {
+        actOneKey: SAVE_KEY,
+        chapterOneKey: CHAPTER_SAVE_KEY
+      }
+    );
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "收藏馆" }).click();
+
+    for (const name of [
+      "冬酿印",
+      "红曲痕",
+      "温酒盏",
+      "福建老酒",
+      "旧茶斗",
+      "清明芽",
+      "掌火纹",
+      "西湖龙井"
+    ]) {
+      await expect(
+        page.getByRole("heading", { name, exact: true })
+      ).toBeVisible();
+    }
+    await expect(
+      page.getByRole("heading", { name: "太婆字条" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "上链展示" })
+    ).toHaveCount(9);
+
+    const filters = page.getByRole("group", {
+      name: "筛选收藏类型"
+    });
+    await filters.getByRole("button", { name: "徽章" }).click();
+    await expect(page.locator(".medal")).toHaveCount(8);
+    await expect(
+      page.getByRole("heading", { name: "太婆字条" })
+    ).toBeHidden();
+
+    await filters.getByRole("button", { name: "道具" }).click();
+    await expect(page.locator(".medal")).toHaveCount(1);
+    await expect(
+      page.getByRole("heading", { name: "太婆字条" })
     ).toBeVisible();
   });
 
