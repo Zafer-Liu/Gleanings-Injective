@@ -48,6 +48,7 @@ function reachActFour() {
     });
   }
   state = reduceChapter(state, { type: "ACT3_COOK" });
+  state = reduceChapter(state, { type: "ACT3_PICK_UP_NOODLES" });
   state = reduceChapter(state, { type: "ACT3_SERVE" });
   return reduceChapter(state, {
     type: "ACT3_CHOOSE_INSCRIPTION",
@@ -172,6 +173,34 @@ describe("chapter one v2 progression", () => {
     expect(result.act3Phase).toBe("COLLECT");
   });
 
+  it("requires picking up the cooked noodles before serving them", () => {
+    let state = reachActThreeCollecting();
+    for (const material of ["bowl", "noodles", "laojiu"] as const) {
+      state = reduceChapter(state, {
+        type: "ACT3_COLLECT_MATERIAL",
+        material
+      });
+    }
+
+    const cooked = reduceChapter(state, { type: "ACT3_COOK" });
+    const servedTooEarly = reduceChapter(cooked, {
+      type: "ACT3_SERVE"
+    });
+    const carrying = reduceChapter(cooked, {
+      type: "ACT3_PICK_UP_NOODLES"
+    });
+    const served = reduceChapter(carrying, { type: "ACT3_SERVE" });
+
+    expect(cooked.act3Phase).toBe("COOKED");
+    expect(cooked.inventory).not.toContain("item_cooked_noodles");
+    expect(servedTooEarly).toBe(cooked);
+    expect(carrying.act3Phase).toBe("CARRYING");
+    expect(carrying.checkpoint).toBe("act3_carrying");
+    expect(carrying.inventory).toContain("item_cooked_noodles");
+    expect(served.act3Phase).toBe("INSCRIPTION");
+    expect(served.inventory).not.toContain("item_cooked_noodles");
+  });
+
   it.each([
     ["warm", "relic_blue_white_cup_warm"],
     ["inherit", "relic_blue_white_cup_inherit"],
@@ -185,6 +214,7 @@ describe("chapter one v2 progression", () => {
       });
     }
     state = reduceChapter(state, { type: "ACT3_COOK" });
+    state = reduceChapter(state, { type: "ACT3_PICK_UP_NOODLES" });
     state = reduceChapter(state, { type: "ACT3_SERVE" });
     state = reduceChapter(state, {
       type: "ACT3_CHOOSE_INSCRIPTION",

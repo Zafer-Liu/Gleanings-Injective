@@ -21,7 +21,8 @@ describe("act three presentation flow", () => {
   it.each([
     ["ARRIVE", "act3_talk_family", "family"],
     ["READY_TO_COOK", "act3_cook", "stove"],
-    ["COOKED", "act3_serve", "azhen"],
+    ["COOKED", "act3_pickup", "cooked_noodles"],
+    ["CARRYING", "act3_serve", "azhen"],
     ["INSCRIPTION", "act3_inscription", null],
     ["COMPLETE", "act3_complete", null]
   ] as const)(

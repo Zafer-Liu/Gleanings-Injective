@@ -25,6 +25,7 @@ describe("act three content", () => {
       noodles: { x: 18, y: 8 },
       laojiu: { x: 30, y: 7 },
       stove: { x: 6, y: 15 },
+      cooked_noodles: { x: 6, y: 15 },
       azhen: { x: 26, y: 18 }
     });
 
@@ -57,6 +58,7 @@ describe("act three content", () => {
       "act3_talk_family",
       "act3_collect",
       "act3_cook",
+      "act3_pickup",
       "act3_serve",
       "act3_inscription",
       "act3_complete"

@@ -217,6 +217,15 @@ test.describe("第一章后续幕", () => {
     await expect
       .poll(async () => (await readChapter(page))?.act3Phase)
       .toBe("COOKED");
+
+    await press(page, "e");
+    await press(page, "e");
+    await expect
+      .poll(async () => (await readChapter(page))?.act3Phase)
+      .toBe("CARRYING");
+    expect((await readChapter(page))?.inventory).toContain(
+      "item_cooked_noodles"
+    );
   });
 
   test("本地铸造后衔接黄酒后记，并可跳到总完成页", async ({
