@@ -57,6 +57,13 @@
         "text": "火候到了。端过去，趁热。"
       }
     ],
+    "pickup": [
+      {
+        "speakerId": "narrator",
+        "speakerName": "旁白",
+        "text": "你垫着布端起瓷碗，热气裹着老酒香从碗沿升起来。"
+      }
+    ],
     "serve": [
       {
         "speakerId": "azhen",

@@ -43,12 +43,20 @@
     "enabledPhases": ["READY_TO_COOK"]
   },
   {
+    "id": "cooked_noodles",
+    "tile": { "x": 6, "y": 15 },
+    "range": 1,
+    "prompt": "E / 空格 · 端起热面线",
+    "dialogueGroup": "pickup",
+    "enabledPhases": ["COOKED"]
+  },
+  {
     "id": "azhen",
     "tile": { "x": 26, "y": 18 },
     "range": 1,
     "prompt": "E / 空格 · 把面线端给阿珍",
     "dialogueGroup": "serve",
-    "enabledPhases": ["COOKED"]
+    "enabledPhases": ["CARRYING"]
   },
   {
     "id": "hearth",
