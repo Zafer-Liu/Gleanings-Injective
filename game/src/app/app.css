@@ -191,8 +191,9 @@ h1 span {
 .museum h2, .museum h3 { margin: 0; color: #f4ebdd; font-weight: 500; }
 .museum h2 { font-size: 26px; }.museum h3 { font-size: 17px; }
 .museum__status, .museum__note, .museum__empty { color: var(--frost); font-size: 13px; line-height: 1.65; }
-.collection-refresh { margin: 0 0 4px; }
-.collection-tools { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.collection-refresh { margin:0; }
+.collection-tools { display:flex; align-items:stretch; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.collection-tools > button { display:inline-flex; align-items:center; justify-content:center; min-height:46px; }
 .share-panel { display:grid; grid-template-columns:112px 1fr; gap:14px; align-items:center; margin:12px 0; padding:12px; background:#17110f; border:1px solid #6e4932; }.share-panel img { width:112px; height:112px; background:#fff; }.share-panel strong { color:#f4ebdd; font-size:15px; font-weight:500; }.share-panel p { margin:5px 0; color:var(--frost); font-size:12px; line-height:1.5; }.share-panel code { display:block; margin-bottom:8px; color:var(--straw); font:10px "Cascadia Mono",monospace; overflow-wrap:anywhere; }
 .medal { display: flex; align-items: center; gap: 14px; margin: 18px 0; padding: 14px 0; border-block: 1px solid #5a4032; }
 .medal__seal { display: grid; place-items: center; flex: 0 0 58px; height: 58px; color: #f4ebdd; background: var(--hongqu); border: 2px solid var(--amber); border-radius: 50%; font-size: 24px; }
