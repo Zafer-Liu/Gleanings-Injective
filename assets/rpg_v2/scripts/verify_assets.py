@@ -11,6 +11,7 @@ from PIL import Image
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MANIFEST_PATH = REPO_ROOT / "assets/rpg_v2/manifest/assets.manifest.json"
+YI_WALK_PATH = REPO_ROOT / "assets/rpg_v2/sprites/spr_yi_walk_96x192.png"
 
 
 def visible_colors(image: Image.Image) -> int:
@@ -27,6 +28,47 @@ def visible_colors(image: Image.Image) -> int:
             if alpha > 0
         }
     )
+
+
+def verify_yi_back_crown() -> list[str]:
+    failures: list[str] = []
+    with Image.open(YI_WALK_PATH) as image:
+        rgba = image.convert("RGBA")
+        for frame in range(9, 12):
+            column = frame % 3
+            row = frame // 3
+            cell = rgba.crop(
+                (
+                    column * 32,
+                    row * 48,
+                    (column + 1) * 32,
+                    (row + 1) * 48,
+                )
+            )
+            alpha = cell.getchannel("A")
+            visible_rows = []
+            for y in range(cell.height):
+                visible_x = [
+                    x for x in range(cell.width) if alpha.getpixel((x, y)) > 0
+                ]
+                if visible_x:
+                    visible_rows.append((y, len(visible_x)))
+            if not visible_rows:
+                failures.append(f"spr_yi frame {frame}: empty back frame")
+                continue
+            crown_y, crown_width = visible_rows[0]
+            next_width = visible_rows[1][1]
+            if crown_y < 2:
+                failures.append(
+                    f"spr_yi frame {frame}: back crown has only "
+                    f"{crown_y}px top padding, expected at least 2px"
+                )
+            if crown_width > 6 or next_width <= crown_width:
+                failures.append(
+                    f"spr_yi frame {frame}: back crown is flat "
+                    f"({crown_width}px then {next_width}px)"
+                )
+    return failures
 
 
 def verify() -> list[str]:
@@ -70,7 +112,7 @@ def verify() -> list[str]:
                         f"{asset_id}: alpha contains non-hard values"
                     )
 
-            if asset.get("palette") == "project_24" or asset_id.startswith(
+            if asset.get("palette") in {"project_24", "longjing_24"} or asset_id.startswith(
                 (
                     "map_apartment",
                     "tileset_apartment",
@@ -87,6 +129,7 @@ def verify() -> list[str]:
                         f"{asset_id}: {color_count} colors exceed {palette_limit}"
                     )
 
+    failures.extend(verify_yi_back_crown())
     return failures
 
 

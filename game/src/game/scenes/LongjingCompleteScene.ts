@@ -3,6 +3,7 @@ import type { LongjingInscription } from "../domain/longjingState";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
 import { publishActiveScene } from "../systems/SceneStatus";
 import { advancedWrap } from "../ui/textWrap";
+import { LONGJING_COMPLETION_RELICS } from "../render/LongjingCompletionRelics";
 
 const INSCRIPTION_COPY: Record<
   LongjingInscription,
@@ -65,9 +66,9 @@ export class LongjingCompleteScene extends Phaser.Scene {
       ...advancedWrap(520)
     });
 
-    this.drawRelic(62, 142, "第一章", "一坛回声", "坛");
-    this.drawRelic(238, 142, "第二章", "清明芽签", "芽");
-    this.drawRelic(414, 142, "第二章", "一叶来处", "叶");
+    LONGJING_COMPLETION_RELICS.forEach((relic, index) => {
+      this.drawRelic(62 + index * 176, 142, relic);
+    });
 
     this.add.text(
       60,
@@ -123,31 +124,22 @@ export class LongjingCompleteScene extends Phaser.Scene {
   private drawRelic(
     x: number,
     y: number,
-    eyebrow: string,
-    title: string,
-    glyph: string
+    relic: (typeof LONGJING_COMPLETION_RELICS)[number]
   ): void {
     this.add
       .rectangle(x, y, 152, 82, 0x3a302b)
       .setOrigin(0)
       .setStrokeStyle(1, 0x6d5846);
     this.add
-      .rectangle(x + 12, y + 15, 42, 42, 0x1f352b)
-      .setStrokeStyle(2, 0x91ab73);
-    this.add
-      .text(x + 33, y + 36, glyph, {
-        fontFamily: '"Microsoft YaHei", sans-serif',
-        fontSize: "17px",
-        color: "#B2C58A"
-      })
-      .setOrigin(0.5);
-    this.add.text(x + 66, y + 17, eyebrow, {
+      .image(x + 35, y + 41, relic.texture)
+      .setDisplaySize(54, 54);
+    this.add.text(x + 66, y + 17, relic.eyebrow, {
       fontFamily: '"Cascadia Mono", Consolas, monospace',
       fontSize: "7px",
       color: "#839CA0",
       ...advancedWrap(74)
     });
-    this.add.text(x + 66, y + 38, title, {
+    this.add.text(x + 66, y + 38, relic.title, {
       fontFamily: '"Microsoft YaHei", sans-serif',
       fontSize: "12px",
       color: "#F0E4CA",

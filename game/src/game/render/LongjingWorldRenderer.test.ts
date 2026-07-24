@@ -14,6 +14,11 @@ describe("Longjing world renderer", () => {
     expect(leafVisualPolicy("damaged")).not.toEqual(tender);
     expect(leafVisualPolicy("wet").dew).toBe(true);
     expect(leafVisualPolicy("damaged").damaged).toBe(true);
+    expect(leafVisualPolicy("tender").frame).toBe(0);
+    expect(leafVisualPolicy("too_young").frame).toBe(1);
+    expect(leafVisualPolicy("mature").frame).toBe(2);
+    expect(leafVisualPolicy("wet").frame).toBe(3);
+    expect(leafVisualPolicy("damaged").frame).toBe(4);
   });
 
   it("uses one full pixel-art map with the gameplay dimensions for every act", () => {

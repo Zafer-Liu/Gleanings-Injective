@@ -8,6 +8,10 @@ export type ChapterChoicePanelCopy = {
   subtitle: string;
 };
 
+export type ChapterChoicePanelLayout = {
+  rightInset?: number;
+};
+
 export class ChapterChoicePanel<TValue extends string> {
   private readonly container: Phaser.GameObjects.Container;
   private readonly eyebrow: Phaser.GameObjects.Text;
@@ -88,11 +92,15 @@ export class ChapterChoicePanel<TValue extends string> {
 
   open(
     copy: ChapterChoicePanelCopy,
-    choices: ChapterDialogueChoice<TValue>[]
+    choices: ChapterDialogueChoice<TValue>[],
+    layout: ChapterChoicePanelLayout = {}
   ): void {
     this.choices = choices;
     this.selectedIndex = 0;
     this.eyebrow.setText(copy.eyebrow);
+    const copyWidth = 408 - (layout.rightInset ?? 0);
+    this.title.setWordWrapWidth(copyWidth, true);
+    this.subtitle.setWordWrapWidth(copyWidth, true);
     this.title.setText(copy.title);
     this.title.setY(this.eyebrow.y + this.eyebrow.height + 6);
     this.subtitle.setText(copy.subtitle);

@@ -15,6 +15,8 @@ import type { LongjingSaveV1 } from "../domain/longjingState";
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
 import { Player, type MovementKeys } from "../entities/Player";
 import { activeLongjingMarker } from "../render/LongjingScenePolicy";
+import { longjingActorTexture } from "../render/LongjingActorPolicy";
+import { LongjingObjectLayer } from "../render/LongjingObjectLayer";
 import {
   createLeafMarker,
   renderLongjingWorld
@@ -49,7 +51,8 @@ export class LongjingTerraceScene extends Phaser.Scene {
   private choices!: ChapterChoicePanel<LeafDecision>;
   private marker!: LongjingQuestMarker;
   private currentLeaf: LongjingPickingLeaf | null = null;
-  private readonly leafSprites: Phaser.GameObjects.Graphics[] = [];
+  private readonly leafSprites: Phaser.GameObjects.Image[] = [];
+  private objectLayer!: LongjingObjectLayer;
   private lastTile = { x: -1, y: -1 };
   private readonly saveService = new LongjingSaveService(
     window.localStorage
@@ -73,12 +76,18 @@ export class LongjingTerraceScene extends Phaser.Scene {
     publishActiveScene("LongjingTerrace");
     const map = LONGJING_MAPS.terrace;
     renderLongjingWorld(this, "terrace");
+    this.objectLayer = new LongjingObjectLayer(
+      this,
+      map.tileSize,
+      "terrace"
+    );
+    this.objectLayer.sync(this.state);
     this.createLeaves();
     this.player = createLongjingPlayer(
       this,
       map,
       this.state.playerTile,
-      "actor-taipo-young"
+      longjingActorTexture("chen_young")
     );
     this.lastTile = { ...this.state.playerTile };
     installLongjingWorldPhysics(this, this.player, map);
@@ -86,17 +95,15 @@ export class LongjingTerraceScene extends Phaser.Scene {
       this,
       map,
       map.npcSpawns.masterHe,
-      "actor-afeng",
-      "master_he",
-      0xd6e1d5
+      longjingActorTexture("master_he"),
+      "master_he"
     );
     createLongjingActor(
       this,
       map,
       map.npcSpawns.merchant,
-      "actor-azhen",
-      "tea_merchant",
-      0xc4a883
+      longjingActorTexture("tea_merchant"),
+      "tea_merchant"
     );
 
     const input = configureLongjingInput(this);
@@ -310,9 +317,12 @@ export class LongjingTerraceScene extends Phaser.Scene {
       progress: `判断 ${this.state.pickAttempts}/12`
     });
     this.leafSprites.forEach((leaf, index) => {
-      leaf.setVisible(index >= this.state.pickAttempts);
+      leaf
+        .setVisible(index >= this.state.pickAttempts)
+        .setScale(index === this.state.pickAttempts ? 1.18 : 1);
     });
     this.marker.update(activeLongjingMarker(this.state));
+    this.objectLayer.sync(this.state);
   }
 
   private trackTile(): void {

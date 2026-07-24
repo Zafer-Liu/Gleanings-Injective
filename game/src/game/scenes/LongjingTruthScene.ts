@@ -19,6 +19,8 @@ import type {
 import { sceneForLongjingAct } from "../domain/LongjingRoute";
 import { Player, type MovementKeys } from "../entities/Player";
 import { activeLongjingMarker } from "../render/LongjingScenePolicy";
+import { longjingActorTexture } from "../render/LongjingActorPolicy";
+import { LongjingObjectLayer } from "../render/LongjingObjectLayer";
 import { renderLongjingWorld } from "../render/LongjingWorldRenderer";
 import { findChapterTarget } from "../systems/ChapterInteraction";
 import { LongjingSaveService } from "../systems/LongjingSaveService";
@@ -48,6 +50,7 @@ export class LongjingTruthScene extends Phaser.Scene {
   private board!: ProvenanceBoard;
   private choices!: ChapterChoicePanel<LongjingInscription>;
   private marker!: LongjingQuestMarker;
+  private objectLayer!: LongjingObjectLayer;
   private lastTile = { x: -1, y: -1 };
   private readonly saveService = new LongjingSaveService(
     window.localStorage
@@ -71,6 +74,12 @@ export class LongjingTruthScene extends Phaser.Scene {
     publishActiveScene("LongjingTruth");
     const map = LONGJING_MAPS.truth;
     renderLongjingWorld(this, "truth");
+    this.objectLayer = new LongjingObjectLayer(
+      this,
+      map.tileSize,
+      "truth"
+    );
+    this.objectLayer.sync(this.state);
     this.player = createLongjingPlayer(
       this,
       map,
@@ -82,16 +91,15 @@ export class LongjingTruthScene extends Phaser.Scene {
       this,
       map,
       map.npcSpawns.mia,
-      "actor-mia",
+      longjingActorTexture("mia"),
       "longjing_mia"
     );
     createLongjingActor(
       this,
       map,
       map.npcSpawns.chen,
-      "actor-afeng",
-      "chen_shouyi",
-      0xa68a68
+      longjingActorTexture("chen_old"),
+      "chen_shouyi"
     );
 
     const input = configureLongjingInput(this);
@@ -321,6 +329,7 @@ export class LongjingTruthScene extends Phaser.Scene {
       progress: `证据 ${this.state.evidence.length}/7`
     });
     this.marker.update(activeLongjingMarker(this.state));
+    this.objectLayer.sync(this.state);
   }
 
   private trackTile(): void {
