@@ -247,7 +247,7 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 墨屏功能以手机端为主入口，并使用 MindReset Dot. 的新版 Image API。手机公开藏品页可直接进入 `/dot/`，底部固定“从手机发送到墨屏”按钮，电脑端作为辅助管理入口：
 
-- 输出固定为设备原生 `296 × 152` PNG，并在 SVG 中内嵌 Noto Sans SC 字体后再栅格化，Railway 与 Dot. 端均不依赖系统中文字体；
+- 输出固定为设备原生 `296 × 152` PNG；服务端使用 Noto Sans SC 将中文转换为 SVG 矢量字形后再栅格化，Railway 与 Dot. 端均不依赖系统中文字体或 SVG WebFont 支持；
 - 服务端先将藏品图转为黑白高对比展签，再以 `ditherType: NONE` 推送，保证文字和 Token ID 清晰；
 - 展签包含藏品图、Injective EVM Token ID、持有人缩写和 `TAP TO OPEN`；
 - Image API 的 `link` 使用短地址 `/api/rpg/dot/nfc/<token>`；轻触后服务端实时查询 `ownerOf` 并跳转至当前持有人的单件藏品页，因此 Token 转赠后 NFC 不会停留在旧钱包；

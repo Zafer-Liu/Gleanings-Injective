@@ -3,12 +3,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { ethers } from 'ethers';
+import opentype from 'opentype.js';
 import sharp from 'sharp';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const projectRoot = path.resolve(root, '..');
 const artifact = JSON.parse(fs.readFileSync(path.join(root, 'artifacts', 'RpgItem.json'), 'utf8'));
-const fontBase64 = fs.readFileSync(path.join(root, 'node_modules', '@fontsource', 'noto-sans-sc', 'files', 'noto-sans-sc-chinese-simplified-400-normal.woff2')).toString('base64');
+const fontBuffer = fs.readFileSync(path.join(root, 'node_modules', '@fontsource', 'noto-sans-sc', 'files', 'noto-sans-sc-chinese-simplified-400-normal.woff'));
+const exhibitFont = opentype.parse(fontBuffer.buffer.slice(fontBuffer.byteOffset, fontBuffer.byteOffset + fontBuffer.byteLength));
 const rpcUrl = process.env.EVM_RPC_URL;
 const contractAddress = process.env.RPG_ITEM_CONTRACT_ADDRESS || '';
 const chainId = Number(process.env.CHAIN_ID || 1439);
@@ -88,23 +90,27 @@ function escapeXml(value) {
   return String(value).replace(/[<>&'"]/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[character]));
 }
 
+function textPath(text, x, baseline, size, bold = false) {
+  const pathData = exhibitFont.getPath(String(text), x, baseline, size).toPathData(2);
+  return `<path d="${pathData}" fill="#000"${bold ? ' stroke="#000" stroke-width=".25"' : ''}/>`;
+}
+
 async function renderCard(asset) {
-  const [titleOne, titleTwo = ''] = displayLines(asset.item, asset.tokenId).map(escapeXml);
+  const [titleOne, titleTwo = ''] = displayLines(asset.item, asset.tokenId);
   const shortWallet = `${asset.wallet.slice(0, 6)}...${asset.wallet.slice(-4)}`;
   const svg = Buffer.from(`<svg width="296" height="152" viewBox="0 0 296 152" xmlns="http://www.w3.org/2000/svg">
-    <style>@font-face{font-family:GleaningsNoto;src:url(data:font/woff2;base64,${fontBase64}) format('woff2')}text{font-family:GleaningsNoto,sans-serif}</style>
     <rect width="296" height="152" fill="#fff"/>
     <rect x="1" y="1" width="294" height="150" fill="none" stroke="#000" stroke-width="2"/>
     <line x1="148" y1="8" x2="148" y2="144" stroke="#000" stroke-width="1"/>
-    <text x="158" y="24" font-size="10" font-weight="700" letter-spacing="1.2">拾遗藏品</text>
-    <text x="158" y="47" font-size="16" font-weight="700">${titleOne}</text>
-    <text x="158" y="65" font-size="16" font-weight="700">${titleTwo}</text>
+    ${textPath('拾遗藏品', 158, 24, 10, true)}
+    ${textPath(titleOne, 158, 47, 16, true)}
+    ${textPath(titleTwo, 158, 65, 16, true)}
     <line x1="158" y1="74" x2="286" y2="74" stroke="#000" stroke-width="1"/>
-    <text x="158" y="91" font-size="9">INJECTIVE EVM</text>
-    <text x="158" y="106" font-size="9">链上编号 #${escapeXml(asset.tokenId)}</text>
-    <text x="158" y="121" font-size="8">${escapeXml(shortWallet)}</text>
+    ${textPath('INJECTIVE EVM', 158, 91, 9)}
+    ${textPath(`链上编号 #${asset.tokenId}`, 158, 106, 9)}
+    ${textPath(shortWallet, 158, 121, 8)}
     <rect x="158" y="130" width="8" height="8" fill="#000"/>
-    <text x="172" y="138" font-size="9">轻触查看</text>
+    ${textPath('轻触查看', 172, 138, 9)}
   </svg>`);
   const composites = [{ input: svg, top: 0, left: 0 }];
   const source = artPath(asset.item);
