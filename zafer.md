@@ -220,7 +220,7 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 
 当前实现：
 
-1. 图片位于 `game/public/collection/`；
+1. 图片位于 `assets/rpg_v2/collection/`，Vite 会将其复制到构建产物的 `/collection/`；
 2. 本地藏品按 ID 映射图片，旧链上 Token 即使缺少 `image` 也可显示；
 3. 新铸造 Token 会把 `https://你的服务.up.railway.app/collection/<id>.png` 写入 metadata；
 4. 正式发行时可将图片上传 IPFS，并改写为 `ipfs://<CID>/<filename>`。
