@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   LONGJING_FIRING_ROUNDS,
   createLongjingState,
+  longjingFiringDecision,
   type LongjingSaveV1
 } from "./longjingState";
 import { reduceLongjing } from "./longjingReducer";
@@ -94,10 +95,12 @@ describe("Longjing chapter reducer", () => {
     expect(state.firingRetryUsed).toBe(true);
     expect(state.firingMistakes).toBe(1);
 
-    LONGJING_FIRING_ROUNDS.forEach((round) => {
+    LONGJING_FIRING_ROUNDS.forEach(() => {
+      const decision = longjingFiringDecision(state);
+      expect(decision).not.toBeNull();
       state = reduceLongjing(state, {
         type: "WORKSHOP_CHOOSE_ACTION",
-        action: round.idealActions[0]
+        action: decision!.idealActions[0]
       });
     });
 
@@ -117,15 +120,23 @@ describe("Longjing chapter reducer", () => {
     let second = reduceLongjing(start, {
       type: "WORKSHOP_BEGIN_FIRING"
     });
+    const firstPath: string[] = [];
+    const secondPath: string[] = [];
 
-    LONGJING_FIRING_ROUNDS.forEach((round) => {
+    LONGJING_FIRING_ROUNDS.forEach(() => {
+      const firstDecision = longjingFiringDecision(first);
+      const secondDecision = longjingFiringDecision(second);
+      expect(firstDecision).not.toBeNull();
+      expect(secondDecision).not.toBeNull();
+      firstPath.push(firstDecision!.idealActions[0]);
+      secondPath.push(secondDecision!.idealActions[1]);
       first = reduceLongjing(first, {
         type: "WORKSHOP_CHOOSE_ACTION",
-        action: round.idealActions[0]
+        action: firstDecision!.idealActions[0]
       });
       second = reduceLongjing(second, {
         type: "WORKSHOP_CHOOSE_ACTION",
-        action: round.idealActions[1]
+        action: secondDecision!.idealActions[1]
       });
     });
 
@@ -133,6 +144,7 @@ describe("Longjing chapter reducer", () => {
     expect(second.workshopPhase).toBe("MEMORY");
     expect(first.firingScore).toBe(5);
     expect(second.firingScore).toBe(5);
+    expect(firstPath).not.toEqual(secondPath);
     expect([
       first.firingHeat,
       first.firingMoisture,
@@ -141,6 +153,36 @@ describe("Longjing chapter reducer", () => {
       second.firingHeat,
       second.firingMoisture,
       second.firingShape
+    ]);
+  });
+
+  it("changes the next available hand actions when leaf state changes", () => {
+    const start: LongjingSaveV1 = {
+      ...reachTerrace(),
+      currentAct: "workshop",
+      terracePhase: "COMPLETE"
+    };
+    const firing = reduceLongjing(start, {
+      type: "WORKSHOP_BEGIN_FIRING"
+    });
+    const spread = reduceLongjing(firing, {
+      type: "WORKSHOP_CHOOSE_ACTION",
+      action: "抖"
+    });
+    const guide = reduceLongjing(firing, {
+      type: "WORKSHOP_CHOOSE_ACTION",
+      action: "带"
+    });
+
+    expect(longjingFiringDecision(spread)?.choices).toEqual([
+      "带",
+      "挺",
+      "扣"
+    ]);
+    expect(longjingFiringDecision(guide)?.choices).toEqual([
+      "抖",
+      "甩",
+      "挤"
     ]);
   });
 

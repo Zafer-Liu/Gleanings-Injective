@@ -7,6 +7,7 @@ import {
 import type { ChapterInteractable } from "../../content/chapter/types";
 import {
   LONGJING_FIRING_ROUNDS,
+  longjingFiringDecision,
   type LongjingFiringAction,
   type LongjingSaveV1
 } from "../domain/longjingState";
@@ -151,13 +152,9 @@ export class LongjingWorkshopScene extends Phaser.Scene {
     const action = this.choices.confirm();
     if (action === null) return true;
     const beforeStep = this.state.firingStep;
-    const round = LONGJING_FIRING_ROUNDS[beforeStep];
+    const decision = longjingFiringDecision(this.state);
     const correct =
-      (
-        round?.idealActions as
-          | readonly LongjingFiringAction[]
-          | undefined
-      )?.includes(action) ?? false;
+      decision?.idealActions.includes(action) ?? false;
     this.choices.close();
     this.dispatch({
       type: "WORKSHOP_CHOOSE_ACTION",
@@ -167,8 +164,8 @@ export class LongjingWorkshopScene extends Phaser.Scene {
     const text = correct
       ? `${action}。叶片的状态回应了这一手。`
       : advanced
-        ? `何师傅扶住你的手，把这一段带了过去。${round?.hint ?? ""}`
-        : `先停一下。${round?.hint ?? "再看一眼锅里的叶子。"}你还有一次调整机会。`;
+        ? `何师傅扶住你的手，把这一段带了过去。${decision?.hint ?? ""}`
+        : `先停一下。${decision?.hint ?? "再看一眼锅里的叶子。"}你还有一次调整机会。`;
     this.dialogue.play(
       [
         {
@@ -189,9 +186,9 @@ export class LongjingWorkshopScene extends Phaser.Scene {
   }
 
   private openFiringRound(): void {
-    const round = LONGJING_FIRING_ROUNDS[this.state.firingStep];
+    const round = longjingFiringDecision(this.state);
     if (
-      round === undefined ||
+      round === null ||
       this.state.workshopPhase !== "FIRING"
     ) {
       return;

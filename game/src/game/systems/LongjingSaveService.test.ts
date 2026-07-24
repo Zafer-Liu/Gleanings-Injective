@@ -71,6 +71,11 @@ describe("LongjingSaveService", () => {
 
   it.each([
     {
+      currentAct: "market",
+      marketPhase: "BOARD",
+      evidence: []
+    },
+    {
       currentAct: "terrace",
       marketPhase: "COMPLETE",
       terracePhase: "PICKING",

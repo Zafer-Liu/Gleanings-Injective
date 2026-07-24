@@ -40,6 +40,7 @@ export class FilmSoundscape {
 
   setLevel(volume: number, muted: boolean): void {
     if (this.context === null || this.master === null) return;
+    void this.context.resume().catch(() => undefined);
     const value = muted ? 0 : BASE_GAIN * volume;
     this.master.gain.setTargetAtTime(
       value,

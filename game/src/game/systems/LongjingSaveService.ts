@@ -176,12 +176,41 @@ function safeTile(value: unknown, act: LongjingAct): TilePosition {
 }
 
 function isProgressConsistent(state: LongjingSaveV1): boolean {
+  const has = (...required: LongjingEvidence[]) =>
+    required.every((evidence) => state.evidence.includes(evidence));
+  const hasMarketRecord = has(
+    "evidence_tin_a",
+    "evidence_duplicate_batch",
+    "evidence_date_conflict",
+    "evidence_flow_record"
+  );
+  const hasWorkshopRecord =
+    hasMarketRecord && has("evidence_old_signature");
+  const hasFullRecord =
+    hasWorkshopRecord &&
+    has("evidence_original_batch", "evidence_refusal_copy");
+
   switch (state.currentAct) {
-    case "market":
-      return state.marketPhase !== "COMPLETE";
+    case "market": {
+      const marketReady: Record<LongjingMarketPhase, boolean> = {
+        ARRIVE: true,
+        INSPECT_TIN_A: true,
+        INSPECT_TIN_B: has("evidence_tin_a"),
+        RECORDS: has(
+          "evidence_tin_a",
+          "evidence_duplicate_batch",
+          "evidence_date_conflict"
+        ),
+        BOARD: hasMarketRecord,
+        TEA_SCOOP: hasMarketRecord,
+        COMPLETE: false
+      };
+      return marketReady[state.marketPhase];
+    }
     case "terrace":
       return (
         state.marketPhase === "COMPLETE" &&
+        hasMarketRecord &&
         state.terracePhase !== "COMPLETE" &&
         state.pickAttempts < 12
       );
@@ -189,6 +218,8 @@ function isProgressConsistent(state: LongjingSaveV1): boolean {
       return (
         state.marketPhase === "COMPLETE" &&
         state.terracePhase === "COMPLETE" &&
+        hasMarketRecord &&
+        state.pickAttempts === 12 &&
         state.workshopPhase !== "COMPLETE" &&
         ((state.workshopPhase === "ARRIVE" &&
           state.firingStep === 0) ||
@@ -202,7 +233,12 @@ function isProgressConsistent(state: LongjingSaveV1): boolean {
         state.marketPhase === "COMPLETE" &&
         state.terracePhase === "COMPLETE" &&
         state.workshopPhase === "COMPLETE" &&
-        state.truthPhase !== "COMPLETE"
+        state.firingStep === LONGJING_FIRING_ROUNDS_COUNT &&
+        hasWorkshopRecord &&
+        state.truthPhase !== "COMPLETE" &&
+        (state.truthPhase === "ARRIVE" ||
+          state.truthPhase === "COLLECT" ||
+          hasFullRecord)
       );
     case "film":
       return (
@@ -210,6 +246,7 @@ function isProgressConsistent(state: LongjingSaveV1): boolean {
         state.terracePhase === "COMPLETE" &&
         state.workshopPhase === "COMPLETE" &&
         state.truthPhase === "COMPLETE" &&
+        hasFullRecord &&
         state.inscription !== null
       );
     case "complete":
@@ -218,6 +255,7 @@ function isProgressConsistent(state: LongjingSaveV1): boolean {
         state.terracePhase === "COMPLETE" &&
         state.workshopPhase === "COMPLETE" &&
         state.truthPhase === "COMPLETE" &&
+        hasFullRecord &&
         state.inscription !== null &&
         state.filmSeen &&
         state.chapterComplete

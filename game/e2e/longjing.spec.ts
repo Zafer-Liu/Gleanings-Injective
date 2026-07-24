@@ -1,6 +1,21 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const SAVE_KEY = "gleanings.chapter-two.save.v1";
+const MARKET_EVIDENCE = [
+  "evidence_tin_a",
+  "evidence_duplicate_batch",
+  "evidence_date_conflict",
+  "evidence_flow_record"
+];
+const WORKSHOP_EVIDENCE = [
+  ...MARKET_EVIDENCE,
+  "evidence_old_signature"
+];
+const FULL_EVIDENCE = [
+  ...WORKSHOP_EVIDENCE,
+  "evidence_original_batch",
+  "evidence_refusal_copy"
+];
 
 type LongjingAct =
   | "market"
@@ -41,9 +56,63 @@ type BrowserLongjingSave = {
 function longjingSave(
   overrides: Partial<BrowserLongjingSave> = {}
 ): BrowserLongjingSave {
-  return {
+  const act = overrides.currentAct ?? "market";
+  const prerequisites: Record<
+    LongjingAct,
+    Partial<BrowserLongjingSave>
+  > = {
+    market: {},
+    terrace: {
+      marketPhase: "COMPLETE",
+      evidence: MARKET_EVIDENCE,
+      relics: ["relic_old_tea_scoop"]
+    },
+    workshop: {
+      marketPhase: "COMPLETE",
+      terracePhase: "COMPLETE",
+      evidence: MARKET_EVIDENCE,
+      pickAttempts: 12,
+      relics: ["relic_old_tea_scoop", "relic_qingming_bud"]
+    },
+    truth: {
+      marketPhase: "COMPLETE",
+      terracePhase: "COMPLETE",
+      workshopPhase: "COMPLETE",
+      evidence: WORKSHOP_EVIDENCE,
+      pickAttempts: 12,
+      firingStep: 5,
+      relics: [
+        "relic_old_tea_scoop",
+        "relic_qingming_bud",
+        "relic_palm_fire"
+      ]
+    },
+    film: {
+      marketPhase: "COMPLETE",
+      terracePhase: "COMPLETE",
+      workshopPhase: "COMPLETE",
+      truthPhase: "COMPLETE",
+      evidence: FULL_EVIDENCE,
+      pickAttempts: 12,
+      firingStep: 5,
+      inscription: "pass_on"
+    },
+    complete: {
+      marketPhase: "COMPLETE",
+      terracePhase: "COMPLETE",
+      workshopPhase: "COMPLETE",
+      truthPhase: "COMPLETE",
+      evidence: FULL_EVIDENCE,
+      pickAttempts: 12,
+      firingStep: 5,
+      inscription: "pass_on",
+      filmSeen: true,
+      chapterComplete: true
+    }
+  };
+  const base: BrowserLongjingSave = {
     version: 1,
-    currentAct: "market",
+    currentAct: act,
     checkpoint: "longjing_market_arrive",
     marketPhase: "ARRIVE",
     terracePhase: "ARRIVE",
@@ -66,7 +135,11 @@ function longjingSave(
     inventory: [],
     relics: [],
     cultureCards: [],
-    playerTile: { x: 18, y: 18 },
+    playerTile: { x: 18, y: 18 }
+  };
+  return {
+    ...base,
+    ...prerequisites[act],
     ...overrides
   };
 }
@@ -145,7 +218,6 @@ test.describe("第二章《一叶来处》", () => {
           terracePhase: "COMPLETE",
           workshopPhase: "COMPLETE",
           checkpoint: "longjing_truth_arrive",
-          evidence: ["evidence_old_signature"],
           playerTile: { x: 16, y: 19 }
         }),
         scene: "LongjingTruth",

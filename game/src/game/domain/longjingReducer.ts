@@ -4,6 +4,7 @@ import {
   LONGJING_TERRACE_SPAWN,
   LONGJING_TRUTH_SPAWN,
   LONGJING_WORKSHOP_SPAWN,
+  longjingFiringDecision,
   type LongjingEvidence,
   type LongjingFiringAction,
   type LongjingInscription,
@@ -226,17 +227,15 @@ export function reduceLongjing(
       ) {
         return state;
       }
-      const round = LONGJING_FIRING_ROUNDS[state.firingStep];
-      if (round === undefined) return state;
-      const correct = (
-        round.idealActions as readonly LongjingFiringAction[]
-      ).includes(event.action);
+      const decision = longjingFiringDecision(state);
+      if (decision === null) return state;
+      const correct = decision.idealActions.includes(event.action);
       if (!correct && !state.firingRetryUsed) {
         return {
           ...state,
           firingRetryUsed: true,
           firingMistakes: state.firingMistakes + 1,
-          checkpoint: `longjing_firing_retry_${round.id}`
+          checkpoint: `longjing_firing_retry_${decision.id}`
         };
       }
       const effect = FIRING_EFFECTS[event.action];

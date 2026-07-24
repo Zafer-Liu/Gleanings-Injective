@@ -138,7 +138,11 @@ export class ProvenanceBoard {
     const card = this.cards[this.cardIndex];
     const column = PROVENANCE_COLUMNS[this.columnIndex];
     if (card === undefined || column === undefined) {
-      return { accepted: false, complete: true, feedback: "" };
+      return {
+        accepted: false,
+        complete: false,
+        feedback: "还没有足够的证据卡，先回到场景继续核对。"
+      };
     }
     const result = validateEvidencePlacement(card.id, column.id);
     this.feedback
