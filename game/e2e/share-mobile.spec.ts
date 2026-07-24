@@ -9,6 +9,8 @@ const wallet = "0x9a470DFd0DdBB861402611c555E8fAf181D64049";
 let service: ChildProcess;
 let dotMock: Server;
 let lastDotPush: Record<string, unknown> | null = null;
+let tokenId = "";
+let tokenName = "";
 
 test.beforeAll(async () => {
   dotMock = createServer((req, res) => {
@@ -55,6 +57,21 @@ test.beforeAll(async () => {
       return false;
     }
   }, { timeout: 10_000 }).toBe(true);
+
+  const assets = (await fetch(
+    `${origin}/api/rpg/assets/${wallet}`
+  ).then((response) => response.json())) as Array<{
+    token_id: string;
+    item?: { image?: string; name?: string };
+  }>;
+  const illustrated = assets.find(
+    (asset) => asset.item?.image !== undefined
+  );
+  if (illustrated === undefined) {
+    throw new Error("测试钱包需要至少一件带图片的链上藏品");
+  }
+  tokenId = illustrated.token_id;
+  tokenName = illustrated.item?.name ?? `链上藏品 #${tokenId}`;
 });
 
 test.afterAll(() => {
@@ -65,7 +82,9 @@ test.afterAll(() => {
 test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) => {
   test.setTimeout(45_000);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`${origin}/share/?wallet=${wallet}`);
+  await page.goto(
+    `${origin}/share/?wallet=${wallet}&token=${tokenId}`
+  );
   await expect(page.locator("#collection")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("#address-form")).toBeHidden();
   await expect(page.locator("#owner")).toHaveText("0x9a47…4049");
@@ -95,7 +114,7 @@ test("扫码分享页在手机视口内不溢出藏品图片", async ({ page }) 
 
 test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`${origin}/dot/?wallet=${wallet}&token=2`);
+  await page.goto(`${origin}/dot/?wallet=${wallet}&token=${tokenId}`);
   await expect(page.getByRole("heading", { name: "拾遗 · 墨屏展签" })).toBeVisible();
   await expect(page.getByLabel("Dot API Key")).toBeVisible();
   const preview = page.getByRole("img", { name: "藏品墨屏展签预览" });
@@ -116,27 +135,43 @@ test("手机可预览 296 × 152 墨屏展签", async ({ page }) => {
   await expect(push).toBeEnabled();
   await push.click();
   await expect(page.getByRole("status")).toContainText("Image API content switched");
-  await expect(page.getByRole("link", { name: "测试 NFC 打开页面" })).toHaveAttribute("href", /\/api\/rpg\/dot\/nfc\/2$/);
+  await expect(
+    page.getByRole("link", { name: "测试 NFC 打开页面" })
+  ).toHaveAttribute(
+    "href",
+    new RegExp(`/api/rpg/dot/nfc/${tokenId}$`)
+  );
 });
 
 test("单件藏品链接只展示对应 Token 并保留分享入口", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`${origin}/share/?wallet=${wallet}&token=2`);
+  await page.goto(
+    `${origin}/share/?wallet=${wallet}&token=${tokenId}`
+  );
   await expect(page.locator("#collection-title")).toHaveText("分享的藏品", { timeout: 20_000 });
   await expect(page.locator("#count")).toHaveText("1 件");
   await expect(page.locator(".card")).toHaveCount(1);
-  await expect(page.getByRole("heading", { name: "太婆字条" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: tokenName })
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "分享展示链接" })).toBeVisible();
   await page.getByRole("button", { name: "转赠所有权" }).click();
   await expect(page.getByRole("dialog", { name: "转赠链上藏品" })).toBeVisible();
   await expect(page.getByLabel("接收方 0x 钱包地址")).toBeVisible();
-  await expect(page).toHaveURL(/wallet=.*&token=2/);
+  await expect(page).toHaveURL(
+    new RegExp(`wallet=.*&token=${tokenId}`)
+  );
 });
 
 test("转赠请求会验证当前持有人并记录接收钱包", async ({ request }) => {
   const recipient = "0x000000000000000000000000000000000000dEaD";
   const response = await request.post(`${origin}/api/rpg/requests`, {
-    data: { kind: "transfer", wallet, token_id: "2", to_wallet: recipient }
+    data: {
+      kind: "transfer",
+      wallet,
+      token_id: tokenId,
+      to_wallet: recipient
+    }
   });
   expect(response.ok()).toBe(true);
   const created = await response.json() as { request_id: string };
@@ -144,7 +179,12 @@ test("转赠请求会验证当前持有人并记录接收钱包", async ({ reque
   expect(pending.ok()).toBe(true);
   await expect(pending.json()).resolves.toMatchObject({
     status: "awaiting_signature",
-    action: { kind: "transfer", wallet, token_id: "2", to_wallet: recipient }
+    action: {
+      kind: "transfer",
+      wallet,
+      token_id: tokenId,
+      to_wallet: recipient
+    }
   });
 });
 
@@ -156,7 +196,7 @@ test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ 
 
   const pushed = await request.post(`${origin}/api/rpg/dot/push`, {
     headers: { "X-Dot-Api-Key": key },
-    data: { device_id: "DOT123456", wallet, token_id: "2" }
+    data: { device_id: "DOT123456", wallet, token_id: tokenId }
   });
   expect(pushed.ok()).toBe(true);
   expect(lastDotPush).toMatchObject({
@@ -164,12 +204,19 @@ test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ 
     border: 0,
     ditherType: "NONE",
     taskKey: "image_task_1",
-    taskAlias: "Gleanings #2"
+    taskAlias: `Gleanings #${tokenId}`
   });
   expect(String(lastDotPush?.image)).toContain("/api/rpg/dot/card/");
-  expect(String(lastDotPush?.link)).toContain("/api/rpg/dot/nfc/2");
+  expect(String(lastDotPush?.link)).toContain(
+    `/api/rpg/dot/nfc/${tokenId}`
+  );
 
-  const nfc = await request.get(`${origin}/api/rpg/dot/nfc/2`, { maxRedirects: 0 });
+  const nfc = await request.get(
+    `${origin}/api/rpg/dot/nfc/${tokenId}`,
+    { maxRedirects: 0 }
+  );
   expect(nfc.status()).toBe(302);
-  expect(nfc.headers().location).toContain(`/share/?wallet=${wallet}&token=2`);
+  expect(nfc.headers().location).toContain(
+    `/share/?wallet=${wallet}&token=${tokenId}`
+  );
 });

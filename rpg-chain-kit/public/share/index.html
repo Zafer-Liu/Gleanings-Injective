@@ -44,7 +44,7 @@
   let transferToken='',transferItemName='';
   const short=(address)=>`${address.slice(0,6)}…${address.slice(-4)}`;
   const escapeHtml=(value)=>String(value).replace(/[&<>'"]/g,(character)=>({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[character]));
-  const imageFor=(item)=>item.image||(item.collectible_id==='item_taipo_note'?'/collection/taipo-note.png':item.collectible_id==='act1-winter-brewing'||item.medal_id==='act1-winter-brewing'?'/collection/winter-brewing.png':'');
+    const imageFor=(item)=>item.collectible_id==='item_taipo_note'?'/collection/taipo-note.png':item.collectible_id==='act1-winter-brewing'||item.medal_id==='act1-winter-brewing'?'/collection/winter-brewing.png':item.image||'';
   const safeImage=(value)=>{if(!value)return'';try{const url=new URL(value,location.origin);return ['http:','https:'].includes(url.protocol)?url.href:''}catch{return''}};
   const collectionUrl=(wallet,token='')=>{const url=new URL(location.pathname,location.origin);url.searchParams.set('wallet',wallet);if(token)url.searchParams.set('token',token);return url.toString()};
   const dotUrl=(wallet,token)=>`/dot/?wallet=${encodeURIComponent(wallet)}&token=${encodeURIComponent(token)}`;
