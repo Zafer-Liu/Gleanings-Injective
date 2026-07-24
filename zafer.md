@@ -252,6 +252,7 @@ OKX Wallet 可以添加自定义 EVM 网络，操作入口见其[官方说明](h
 - 展签包含藏品图、Injective EVM Token ID、持有人缩写和 `TAP TO OPEN`；
 - Image API 的 `link` 指向 `/share/?wallet=...&token=...`，设备 NFC 轻触即可查看链上藏品；
 - 推送前再次调用合约 `ownerOf`，已转赠的 Token 不会继续以旧持有人身份生成展签。
+- 读取设备时会同时查询 Loop 内容列表；只有包含 `IMAGE_API` 的设备才启用发送按钮，并自动把对应内容 `key` 作为 `taskKey` 推送，避免多内容设备更新错位。
 
 玩家需要先在 Dot App：
 

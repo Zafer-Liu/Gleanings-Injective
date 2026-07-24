@@ -17,6 +17,10 @@ test.beforeAll(async () => {
       res.end(JSON.stringify([{ id: "DOT123456", alias: "书桌墨屏", location: "工作室", series: "quote", model: "quote_0", edition: 2 }]));
       return;
     }
+    if (req.method === "GET" && req.url === "/api/authV2/open/device/DOT123456/loop/list") {
+      res.end(JSON.stringify([{ type: "IMAGE_API", key: "image_task_1" }]));
+      return;
+    }
     if (req.method === "POST" && req.url === "/api/authV2/open/device/DOT123456/image") {
       const chunks: Buffer[] = [];
       req.on("data", (chunk) => chunks.push(chunk));
@@ -155,6 +159,7 @@ test("Dot API Key 仅经后端转发并推送带 NFC 链接的展签", async ({ 
     refreshNow: true,
     border: 0,
     ditherType: "NONE",
+    taskKey: "image_task_1",
     taskAlias: "Gleanings #2"
   });
   expect(String(lastDotPush?.image)).toContain("/api/rpg/dot/card/");

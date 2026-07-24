@@ -128,8 +128,18 @@ export function createDotRouter() {
 
   router.get('/devices', async (req, res) => {
     try {
-      const devices = await dotRequest('/api/authV2/open/devices', apiKey(req));
-      res.json(Array.isArray(devices) ? devices : []);
+      const key = apiKey(req);
+      const devices = await dotRequest('/api/authV2/open/devices', key);
+      const checked = await Promise.all((Array.isArray(devices) ? devices : []).map(async (device) => {
+        try {
+          const tasks = await dotRequest(`/api/authV2/open/device/${encodeURIComponent(device.id)}/loop/list`, key);
+          const imageTask = (Array.isArray(tasks) ? tasks : []).find((task) => task.type === 'IMAGE_API');
+          return { ...device, image_api_ready: Boolean(imageTask), image_task_key: imageTask?.key || null };
+        } catch {
+          return { ...device, image_api_ready: null, image_task_key: null };
+        }
+      }));
+      res.json(checked);
     } catch (error) {
       res.status(error.status || 400).json({ error: error.message });
     }
@@ -151,6 +161,13 @@ export function createDotRouter() {
       const key = apiKey(req);
       const id = deviceId(req.body?.device_id);
       const asset = await ownedAsset(req.body?.wallet, req.body?.token_id);
+      const tasks = await dotRequest(`/api/authV2/open/device/${encodeURIComponent(id)}/loop/list`, key);
+      const imageTask = (Array.isArray(tasks) ? tasks : []).find((task) => task.type === 'IMAGE_API');
+      if (!imageTask) {
+        const error = new Error('设备尚未配置 Image API。请在 Dot App 打开 Content Studio，把“Image API”加入该设备的 Loop 任务后重试。');
+        error.status = 409;
+        throw error;
+      }
       const publicOrigin = (process.env.PUBLIC_SHARE_ORIGIN || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
       const cardUrl = `${publicOrigin}/api/rpg/dot/card/${encodeURIComponent(asset.wallet)}/${encodeURIComponent(asset.tokenId)}.png`;
       const link = `${publicOrigin}/share/?wallet=${encodeURIComponent(asset.wallet)}&token=${encodeURIComponent(asset.tokenId)}`;
@@ -162,6 +179,7 @@ export function createDotRouter() {
           link,
           border: 0,
           ditherType: 'NONE',
+          taskKey: imageTask.key || undefined,
           taskAlias: `Gleanings #${asset.tokenId}`
         })
       });
