@@ -199,10 +199,7 @@ export class LongjingTruthScene extends Phaser.Scene {
         ...longjingLines("finalTea")
       ],
       () => {
-        this.cameras.main.fadeOut(520, 23, 21, 22);
-        this.time.delayedCall(540, () => {
-          this.scene.start("LongjingFilm");
-        });
+        this.scene.start("LongjingFilm");
       }
     );
     return true;

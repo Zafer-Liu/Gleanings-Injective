@@ -391,4 +391,38 @@ test.describe("第二章《一叶来处》", () => {
       .poll(async () => (await readSave(page))?.chapterComplete)
       .toBe(true);
   });
+
+  test("最终题词后不经过黑场确认页直接播放影片", async ({ page }) => {
+    await seed(
+      page,
+      longjingSave({
+        currentAct: "truth",
+        truthPhase: "INSCRIPTION",
+        evidence: FULL_EVIDENCE,
+        checkpoint: "longjing_truth_inscription",
+        playerTile: { x: 17, y: 15 }
+      })
+    );
+
+    await press(page, "e");
+    await press(page, "e");
+    await press(page, "e");
+    for (let index = 0; index < 6; index += 1) {
+      await press(page, "e");
+    }
+
+    await expect(page.locator("#game-root")).toHaveAttribute(
+      "data-active-scene",
+      "LongjingFilm"
+    );
+    await expect
+      .poll(async () => (await readSave(page))?.currentAct)
+      .toBe("film");
+
+    await press(page, "Escape");
+    await expect(page.locator("#game-root")).toHaveAttribute(
+      "data-active-scene",
+      "LongjingComplete"
+    );
+  });
 });

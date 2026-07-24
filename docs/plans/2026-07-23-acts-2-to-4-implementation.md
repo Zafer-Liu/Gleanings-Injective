@@ -424,7 +424,7 @@ git commit -m "feat(game): add homecoming label and demo mint"
 
 覆盖：
 
-- 六段时间范围连续覆盖约 80 秒；
+- 六段时间范围连续覆盖约 60 秒；
 - 暂停时进度不变；
 - 跳过和播放完成都设置 `cultureFilmSeen`；
 - 字幕包含“它并不是今天的黄酒”；

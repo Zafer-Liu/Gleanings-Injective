@@ -5,7 +5,7 @@ import {
 } from "./longjingFilm";
 
 describe("Longjing epilogue content", () => {
-  it("covers one continuous ninety-second timeline", () => {
+  it("covers one continuous sixty-second timeline", () => {
     expect(longjingFilmSegments).toHaveLength(6);
     expect(longjingFilmSegments[0]?.startMs).toBe(0);
     longjingFilmSegments.slice(1).forEach((segment, index) => {
@@ -16,7 +16,7 @@ describe("Longjing epilogue content", () => {
     expect(longjingFilmSegments.at(-1)?.endMs).toBe(
       LONGJING_FILM_DURATION_MS
     );
-    expect(LONGJING_FILM_DURATION_MS).toBe(90_000);
+    expect(LONGJING_FILM_DURATION_MS).toBe(60_000);
   });
 
   it("distinguishes Longjing tea from West Lake Longjing", () => {
@@ -64,7 +64,17 @@ describe("Longjing epilogue content", () => {
           (segment) =>
             segment.sourceLabel.length > 0 &&
             segment.sourceUrl.startsWith("https://")
-        )
+      )
     ).toBe(true);
+  });
+
+  it("keeps every narration segment below five Han characters per second", () => {
+    longjingFilmSegments.forEach((segment) => {
+      const hanCount =
+        segment.subtitle.match(/\p{Script=Han}/gu)?.length ?? 0;
+      const seconds = (segment.endMs - segment.startMs) / 1_000;
+
+      expect(hanCount / seconds).toBeLessThan(5);
+    });
   });
 });
